@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b0b0e'/%3E%3Cpath d='M12 16h40L24 48h28' stroke='%23ff2a2f' stroke-width='9' fill='none'/%3E%3C/svg%3E">
+<title>ZAR GAUGE Live</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0b0b0e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,800;1,800;1,900&family=Chakra+Petch:wght@500;700&display=swap">
+<style>
+[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+
+/* Layout: a bike dash in landscape - tiles left, tach centre, readouts right; stacks in portrait.
+   One committed dark look (it is a dash at night as much as by day). */
+:root {
+  --bg: #0b0b0e;
+  --panel: #15151a;
+  --panel-2: #1d1d24;
+  --line: #2c2c35;
+  --fg: #eef0f6;
+  --muted: #8a8e9b;
+  --red: #ff2a2f;
+  --amber: #ffb020;
+  --green: #3fe06b;
+  --blue: #3cb4ff;
+  --f-num: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-ui: "Chakra Petch", "Noto Sans Thai", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--f-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+
+/* ---- top bar ---- */
+.bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.logo { font-family: var(--f-num); font-style: italic; font-weight: 900; font-size: 30px; letter-spacing: .5px; line-height: 1; }
+.logo b { color: var(--red); }
+.logo span { font-weight: 800; font-size: 17px; margin-left: 6px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--line); background: var(--panel);
+  font-size: 12px; letter-spacing: .6px; text-transform: uppercase; border-radius: 3px; white-space: nowrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.ok .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.wait .dot { background: var(--amber); }
+.bad .dot { background: var(--red); }
+.actions { display: flex; gap: 8px; }
+.btn { border: 1px solid var(--line); background: var(--panel-2); padding: 8px 14px; font-size: 14px; letter-spacing: .5px; border-radius: 3px; }
+.btn.primary { background: var(--red); border-color: var(--red); color: #fff; font-weight: 700; }
+.btn.on { border-color: var(--amber); color: var(--amber); }
+
+.tabs { display: flex; gap: 0; margin: 12px 0 10px; border-bottom: 1px solid var(--line); }
+.tab { background: none; border: 0; padding: 8px 18px; font-family: var(--f-num); font-weight: 800; font-style: italic; font-size: 20px;
+  letter-spacing: 1px; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--red); }
+
+.note { margin: 0 0 10px; padding: 10px 12px; border-left: 3px solid var(--amber); background: var(--panel); font-size: 13px; color: var(--muted); }
+.note strong { color: var(--fg); }
+
+/* ---- gauge view ---- */
+.dash { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(0, 2.2fr) minmax(150px, 1fr); gap: 12px; align-items: stretch; }
+.col { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.tile { background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; border-radius: 3px; min-width: 0; }
+.lbl { font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
+.val { font-family: var(--f-num); font-weight: 800; font-style: italic; font-size: 38px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.val small { font-size: 16px; font-style: normal; font-weight: 600; color: var(--muted); margin-left: 4px; }
+.meter { height: 6px; background: var(--panel-2); margin-top: 6px; overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: var(--amber); transition: width .12s linear; }
+.warn .val { color: var(--amber); } .crit .val { color: var(--red); } .cold .val { color: var(--blue); }
+.tach { position: relative; background: radial-gradient(circle at 50% 58%, #1a1a21 0, var(--bg) 70%); border: 1px solid var(--line); border-radius: 3px; min-width: 0; }
+.tach canvas { display: block; width: 100%; height: auto; aspect-ratio: 1.45 / 1; max-width: 100%; max-height: calc(100dvh - 140px); object-fit: contain; margin: 0 auto; }
+
+/* ---- drag view ---- */
+.drag { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 12px; }
+.state { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); flex-wrap: wrap; }
+.state .big { font-family: var(--f-num); font-weight: 900; font-style: italic; font-size: 34px; letter-spacing: 1px; }
+.state .sub { font-family: var(--f-num); font-weight: 600; font-size: 20px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rows { margin-top: 10px; border: 1px solid var(--line); }
+.row { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: baseline; padding: 6px 14px; font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.row:nth-child(even) { background: var(--panel); }
+.row .n { font-weight: 800; font-size: 18px; }
+.row .t { font-weight: 800; font-size: 20px; color: var(--green); text-align: right; min-width: 70px; }
+.row .s { font-weight: 600; font-size: 18px; color: var(--green); text-align: right; min-width: 92px; }
+.row.off .n, .row.off .t, .row.off .s { color: #4a4c56; }
+.row.best { background: linear-gradient(90deg, #7a0b10, #3d0709); border-left: 3px solid var(--red); }
+.row.best .n, .row.best .t { color: #fff; } .row.best .t { font-size: 28px; font-style: italic; }
+.row.run .t { font-size: 28px; font-style: italic; color: var(--fg); }
+.row.head .n { font-family: var(--f-ui); font-size: 13px; letter-spacing: 1px; color: var(--amber); font-weight: 700; }
+.pos { color: var(--red) !important; } .neg { color: var(--green) !important; }
+.hist h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.hlist { display: grid; gap: 6px; max-height: 420px; overflow-y: auto; }
+.h { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; background: var(--panel); border: 1px solid var(--line); font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.h .d { font-size: 13px; color: var(--muted); font-family: var(--f-ui); }
+.h .tm { font-size: 24px; font-weight: 800; font-style: italic; }
+.h .tag { font-size: 12px; padding: 2px 6px; background: var(--red); color: #fff; font-family: var(--f-ui); }
+.empty { color: var(--muted); font-size: 14px; padding: 14px; border: 1px dashed var(--line); }
+
+@media (max-width: 760px) {
+  .dash { grid-template-columns: 1fr 1fr; }
+  .tach { grid-column: 1 / -1; order: -1; }
+  .drag { grid-template-columns: 1fr; }
+  .logo { font-size: 26px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {   /* phone on the handlebar */
+  body { padding-block: 4px 6px; }
+  .bar { flex-wrap: nowrap; gap: 8px; }
+  .logo { font-size: 22px; } .logo span { display: none; }
+  .chip { padding: 3px 7px; font-size: 11px; }
+  .btn { padding: 5px 10px; font-size: 13px; }
+  .tabs { margin: 4px 0 6px; } .tab { font-size: 16px; padding: 4px 14px; }
+  .dash { gap: 8px; } .col { gap: 6px; } .tile { padding: 5px 9px; }
+  .val { font-size: 28px; }
+  .tach canvas { max-height: calc(100dvh - 92px); }
+}
+@media (prefers-reduced-motion: reduce) { .meter i { transition: none; } }
+</style>
+</head>
+<body>
+
+
+<div class="bar">
+  <div class="logo"><b>ZAR</b> RACING<span>GAUGE LIVE</span></div>
+  <div class="chips">
+    <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
+    <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
+    <span class="chip" id="cGps"><span class="dot"></span><span>GPS</span></span>
+  </div>
+  <div class="actions">
+    <button class="btn primary" id="bConnect" type="button">เชื่อมต่อ</button>
+    <button class="btn" id="bDemo" type="button">DEMO</button>
+    <button class="btn" id="bFull" type="button" aria-label="Fullscreen">⛶</button>
+  </div>
+</div>
+
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" id="tGauge" aria-selected="true" type="button">GAUGE</button>
+  <button class="tab" role="tab" id="tDrag" aria-selected="false" type="button">DRAG LOG</button>
+</div>
+
+<p class="note" id="note" hidden></p>
+
+<section id="vGauge">
+  <div class="dash">
+    <div class="col">
+      <div class="tile" id="kTps"><div class="lbl"><span>TPS</span><span>%</span></div><div class="val">--</div><div class="meter"><i></i></div></div>
+      <div class="tile" id="kAfr"><div class="lbl"><span>AFR</span><span>O2</span></div><div class="val">--</div><div class="meter"><i></i></div></div>
+      <div class="tile" id="kIgn"><div class="lbl"><span>IGN</span><span>°BTDC</span></div><div class="val">--</div></div>
+    </div>
+    <div class="tach"><canvas id="cv" width="870" height="600"></canvas></div>
+    <div class="col">
+      <div class="tile" id="kEct"><div class="lbl"><span>ECT</span><span>°C</span></div><div class="val">--</div></div>
+      <div class="tile" id="kIat"><div class="lbl"><span>IAT</span><span>°C</span></div><div class="val">--</div></div>
+      <div class="tile" id="kBat"><div class="lbl"><span>BATTERY</span><span>V</span></div><div class="val">--</div></div>
+      <div class="tile" id="kTop"><div class="lbl"><span>TOP SPEED</span><span>km/h</span></div><div class="val">--</div></div>
+      <div class="tile" id="kPeak"><div class="lbl"><span>PEAK RPM</span><button class="btn" id="bResetPeak" type="button" style="padding:0 6px;font-size:11px">RESET</button></div><div class="val">--</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="vDrag" hidden>
+  <div class="drag">
+    <div>
+      <div class="state"><span class="big" id="dState">NO GPS</span><span class="sub" id="dLive"></span></div>
+      <div class="rows" id="dRows"></div>
+    </div>
+    <div class="hist">
+      <h3><span>ประวัติรอบวิ่ง (เก็บในมือถือนี้)</span><button class="btn" id="bClearHist" type="button" style="padding:3px 10px;font-size:12px">ล้าง</button></h3>
+      <div class="hlist" id="hList"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const SVC  = '7a617200-6761-7567-6500-000000000000';
+  const LIVE = '7a617200-6761-7567-6500-000000000001';
+  const DRAG = '7a617200-6761-7567-6500-000000000002';
+  const SPLITS = ['60 FT', '100 M', '201 M', '402 M', '1000 M'];
+  const STATE = ['NO GPS', 'STOP TO ARM', 'READY', 'RUN'];
+  const RPM_MAX = 15000;
+  const $ = id => document.getElementById(id);
+
+  // ---------- state ----------
+  const S = { live: null, drag: null, link: 'off', demo: false, rpmShown: 0, top: 0, peak: 0, lastCounter: -1 };
+  let dev = null, chLive = null, chDrag = null, wake = null, reconnectTimer = 0;
+
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  let hist = store.get('zar.hist', []);
+
+  // ---------- decode (matches src/data/ble_packet.h) ----------
+  function decodeLive(dv) {
+    const f0 = dv.getUint8(0), f1 = dv.getUint8(1);
+    return {
+      rpm: f0 & 1 ? dv.getUint16(2, true) : null,
+      ect: f0 & 2 ? dv.getUint8(4) - 40 : null,
+      iat: f0 & 4 ? dv.getUint8(5) - 40 : null,
+      bat: f0 & 8 ? dv.getUint8(6) / 10 : null,
+      tps: f0 & 16 ? dv.getUint8(7) : null,
+      ign: f0 & 32 ? (dv.getUint8(8) - 128) / 2 : null,
+      afr: f0 & 64 ? dv.getUint8(9) / 10 : null,
+      shift: !!(f0 & 128),
+      gps: !!(f1 & 1), fix: !!(f1 & 2), ecu: !!(f1 & 4),
+      kmh: dv.getUint16(10, true) / 10, sats: dv.getUint8(12), hz: dv.getUint8(13),
+      dst: dv.getUint8(14), el: dv.getUint16(15, true) / 100, dist: dv.getUint16(17, true),
+      counter: dv.getUint8(19)
+    };
+  }
+
+  // ---------- bluetooth ----------
+  function note(html) { const n = $('note'); n.innerHTML = html; n.hidden = !html; }
+  if (!navigator.bluetooth) {
+    note('เบราว์เซอร์นี้ใช้บลูทูธไม่ได้ <strong>Android:</strong> เปิดด้วย Chrome &nbsp;·&nbsp; <strong>iPhone:</strong> เปิดลิงก์นี้ในแอป Bluefy (ฟรีใน App Store) &nbsp;·&nbsp; กด DEMO เพื่อดูหน้าตาแอปก่อนได้');
+  }
+
+  async function connect() {
+    if (!navigator.bluetooth) return;
+    try {
+      setLink('wait', 'SCAN');
+      dev = await navigator.bluetooth.requestDevice({ filters: [{ services: [SVC] }, { name: 'ZAR GAUGE' }], optionalServices: [SVC] });
+      dev.addEventListener('gattserverdisconnected', onDisconnect);
+      await openGatt();
+    } catch (e) {
+      setLink('off', 'BT OFF');
+      if (e && e.name !== 'NotFoundError') note('เชื่อมต่อไม่ได้: ' + (e.message || e) + ' — เปิดบลูทูธและตำแหน่ง (Location) ของมือถือ แล้วลองใหม่');
+    }
+  }
+  async function openGatt() {
+    setLink('wait', 'CONNECTING');
+    const gatt = await dev.gatt.connect();
+    const svc = await gatt.getPrimaryService(SVC);
+    chLive = await svc.getCharacteristic(LIVE);
+    chDrag = await svc.getCharacteristic(DRAG);
+    chLive.addEventListener('characteristicvaluechanged', e => onLive(decodeLive(e.target.value)));
+    chDrag.addEventListener('characteristicvaluechanged', () => readDrag());
+    await chLive.startNotifications();
+    await chDrag.startNotifications();
+    S.demo = false; $('bDemo').classList.remove('on');
+    setLink('ok', 'CONNECTED');
+    note('');
+    readDrag();
+    keepAwake();
+  }
+  function onDisconnect() {
+    setLink('wait', 'RECONNECT');
+    clearTimeout(reconnectTimer);
+    const retry = async n => {
+      if (!dev || S.demo) return;
+      try { await openGatt(); } catch (e) { if (n < 20) reconnectTimer = setTimeout(() => retry(n + 1), 1500); else setLink('bad', 'LOST'); }
+    };
+    reconnectTimer = setTimeout(() => retry(0), 800);
+  }
+  let reading = false;
+  async function readDrag() {
+    if (!chDrag || reading) return;
+    reading = true;
+    try {
+      const v = await chDrag.readValue();
+      const txt = new TextDecoder().decode(v);
+      onDrag(JSON.parse(txt));
+    } catch (e) { /* half a packet while moving: the next counter change reads again */ }
+    reading = false;
+  }
+  function setLink(cls, txt) {
+    S.link = cls;
+    const c = $('cBle'); c.className = 'chip ' + cls; c.lastElementChild.textContent = txt;
+    $('bConnect').textContent = cls === 'ok' ? 'เชื่อมต่อแล้ว' : 'เชื่อมต่อ';
+  }
+  async function keepAwake() {
+    try { if ('wakeLock' in navigator && !wake) { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); } } catch (e) {}
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && (S.link === 'ok' || S.demo)) keepAwake(); });
+
+  // ---------- data in ----------
+  function onLive(d) {
+    S.live = d;
+    if (d.rpm != null && d.rpm > S.peak) S.peak = d.rpm;
+    if (d.fix && d.kmh > S.top) S.top = d.kmh;
+    if (d.counter !== S.lastCounter) { S.lastCounter = d.counter; if (!S.demo) readDrag(); }
+    paintTiles();
+    paintDragLive();
+  }
+  function onDrag(j) {
+    S.drag = j;
+    const r = j.run;
+    if (r && r.done && r.seq) {
+      const key = [j.name, r.seq, r.t.join(',')].join('|');
+      if (!hist.some(h => h.key === key)) {
+        hist.unshift({ key, at: Date.now(), name: j.name, total: totalOf(j, r), vmax: r.vmax, t: r.t, v: r.v,
+                       best: !!(j.best && j.best.seq === r.seq) });
+        hist = hist.slice(0, 100);
+        store.set('zar.hist', hist);
+      }
+    }
+    paintDrag();
+  }
+  function totalOf(j, r) { const i = SPLITS.indexOf(j.name); return i >= 0 ? r.t[i] : -1; }
+
+  // ---------- paint: tiles ----------
+  function setTile(id, v, fmt, opts = {}) {
+    const el = $(id), val = el.querySelector('.val');
+    val.firstChild ? (val.firstChild.nodeValue = v == null ? '--' : fmt(v)) : (val.textContent = v == null ? '--' : fmt(v));
+    el.classList.toggle('warn', !!opts.warn); el.classList.toggle('crit', !!opts.crit); el.classList.toggle('cold', !!opts.cold);
+    const m = el.querySelector('.meter i');
+    if (m) m.style.width = v == null ? '0%' : Math.max(0, Math.min(100, opts.pct)) + '%';
+  }
+  function paintTiles() {
+    const d = S.live || {};
+    setTile('kTps', d.tps, v => v.toFixed(0), { pct: d.tps });
+    setTile('kAfr', d.afr, v => v.toFixed(1), { pct: d.afr == null ? 0 : (d.afr - 10) * 10, warn: d.afr != null && d.afr < 13.8, cold: d.afr != null && d.afr > 15.2 });
+    setTile('kIgn', d.ign, v => v.toFixed(1));
+    setTile('kEct', d.ect, v => v.toFixed(0), { cold: d.ect != null && d.ect < 60, warn: d.ect >= 100 && d.ect < 105, crit: d.ect >= 105 });
+    setTile('kIat', d.iat, v => v.toFixed(0));
+    setTile('kBat', d.bat, v => v.toFixed(1), { warn: d.bat != null && (d.bat < 12.4 || d.bat > 14.8), crit: d.bat != null && (d.bat < 11.8 || d.bat > 15.2) });
+    setTile('kTop', S.top || null, v => v.toFixed(1));
+    setTile('kPeak', S.peak || null, v => String(Math.round(v / 50) * 50));
+    const e = $('cEcu');
+    e.className = 'chip ' + (S.live ? (d.ecu ? 'ok' : 'bad') : '');
+    e.lastElementChild.textContent = S.live ? (d.ecu ? 'ECU LIVE' : 'NO ECU') : 'ECU';
+    const g = $('cGps');
+    g.className = 'chip ' + (!S.live ? '' : !d.gps ? 'bad' : !d.fix ? 'wait' : 'ok');
+    g.lastElementChild.textContent = !S.live ? 'GPS' : !d.gps ? 'NO GPS' : !d.fix ? d.sats + ' SAT · NO FIX' : d.sats + ' SAT · ' + d.hz + 'HZ';
+  }
+  $('bResetPeak').addEventListener('click', () => { S.peak = 0; S.top = 0; paintTiles(); });
+
+  // ---------- paint: tach (canvas) ----------
+  const cv = $('cv'), ctx = cv.getContext('2d');
+  const A0 = Math.PI * 0.80, A1 = Math.PI * 2.20;              // sweep start / end (radians)
+  const ang = rpm => A0 + (A1 - A0) * Math.min(1, Math.max(0, rpm / RPM_MAX));
+  function drawTach() {
+    const W = cv.width, H = cv.height, cx = W / 2, cy = H * 0.58, R = Math.min(W * 0.42, H * 0.54);
+    ctx.clearRect(0, 0, W, H);
+    const d = S.live || {};
+    const target = d.rpm || 0;
+    S.rpmShown += (target - S.rpmShown) * 0.35;
+    const rpm = S.rpmShown;
+    const red = 12000;
+    // track
+    ctx.lineCap = 'butt';
+    ctx.lineWidth = R * 0.13;
+    ctx.strokeStyle = '#1f1f27';
+    ctx.beginPath(); ctx.arc(cx, cy, R, A0, A1); ctx.stroke();
+    ctx.strokeStyle = '#4a0d10';
+    ctx.beginPath(); ctx.arc(cx, cy, R, ang(red), A1); ctx.stroke();
+    // segments lit
+    const segs = 60;
+    for (let i = 0; i < segs; i++) {
+      const r0 = i / segs * RPM_MAX, r1 = (i + 0.78) / segs * RPM_MAX;
+      if (r0 > rpm) break;
+      const t = r0 / RPM_MAX;
+      ctx.strokeStyle = r0 >= red || d.shift ? '#ff2a2f' : t > 0.62 ? '#ffb020' : '#eef0f6';
+      ctx.beginPath(); ctx.arc(cx, cy, R, ang(r0), ang(Math.min(r1, rpm))); ctx.stroke();
+    }
+    // ticks + numbers
+    ctx.fillStyle = '#8a8e9b';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `italic 800 ${Math.round(R * 0.13)}px "Barlow Condensed", sans-serif`;
+    for (let k = 0; k <= 15; k++) {
+      const a = ang(k * 1000);
+      ctx.strokeStyle = k * 1000 >= red ? '#ff2a2f' : '#5a5c68';
+      ctx.lineWidth = k % 5 === 0 ? 4 : 2;
+      const ri = R * 0.80, ro = R * 0.90;
+      ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * ri, cy + Math.sin(a) * ri); ctx.lineTo(cx + Math.cos(a) * ro, cy + Math.sin(a) * ro); ctx.stroke();
+      ctx.fillStyle = k * 1000 >= red ? '#ff2a2f' : '#9a9eab';
+      ctx.fillText(String(k), cx + Math.cos(a) * R * 0.68, cy + Math.sin(a) * R * 0.68);
+    }
+    // needle
+    const a = ang(rpm);
+    ctx.strokeStyle = '#ff2a2f'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R * 0.30, cy + Math.sin(a) * R * 0.30); ctx.lineTo(cx + Math.cos(a) * R * 1.02, cy + Math.sin(a) * R * 1.02); ctx.stroke();
+    // centre readouts
+    ctx.fillStyle = d.shift ? '#ff2a2f' : '#eef0f6';
+    ctx.font = `italic 900 ${Math.round(R * 0.42)}px "Barlow Condensed", sans-serif`;
+    ctx.fillText(d.rpm == null ? '----' : String(Math.round(rpm / 50) * 50), cx, cy - R * 0.06);
+    ctx.fillStyle = '#8a8e9b';
+    ctx.font = `600 ${Math.round(R * 0.11)}px "Chakra Petch", sans-serif`;
+    ctx.fillText('RPM', cx, cy + R * 0.22);
+    ctx.fillStyle = '#eef0f6';
+    ctx.font = `italic 800 ${Math.round(R * 0.30)}px "Barlow Condensed", sans-serif`;
+    ctx.fillText(d.fix ? Math.round(d.kmh) : '--', cx, cy + R * 0.48);
+    ctx.fillStyle = '#8a8e9b';
+    ctx.font = `600 ${Math.round(R * 0.10)}px "Chakra Petch", sans-serif`;
+    ctx.fillText('km/h · GPS', cx, cy + R * 0.70);
+  }
+
+  // ---------- paint: drag ----------
+  const fmt = t => t == null || t < 0 ? '--.---' : t.toFixed(3);
+  function paintDragLive() {
+    const d = S.live;
+    const st = $('dState'), lv = $('dLive');
+    if (!d) { st.textContent = 'ยังไม่เชื่อมต่อ'; st.style.color = 'var(--muted)'; lv.textContent = ''; return; }
+    const s = d.dst;
+    st.textContent = s === 3 ? fmt(d.el) : s === 0 && d.gps ? 'WAIT GPS FIX' : STATE[s] || '';
+    st.style.color = s === 2 ? 'var(--green)' : s === 3 ? 'var(--amber)' : s === 0 ? 'var(--red)' : 'var(--muted)';
+    lv.textContent = s === 3 ? `${Math.round(d.kmh)} km/h · ${d.dist} m` : s === 2 ? 'ออกตัวได้เลย' : s === 1 ? `${Math.round(d.kmh)} km/h · จอดนิ่งเพื่อเริ่ม` : '';
+  }
+  function paintDrag() {
+    const j = S.drag, box = $('dRows');
+    if (!j) { box.innerHTML = '<div class="empty">ยังไม่มีข้อมูลจับเวลา — เชื่อมต่อเกจที่ต่อ GPS แล้ว หรือกด DEMO</div>'; return; }
+    const tgtIdx = SPLITS.indexOf(j.name);
+    const r = j.run || {}, b = j.best || {};
+    const rt = r.seq ? r.t[tgtIdx] : -1, bt = b.seq ? b.t[tgtIdx] : -1;
+    let delta = '';
+    if (r.done && r.delta != null && b.seq && b.seq !== r.seq) delta = `<span class="s ${r.delta > 0 ? 'pos' : 'neg'}">${r.delta > 0 ? '+' : '-'}${Math.abs(r.delta).toFixed(3)}</span>`;
+    else if (r.done && b.seq === r.seq) delta = '<span class="s neg">BEST</span>';
+    let h = `<div class="row head"><span class="n">0 KM/H - ${j.name}</span><span></span><span></span></div>`;
+    h += `<div class="row best"><span class="n">BEST</span><span class="t">${fmt(bt)}</span><span class="s" style="color:#fff">${b.seq ? '@RUN' + b.seq : ''}</span></div>`;
+    h += `<div class="row run"><span class="n">RUN ${r.seq || ''}</span><span class="t">${fmt(rt)}</span>${delta || '<span class="s"></span>'}</div>`;
+    SPLITS.forEach((n, i) => {
+      const on = i <= tgtIdx, got = on && r.seq && r.t[i] >= 0;
+      h += `<div class="row ${on ? '' : 'off'}"><span class="n">${n}</span><span class="t">${on ? fmt(got ? r.t[i] : -1) : ''}</span><span class="s">${got ? r.v[i].toFixed(1) + ' km/h' : ''}</span></div>`;
+    });
+    h += `<div class="row"><span class="n">VMAX</span><span class="t" style="color:var(--fg)">${r.seq ? r.vmax.toFixed(1) : '--'}</span><span class="s" style="color:var(--muted)">km/h</span></div>`;
+    box.innerHTML = h;
+    paintHist();
+  }
+  let armClear = false;
+  function paintHist() {
+    const L = $('hList');
+    if (!hist.length) { L.innerHTML = '<div class="empty">รอบที่วิ่งจบจะถูกบันทึกไว้ที่นี่อัตโนมัติ</div>'; return; }
+    L.innerHTML = hist.map(x => {
+      const dt = new Date(x.at);
+      const ds = dt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }) + ' ' + dt.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      return `<div class="h"><span class="d">${ds}<br>0-${x.name}</span><span class="tm">${fmt(x.total)}</span><span>${x.best ? '<span class="tag">BEST</span> ' : ''}${x.vmax.toFixed(1)} km/h</span></div>`;
+    }).join('');
+  }
+  $('bClearHist').addEventListener('click', e => {
+    if (!armClear) { armClear = true; e.target.textContent = 'แตะอีกครั้งเพื่อยืนยัน'; setTimeout(() => { armClear = false; e.target.textContent = 'ล้าง'; }, 3000); return; }
+    armClear = false; e.target.textContent = 'ล้าง'; hist = []; store.set('zar.hist', hist); paintHist();
+  });
+
+  // ---------- demo (no gauge needed) ----------
+  let demoT = 0, demoTimer = 0, demoRun = { seq: 0 }, demoBest = null, demoCounter = 0;
+  function demoTick() {
+    demoT += 0.1;
+    const cyc = demoT % 30;                         // 0-6 s stopped, 6-24 run, 24-30 coast
+    let kmh = 0, rpm = 1500, dst = 2, el = 0, dist = 0;
+    if (cyc >= 6 && cyc < 24) {
+      const t = cyc - 6;
+      kmh = 165 * (1 - Math.exp(-t / 7.5));
+      rpm = 4500 + ((t * 2.9) % 3) / 3 * 7000;
+      dst = 3; el = t; dist = 165 / 3.6 * (t - 7.5 * (1 - Math.exp(-t / 7.5)));
+      if (dist >= 402.3 && demoRun.seq && !demoRun.done) finishDemo();
+      if (demoRun.done) { dst = 1; el = 0; }
+    } else if (cyc >= 24) { kmh = 165 * (1 - (cyc - 24) / 6); rpm = 3000 + kmh * 30; dst = 1; }
+    if (cyc >= 6 && cyc < 6.15 && (!demoRun.seq || demoRun.done)) { demoRun = { seq: (demoRun.seq || 0) + 1, done: 0 }; }
+    rpm += Math.sin(demoT * 9) * 120;
+    const live = { rpm: Math.round(rpm), ect: 86, iat: 38, bat: 13.8, tps: dst === 3 ? 100 : 4, ign: 12 + rpm / 1200, afr: dst === 3 ? 12.9 : 14.6,
+      shift: rpm > 12000, gps: true, fix: true, ecu: true, kmh, sats: 11, hz: 10, dst, el, dist: Math.round(dist), counter: demoCounter };
+    onLive(live);
+  }
+  function finishDemo() {
+    const k = 0.94 + Math.random() * 0.1;                          // each run a bit different
+    const vt = t => 165 * k * (1 - Math.exp(-t / 7.5));
+    const dt = t => 165 * k / 3.6 * (t - 7.5 * (1 - Math.exp(-t / 7.5)));
+    const tAt = D => { let a = 0, b = 60; for (let i = 0; i < 50; i++) { const m = (a + b) / 2; dt(m) < D ? a = m : b = m; } return a; };
+    const t = [18.288, 100, 201.168, 402.336, -1].map(D => D < 0 ? -1 : +(tAt(D) + 0.3).toFixed(3));
+    const v = t.map(x => x < 0 ? 0 : +vt(x - 0.3).toFixed(1));
+    const run = { seq: demoRun.seq, done: 1, t, v, vmax: v[3] };
+    const prev = demoBest;
+    run.delta = prev ? +(t[3] - prev.t[3]).toFixed(3) : 0;
+    if (!prev || t[3] < prev.t[3]) demoBest = run;
+    demoRun = run;
+    demoCounter++;
+    onDrag({ tgt: 402.3, name: '402 M', st: 1, run, best: demoBest });
+  }
+  $('bDemo').addEventListener('click', () => {
+    S.demo = !S.demo;
+    $('bDemo').classList.toggle('on', S.demo);
+    clearInterval(demoTimer);
+    if (S.demo) {
+      if (dev && dev.gatt.connected) dev.gatt.disconnect();
+      setLink('wait', 'DEMO');
+      demoTimer = setInterval(demoTick, 100);
+      if (!S.drag) onDrag({ tgt: 402.3, name: '402 M', st: 2, run: { seq: 0, done: 0, t: [-1, -1, -1, -1, -1], v: [0, 0, 0, 0, 0], vmax: 0 }, best: { seq: 0, done: 0, t: [-1, -1, -1, -1, -1], v: [0, 0, 0, 0, 0], vmax: 0 } });
+      keepAwake();
+    } else { setLink('off', 'BT OFF'); S.live = null; paintTiles(); paintDragLive(); }
+  });
+
+  // ---------- ui ----------
+  $('bConnect').addEventListener('click', () => { if (S.link !== 'ok') { if (S.demo) $('bDemo').click(); connect(); } });
+  $('bFull').addEventListener('click', async () => {
+    try { if (!document.fullscreenElement) { await document.documentElement.requestFullscreen(); try { await screen.orientation.lock('landscape'); } catch (e) {} } else await document.exitFullscreen(); } catch (e) {}
+  });
+  function show(tab) {
+    const g = tab === 'gauge';
+    $('vGauge').hidden = !g; $('vDrag').hidden = g;
+    $('tGauge').setAttribute('aria-selected', g); $('tDrag').setAttribute('aria-selected', !g);
+    store.set('zar.tab', tab);
+  }
+  $('tGauge').addEventListener('click', () => show('gauge'));
+  $('tDrag').addEventListener('click', () => show('drag'));
+  show(store.get('zar.tab', 'gauge'));
+
+  (function loop() { drawTach(); requestAnimationFrame(loop); })();
+  paintTiles(); paintDrag(); paintDragLive();
+  // first view: run the demo so the page shows what it does; Connect switches to the real gauge
+  if (!navigator.bluetooth) $('bDemo').click();
+})();
+</script>
+
+</body>
+</html>
