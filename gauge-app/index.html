@@ -71,6 +71,9 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 .swatches { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 12px; border: 1px solid rgba(var(--acc-rgb), .6);
   background: rgba(6, 9, 13, .92); border-radius: 6px; box-shadow: 0 0 14px rgba(var(--acc-rgb), .25); }
 .swatches span { font-size: 13px; letter-spacing: 1px; color: var(--muted); margin-right: 4px; }
+.spdset { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; color: var(--muted); font-size: 13px; order: 9; }
+.spdset b { color: #ffc400; font-family: var(--f-num); font-size: 22px; font-style: italic; min-width: 40px; text-align: center; }
+.tach { cursor: pointer; }
 .sw { width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; }
 .sw[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 14px currentColor; }
 
@@ -184,12 +187,19 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     <div class="actions">
       <button class="btn" id="bConnect" type="button">เชื่อมต่อ</button>
       <button class="btn" id="bDemo" type="button">DEMO</button>
-      <button class="btn icon" id="bColor" type="button" aria-label="เปลี่ยนสี" aria-expanded="false"><span class="swatch-dot"></span></button>
+      <button class="btn icon" id="bColor" type="button" aria-label="สีและตั้งค่า" aria-expanded="false"><span class="swatch-dot"></span></button>
       <button class="btn icon" id="bFull" type="button" aria-label="Fullscreen">⛶</button>
     </div>
   </header>
 
-  <div class="swatches" id="sw" hidden><span>สีธีม</span></div>
+  <div class="swatches" id="sw" hidden>
+    <span>สีธีม</span>
+    <span class="spdset">ความเร็วจากรอบ
+      <button type="button" class="btn icon" id="bKm">−</button>
+      <b id="kmVal">10.5</b> km/h ต่อ 1000 รอบ
+      <button type="button" class="btn icon" id="bKp">+</button>
+    </span>
+  </div>
 
   <div class="sub">
     <div class="tabs" role="tablist">
@@ -379,6 +389,16 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     const m = el.querySelector('.meter i');
     if (m) m.style.width = v == null ? '0%' : Math.max(0, Math.min(100, opts.pct)) + '%';
   }
+  S.spdSrc = store.get('zar.spdsrc', 'gps');
+  S.kmhPerK = store.get('zar.kmhk', 10.5);
+  function speedNow() {                            // what the big speed number shows
+    if (S.spdSrc === 'rpm') {
+      const d = S.live || {};
+      return { rpm: true, ok: d.rpm != null, kmh: d.rpm != null ? d.rpm / 1000 * S.kmhPerK : 0 };
+    }
+    const q = gpsNow();
+    return { rpm: false, ok: q.fix, kmh: q.kmh, phone: q.src === 'phone' };
+  }
   function gpsNow() {                              // what the speed / GPS chip shows
     if (!S.demo && usePhone()) return { src: 'phone', on: S.phone.on, gps: S.phone.on, fix: S.phone.fix, kmh: S.phone.kmh, sats: null, hz: S.phone.hz, acc: S.phone.acc, err: S.phone.err };
     const d = S.live || {};
@@ -531,12 +551,13 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     ctx.fillText('RPM', cx, cy + R * 0.28);
     ctx.fillStyle = acc; ctx.shadowColor = acc; ctx.shadowBlur = 14;
     ctx.font = `italic 900 ${Math.round(R * 0.26)}px "Barlow Condensed", sans-serif`;
-    const q = gpsNow();
-    ctx.fillText(q.fix ? String(Math.round(q.kmh)) : '—', cx, cy + R * 0.52);
+    const q = speedNow();
+    if (q.rpm) { ctx.fillStyle = '#ffc400'; ctx.shadowColor = '#ffc400'; }
+    ctx.fillText(q.ok ? String(Math.round(q.kmh)) : '—', cx, cy + R * 0.52);
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#b8bfcc';
     ctx.font = `600 ${Math.round(R * 0.10)}px "Chakra Petch", sans-serif`;
-    ctx.fillText(q.src === 'phone' ? 'km/h · GPS มือถือ' : 'km/h · GPS', cx, cy + R * 0.74);
+    ctx.fillText(q.rpm ? 'km/h · จากรอบ  ⇄' : q.phone ? 'km/h · GPS มือถือ  ⇄' : 'km/h · GPS  ⇄', cx, cy + R * 0.74);
   }
 
   // ---------- paint: drag ----------
@@ -784,6 +805,13 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     pdrag.setTarget((pdrag.target + 1) % 4); store.set('zar.ptarget', pdrag.target);
     syncGpsSource();
   });
+
+  // tap the dial: speed from GPS <-> from rpm
+  $('cv').addEventListener('click', () => { S.spdSrc = S.spdSrc === 'gps' ? 'rpm' : 'gps'; store.set('zar.spdsrc', S.spdSrc); });
+  function setKm(v) { S.kmhPerK = Math.round(Math.max(3, Math.min(25, v)) * 10) / 10; store.set('zar.kmhk', S.kmhPerK); $('kmVal').textContent = S.kmhPerK.toFixed(1); }
+  $('bKm').addEventListener('click', () => setKm(S.kmhPerK - 0.1));
+  $('bKp').addEventListener('click', () => setKm(S.kmhPerK + 0.1));
+  setKm(S.kmhPerK);
 
   // ---------- ui ----------
   $('bConnect').addEventListener('click', () => { if (S.link !== 'ok') { if (S.demo) $('bDemo').click(); connect(); } });
