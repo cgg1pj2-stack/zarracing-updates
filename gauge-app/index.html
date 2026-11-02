@@ -71,7 +71,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 .swatches { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 12px; border: 1px solid rgba(var(--acc-rgb), .6);
   background: rgba(6, 9, 13, .92); border-radius: 6px; box-shadow: 0 0 14px rgba(var(--acc-rgb), .25); }
 .swatches span { font-size: 13px; letter-spacing: 1px; color: var(--muted); margin-right: 4px; }
-.spdset { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; color: var(--muted); font-size: 13px; order: 9; }
+.spdset { flex-wrap: wrap; display: inline-flex; align-items: center; gap: 8px; margin-left: auto; color: var(--muted); font-size: 13px; order: 9; }
 .spdset b { color: #ffc400; font-family: var(--f-num); font-size: 22px; font-style: italic; min-width: 40px; text-align: center; }
 .tach { cursor: pointer; }
 .sw { width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; }
@@ -194,10 +194,12 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 
   <div class="swatches" id="sw" hidden>
     <span>สีธีม</span>
-    <span class="spdset">ความเร็วจากรอบ
+    <span class="spdset">ความเร็วจากกล่อง ECM (คำนวณจากรอบ)
       <button type="button" class="btn icon" id="bKm">−</button>
       <b id="kmVal">10.5</b> km/h ต่อ 1000 รอบ
       <button type="button" class="btn icon" id="bKp">+</button>
+      <button type="button" class="btn" id="bCal" title="วิ่งนิ่งๆ เกียร์สูงสุด แล้วกด">ปรับเทียบกับ GPS</button>
+      <span id="calMsg"></span>
     </span>
   </div>
 
@@ -284,9 +286,9 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
       ign: f0 & 32 ? (dv.getUint8(8) - 128) / 2 : null,
       afr: f0 & 64 ? dv.getUint8(9) / 10 : null,
       shift: !!(f0 & 128),
-      gps: !!(f1 & 1), fix: !!(f1 & 2), ecu: !!(f1 & 4),
-      kmh: dv.getUint16(10, true) / 10, sats: dv.getUint8(12), hz: dv.getUint8(13),
-      dst: dv.getUint8(14), el: dv.getUint16(15, true) / 100, dist: dv.getUint16(17, true),
+      gps: !!(f1 & 1), fix: !!(f1 & 2), ecu: !!(f1 & 4), ecuSpd: f1 & 8 ? dv.getUint8(13) : null,
+      kmh: dv.getUint16(10, true) / 10, sats: dv.getUint8(12), hz: dv.getUint8(14) >> 4,
+      dst: dv.getUint8(14) & 15, el: dv.getUint16(15, true) / 100, dist: dv.getUint16(17, true),
       counter: dv.getUint8(19)
     };
   }
@@ -389,11 +391,12 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     const m = el.querySelector('.meter i');
     if (m) m.style.width = v == null ? '0%' : Math.max(0, Math.min(100, opts.pct)) + '%';
   }
-  S.spdSrc = store.get('zar.spdsrc', 'gps');
+  S.spdSrc = store.get('zar.spdsrc', 'gps') === 'gps' ? 'gps' : 'ecm';
   S.kmhPerK = store.get('zar.kmhk', 10.5);
   function speedNow() {                            // what the big speed number shows
-    if (S.spdSrc === 'rpm') {
+    if (S.spdSrc === 'ecm') {                       // the ECU's own speed, else from its rpm
       const d = S.live || {};
+      if (d.ecuSpd != null) return { rpm: true, ok: true, kmh: d.ecuSpd };
       return { rpm: true, ok: d.rpm != null, kmh: d.rpm != null ? d.rpm / 1000 * S.kmhPerK : 0 };
     }
     const q = gpsNow();
@@ -557,7 +560,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#b8bfcc';
     ctx.font = `600 ${Math.round(R * 0.10)}px "Chakra Petch", sans-serif`;
-    ctx.fillText(q.rpm ? 'km/h · จากรอบ  ⇄' : q.phone ? 'km/h · GPS มือถือ  ⇄' : 'km/h · GPS  ⇄', cx, cy + R * 0.74);
+    ctx.fillText(q.rpm ? 'km/h · จากกล่อง ECM  ⇄' : q.phone ? 'km/h · GPS มือถือ  ⇄' : 'km/h · GPS  ⇄', cx, cy + R * 0.74);
   }
 
   // ---------- paint: drag ----------
@@ -807,7 +810,14 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
   });
 
   // tap the dial: speed from GPS <-> from rpm
-  $('cv').addEventListener('click', () => { S.spdSrc = S.spdSrc === 'gps' ? 'rpm' : 'gps'; store.set('zar.spdsrc', S.spdSrc); });
+  $('cv').addEventListener('click', () => { S.spdSrc = S.spdSrc === 'gps' ? 'ecm' : 'gps'; store.set('zar.spdsrc', S.spdSrc); });
+  // CAL: make the rpm speed equal the GPS right now (ride steady in top gear)
+  $('bCal').addEventListener('click', () => {
+    const g = gpsNow(), d = S.live || {};
+    if (!g.fix || g.kmh < 20 || d.rpm == null || d.rpm < 1500) { $('calMsg').textContent = 'ต้องมี GPS, วิ่ง > 20 km/h และเครื่องติด'; return; }
+    setKm(g.kmh / (d.rpm / 1000));
+    $('calMsg').textContent = 'ปรับเทียบแล้ว ✓';
+  });
   function setKm(v) { S.kmhPerK = Math.round(Math.max(3, Math.min(25, v)) * 10) / 10; store.set('zar.kmhk', S.kmhPerK); $('kmVal').textContent = S.kmhPerK.toFixed(1); }
   $('bKm').addEventListener('click', () => setKm(S.kmhPerK - 0.1));
   $('bKp').addEventListener('click', () => setKm(S.kmhPerK + 0.1));
