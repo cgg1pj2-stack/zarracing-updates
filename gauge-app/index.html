@@ -74,6 +74,14 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 .spdset { flex-wrap: wrap; display: inline-flex; align-items: center; gap: 8px; margin-left: auto; color: var(--muted); font-size: 13px; order: 9; }
 .spdset b { color: #ffc400; font-family: var(--f-num); font-size: 22px; font-style: italic; min-width: 40px; text-align: center; }
 .tach { cursor: pointer; }
+.swl { display: inline-flex; gap: 10px; flex-wrap: wrap; }
+.logoset { flex-basis: 100%; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 10px; }
+.logoset .lt { font-size: 13px; letter-spacing: 1px; color: var(--muted); }
+#lgPrev { width: 160px; height: 120px; border: 1px solid rgba(var(--acc-rgb), .7); background: #000; image-rendering: pixelated; }
+.lgc { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; min-width: 0; }
+.lgc label.btn { cursor: pointer; }
+#lgMsg { font-size: 13px; color: var(--muted); }
+#lgSend[disabled] { opacity: .45; }
 .sw { width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; }
 .sw[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 14px currentColor; }
 
@@ -194,6 +202,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 
   <div class="swatches" id="sw" hidden>
     <span>สีธีม</span>
+    <span class="swl" id="swList"></span>
     <span class="spdset">ความเร็วจากกล่อง ECM (คำนวณจากรอบ)
       <button type="button" class="btn icon" id="bKm">−</button>
       <b id="kmVal">10.5</b> km/h ต่อ 1000 รอบ
@@ -201,6 +210,21 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
       <button type="button" class="btn" id="bCal" title="วิ่งนิ่งๆ เกียร์สูงสุด แล้วกด">ปรับเทียบกับ GPS</button>
       <span id="calMsg"></span>
     </span>
+    <div class="logoset">
+      <span class="lt">โลโก้หน้าเปิดเครื่อง</span>
+      <canvas id="lgPrev" width="320" height="240" aria-label="ตัวอย่างโลโก้"></canvas>
+      <div class="lgc">
+        <label class="btn" for="lgFile">เลือกรูป</label>
+        <input type="file" id="lgFile" accept="image/*" hidden>
+        <div class="seg" role="group" aria-label="การวางรูป">
+          <button type="button" class="sbtn" id="lgFit" aria-pressed="true">พอดีจอ</button>
+          <button type="button" class="sbtn" id="lgFill" aria-pressed="false">เต็มจอ</button>
+        </div>
+        <button type="button" class="btn" id="lgSend" disabled>ส่งเข้าเกจ</button>
+        <button type="button" class="btn" id="lgReset">คืนค่าโลโก้ ZAR</button>
+        <span id="lgMsg">เลือกรูป แล้วกดส่ง (ต้องเชื่อมต่อเกจ)</span>
+      </div>
+    </div>
   </div>
 
   <div class="sub">
@@ -259,6 +283,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
   const SVC  = '7a617200-6761-7567-6500-000000000000';
   const LIVE = '7a617200-6761-7567-6500-000000000001';
   const DRAG = '7a617200-6761-7567-6500-000000000002';
+  const LOGO = '7a617200-6761-7567-6500-000000000003';
   const SPLITS = ['60 FT', '100 M', '201 M', '402 M', '1000 M'];
   const STATE = ['NO GPS', 'STOP TO ARM', 'READY', 'RUN'];
   const RPM_MAX = 15000;
@@ -266,6 +291,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 
   // ---------- state ----------
   const S = { live: null, drag: null, link: 'off', demo: false, rpmShown: 0, top: 0, peak: 0, lastCounter: -1 };
+  let chLogo = null, logoWait = null;
   let dev = null, chLive = null, chDrag = null, wake = null, reconnectTimer = 0;
 
   const store = {
@@ -321,6 +347,11 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     chDrag.addEventListener('characteristicvaluechanged', () => readDrag());
     await chLive.startNotifications();
     await chDrag.startNotifications();
+    try {                                            // firmware with the custom-logo upload
+      chLogo = await svc.getCharacteristic(LOGO);
+      chLogo.addEventListener('characteristicvaluechanged', e => { const w = logoWait; logoWait = null; if (w) w(new Uint8Array(e.target.value.buffer)); });
+      await chLogo.startNotifications();
+    } catch (e) { chLogo = null; }
     S.demo = false; $('bDemo').classList.remove('on');
     setLink('ok', 'CONNECTED');
     note('');
@@ -450,7 +481,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     b.type = 'button'; b.className = 'sw'; b.title = name; b.setAttribute('aria-label', name);
     b.style.background = `rgb(${rgb})`; b.style.color = `rgb(${rgb})`;
     b.addEventListener('click', () => setTheme(i));
-    $('sw').appendChild(b);
+    $('swList').appendChild(b);
   });
   $('bColor').addEventListener('click', () => {
     const sw = $('sw'); sw.hidden = !sw.hidden; $('bColor').setAttribute('aria-expanded', !sw.hidden);
@@ -792,7 +823,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     } catch (e) {}
   }
   function syncGpsSource() {
-    document.querySelectorAll('.sbtn').forEach(b => b.setAttribute('aria-pressed', b.dataset.src === S.gpsSrc));
+    document.querySelectorAll('.sbtn[data-src]').forEach(b => b.setAttribute('aria-pressed', b.dataset.src === S.gpsSrc));
     const phone = usePhone();
     if (phone && !S.demo) startPhoneGps(); else if (!phone) stopPhoneGps();
     $('bDist').disabled = !phone;
@@ -800,7 +831,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     if (phone && !S.demo) onDrag(pdrag.view());
     paintTiles(); paintDragLive();
   }
-  document.querySelectorAll('.sbtn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.sbtn[data-src]').forEach(b => b.addEventListener('click', () => {
     S.gpsSrc = b.dataset.src; store.set('zar.gpssrc', S.gpsSrc); syncGpsSource();
     if (!usePhone()) readDrag();
   }));
@@ -822,6 +853,96 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
   $('bKm').addEventListener('click', () => setKm(S.kmhPerK - 0.1));
   $('bKp').addEventListener('click', () => setKm(S.kmhPerK + 0.1));
   setKm(S.kmhPerK);
+
+  // ---------- custom boot logo -> gauge (format: src/data/logo_codec.h) ----------
+  const LW = 320, LH = 240;
+  const lgPrev = $('lgPrev'), lgCtx = lgPrev.getContext('2d');
+  let lgImg = null, lgFill = false, lgBusy = false;
+  function lgMsg(t) { $('lgMsg').textContent = t; }
+  function lgDraw() {
+    lgCtx.fillStyle = '#000'; lgCtx.fillRect(0, 0, LW, LH);
+    if (!lgImg) return;
+    const s = lgFill ? Math.max(LW / lgImg.width, LH / lgImg.height) : Math.min(LW / lgImg.width, LH / lgImg.height);
+    const w = lgImg.width * s, h = lgImg.height * s;
+    lgCtx.imageSmoothingQuality = 'high';
+    lgCtx.drawImage(lgImg, (LW - w) / 2, (LH - h) / 2, w, h);
+  }
+  $('lgFile').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const url = URL.createObjectURL(f), im = new Image();
+    im.onload = () => { lgImg = im; lgDraw(); $('lgSend').disabled = false; lgMsg('พร้อมส่ง ' + LW + '×' + LH); };
+    im.onerror = () => lgMsg('เปิดรูปนี้ไม่ได้');
+    im.src = url;
+  });
+  function lgMode(fill) { lgFill = fill; $('lgFit').setAttribute('aria-pressed', !fill); $('lgFill').setAttribute('aria-pressed', fill); lgDraw(); }
+  $('lgFit').addEventListener('click', () => lgMode(false));
+  $('lgFill').addEventListener('click', () => lgMode(true));
+  lgDraw();
+
+  function crc32(bytes) {
+    let c = ~0 >>> 0;
+    for (let i = 0; i < bytes.length; i++) { c ^= bytes[i]; for (let k = 0; k < 8; k++) c = (c >>> 1) ^ (0xEDB88320 & -(c & 1)); }
+    return (~c) >>> 0;
+  }
+  function rle(px) {                                 // same packets as logoRleEncode()
+    const out = []; let i = 0; const n = px.length;
+    while (i < n) {
+      let r = 1; while (i + r < n && r < 128 && px[i + r] === px[i]) r++;
+      if (r >= 3) { out.push(0x80 | (r - 1), px[i] & 255, px[i] >> 8); i += r; continue; }
+      let l = 0;
+      while (i + l < n && l < 128 && !(i + l + 2 < n && px[i + l] === px[i + l + 1] && px[i + l] === px[i + l + 2])) l++;
+      out.push(l - 1); for (let k = 0; k < l; k++) out.push(px[i + k] & 255, px[i + k] >> 8);
+      i += l;
+    }
+    return Uint8Array.from(out);
+  }
+  function u32(v) { return [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; }
+  async function logoCmd(bytes, timeoutMs = 4000) {
+    const got = new Promise((res, rej) => { logoWait = res; setTimeout(() => { if (logoWait === res) { logoWait = null; rej(new Error('timeout')); } }, timeoutMs); });
+    await chLogo.writeValueWithResponse(Uint8Array.from(bytes));
+    const r = await got;
+    return { st: r[0], v: r[1] | r[2] << 8 | r[3] << 16 | r[4] << 24 };
+  }
+  const LS = { READY: 1, OK: 2, DONE: 3, DELETED: 4 };
+  function needGauge() {
+    if (S.link !== 'ok' || !chLogo) { lgMsg(S.link !== 'ok' ? 'ต้องเชื่อมต่อเกจก่อน' : 'เกจยังเป็นเฟิร์มแวร์เก่า: อัปเฟิร์มแวร์ใหม่ก่อน'); return false; }
+    return true;
+  }
+  $('lgSend').addEventListener('click', async () => {
+    if (lgBusy || !lgImg || !needGauge()) return;
+    lgBusy = true; $('lgSend').disabled = true;
+    try {
+      const d = lgCtx.getImageData(0, 0, LW, LH).data;
+      const px = new Uint16Array(LW * LH), raw = new Uint8Array(LW * LH * 2);
+      for (let i = 0; i < LW * LH; i++) {
+        const v = ((d[i * 4] & 0xF8) << 8) | ((d[i * 4 + 1] & 0xFC) << 3) | (d[i * 4 + 2] >> 3);
+        px[i] = v; raw[i * 2] = v & 255; raw[i * 2 + 1] = v >> 8;
+      }
+      const data = rle(px), crc = crc32(raw);
+      lgMsg('กำลังเตรียมหน่วยความจำ...');
+      let r = await logoCmd([66, ...u32(LW * LH * 2)], 10000);                 // 'B'
+      if (r.st !== LS.READY) throw new Error('เกจไม่พร้อม (' + r.st + ')');
+      const CH = 160;
+      for (let o = 0; o < data.length; o += CH) {
+        const part = data.subarray(o, Math.min(data.length, o + CH));
+        r = await logoCmd([68, ...u32(o), ...part]);                           // 'D'
+        if (r.st !== LS.OK) throw new Error('ส่งข้อมูลผิดพลาด (' + r.st + ')');
+        lgMsg('กำลังส่ง ' + Math.round((o + part.length) / data.length * 100) + '%');
+      }
+      r = await logoCmd([69, ...u32(crc)], 8000);                              // 'E'
+      if (r.st !== LS.DONE) throw new Error('ตรวจข้อมูลไม่ผ่าน (' + r.st + ')');
+      lgMsg('เสร็จแล้ว ✓ ปิด-เปิดกุญแจเพื่อดูโลโก้ใหม่');
+    } catch (e) { lgMsg('ส่งไม่สำเร็จ: ' + (e.message || e)); }
+    lgBusy = false; $('lgSend').disabled = !lgImg;
+  });
+  let lgArm = false;
+  $('lgReset').addEventListener('click', async () => {
+    if (lgBusy || !needGauge()) return;
+    if (!lgArm) { lgArm = true; $('lgReset').textContent = 'แตะอีกครั้งเพื่อยืนยัน'; setTimeout(() => { lgArm = false; $('lgReset').textContent = 'คืนค่าโลโก้ ZAR'; }, 3000); return; }
+    lgArm = false; $('lgReset').textContent = 'คืนค่าโลโก้ ZAR';
+    try { const r = await logoCmd([88]); lgMsg(r.st === LS.DELETED ? 'คืนค่าแล้ว ✓ เปิดเครื่องครั้งหน้าเป็นโลโก้ ZAR' : 'ไม่สำเร็จ (' + r.st + ')'); }
+    catch (e) { lgMsg('ไม่สำเร็จ: ' + (e.message || e)); }
+  });
 
   // ---------- ui ----------
   $('bConnect').addEventListener('click', () => { if (S.link !== 'ok') { if (S.demo) $('bDemo').click(); connect(); } });
