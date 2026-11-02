@@ -1,10 +1,16 @@
 {
-  "name": "ZAR GAUGE Live",
-  "short_name": "ZAR GAUGE",
+  "name": "Zar Racing",
+  "short_name": "Zar Racing",
   "start_url": "./",
   "display": "fullscreen",
   "orientation": "landscape",
-  "background_color": "#0b0b0e",
-  "theme_color": "#0b0b0e",
-  "icons": [{ "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b0b0e'/%3E%3Cpath d='M12 16h40L24 48h28' stroke='%23ff2a2f' stroke-width='9' fill='none'/%3E%3C/svg%3E", "sizes": "any", "type": "image/svg+xml" }]
+  "background_color": "#030507",
+  "theme_color": "#030507",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23030507'/%3E%3Cpath d='M12 16h40L24 48h28' stroke='%231ea7ff' stroke-width='9' fill='none'/%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
 }

@@ -3,127 +3,167 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Zar Racing">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b0b0e'/%3E%3Cpath d='M12 16h40L24 48h28' stroke='%23ff2a2f' stroke-width='9' fill='none'/%3E%3C/svg%3E">
-<title>ZAR GAUGE Live</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23030507'/%3E%3Cpath d='M12 16h40L24 48h28' stroke='%231ea7ff' stroke-width='9' fill='none'/%3E%3C/svg%3E">
+<title>Zar Racing</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="theme-color" content="#0b0b0e">
+<meta name="theme-color" content="#030507">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,800;1,800;1,900&family=Chakra+Petch:wght@500;700&display=swap">
 <style>
-[hidden]{display:none!important}
-:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{margin:0}
-
-/* Layout: a bike dash in landscape - tiles left, tach centre, readouts right; stacks in portrait.
-   One committed dark look (it is a dash at night as much as by day). */
+/* Layout: neon bike dash - header + shift-light strip, then a glowing frame: tiles | carbon tach | tiles.
+   One committed dark look; the accent (and its glow) is the rider's colour choice: --acc / --acc-rgb. */
 :root {
-  --bg: #0b0b0e;
-  --panel: #15151a;
-  --panel-2: #1d1d24;
-  --line: #2c2c35;
-  --fg: #eef0f6;
-  --muted: #8a8e9b;
-  --red: #ff2a2f;
+  --bg: #030507;
+  --tile: rgba(6, 9, 13, .86);
+  --line: #23262e;
+  --fg: #f2f5fa;
+  --muted: #9aa3b2;
+  --acc-rgb: 30, 167, 255;
+  --acc: rgb(var(--acc-rgb));
+  --glow: rgba(var(--acc-rgb), .55);
   --amber: #ffb020;
+  --red: #ff2a2f;
   --green: #3fe06b;
-  --blue: #3cb4ff;
   --f-num: "Barlow Condensed", "Arial Narrow", sans-serif;
   --f-ui: "Chakra Petch", "Noto Sans Thai", system-ui, sans-serif;
   color-scheme: dark;
 }
+[hidden] { display: none !important; }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
+  margin: 0;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--f-ui);
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 10px 16px;
+  padding-block: 8px 14px;
   -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
 }
+#bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.app { position: relative; z-index: 1; display: grid; gap: 8px; }
 button { font: inherit; color: inherit; cursor: pointer; }
-button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 
-/* ---- top bar ---- */
-.bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.logo { font-family: var(--f-num); font-style: italic; font-weight: 900; font-size: 30px; letter-spacing: .5px; line-height: 1; }
-.logo b { color: var(--red); }
-.logo span { font-weight: 800; font-size: 17px; margin-left: 6px; }
-.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
-.chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid var(--line); background: var(--panel);
-  font-size: 12px; letter-spacing: .6px; text-transform: uppercase; border-radius: 3px; white-space: nowrap; }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
-.ok .dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
-.wait .dot { background: var(--amber); }
-.bad .dot { background: var(--red); }
+/* ---- header ---- */
+.bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.logo { font-family: var(--f-num); font-style: italic; font-weight: 900; font-size: 34px; letter-spacing: .5px; line-height: 1; white-space: nowrap; }
+.logo b { color: var(--acc); text-shadow: 0 0 14px var(--glow); }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--line); background: rgba(10, 12, 16, .85);
+  font-size: 13px; letter-spacing: .8px; text-transform: uppercase; border-radius: 4px; white-space: nowrap; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: #555b66; }
+.ok .dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.wait .dot { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.bad .dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
 .actions { display: flex; gap: 8px; }
-.btn { border: 1px solid var(--line); background: var(--panel-2); padding: 8px 14px; font-size: 14px; letter-spacing: .5px; border-radius: 3px; }
-.btn.primary { background: var(--red); border-color: var(--red); color: #fff; font-weight: 700; }
-.btn.on { border-color: var(--amber); color: var(--amber); }
+.btn { border: 1.5px solid rgba(var(--acc-rgb), .9); background: rgba(6, 9, 13, .85); padding: 8px 16px; font-size: 15px; border-radius: 5px;
+  box-shadow: 0 0 10px rgba(var(--acc-rgb), .35), inset 0 0 8px rgba(var(--acc-rgb), .12); }
+.btn.on { background: rgba(var(--acc-rgb), .22); }
+.btn.icon { padding: 8px 12px; }
+.swatch-dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 8px var(--glow); vertical-align: -2px; }
 
-.tabs { display: flex; gap: 0; margin: 12px 0 10px; border-bottom: 1px solid var(--line); }
-.tab { background: none; border: 0; padding: 8px 18px; font-family: var(--f-num); font-weight: 800; font-style: italic; font-size: 20px;
-  letter-spacing: 1px; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -1px; }
-.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--red); }
+.swatches { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 12px; border: 1px solid rgba(var(--acc-rgb), .6);
+  background: rgba(6, 9, 13, .92); border-radius: 6px; box-shadow: 0 0 14px rgba(var(--acc-rgb), .25); }
+.swatches span { font-size: 13px; letter-spacing: 1px; color: var(--muted); margin-right: 4px; }
+.sw { width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; }
+.sw[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 14px currentColor; }
 
-.note { margin: 0 0 10px; padding: 10px 12px; border-left: 3px solid var(--amber); background: var(--panel); font-size: 13px; color: var(--muted); }
+/* ---- tabs + shift light strip ---- */
+.sub { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.tabs { display: flex; }
+.tab { background: none; border: 0; padding: 6px 18px; font-family: var(--f-num); font-weight: 800; font-style: italic; font-size: 22px;
+  letter-spacing: 1px; color: var(--muted); border-bottom: 3px solid transparent; }
+.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--acc); box-shadow: 0 6px 10px -8px var(--acc); }
+.shift { flex: 1; min-width: 220px; display: flex; gap: 3px; padding: 6px 8px; background: rgba(4, 6, 9, .9); border: 1px solid var(--line); border-radius: 6px; }
+.shift i { flex: 1; height: 16px; border-radius: 2px; background: #15171c; }
+.shift i.on.w { background: #f4f6fb; box-shadow: 0 0 6px rgba(255, 255, 255, .8); }
+.shift i.on.a { background: var(--amber); box-shadow: 0 0 7px var(--amber); }
+.shift i.on.r { background: var(--red); box-shadow: 0 0 8px var(--red); }
+.shift.flash i.on { background: var(--acc); box-shadow: 0 0 9px var(--acc); }
+
+.note { margin: 0; padding: 10px 12px; border-left: 3px solid var(--amber); background: rgba(10, 12, 16, .92); font-size: 13px; color: var(--muted); }
 .note strong { color: var(--fg); }
 
-/* ---- gauge view ---- */
-.dash { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(0, 2.2fr) minmax(150px, 1fr); gap: 12px; align-items: stretch; }
+/* ---- gauge frame ---- */
+.frame { border: 1px solid #2a2e37; border-radius: 8px; background: rgba(3, 5, 7, .55); padding: 10px; }
+.dash { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(0, 2.1fr) minmax(150px, 1fr); gap: 12px; }
 .col { display: grid; gap: 10px; align-content: start; min-width: 0; }
-.tile { background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; border-radius: 3px; min-width: 0; }
-.lbl { font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
-.val { font-family: var(--f-num); font-weight: 800; font-style: italic; font-size: 38px; line-height: 1.05; font-variant-numeric: tabular-nums; }
-.val small { font-size: 16px; font-style: normal; font-weight: 600; color: var(--muted); margin-left: 4px; }
-.meter { height: 6px; background: var(--panel-2); margin-top: 6px; overflow: hidden; }
-.meter i { display: block; height: 100%; width: 0; background: var(--amber); transition: width .12s linear; }
-.warn .val { color: var(--amber); } .crit .val { color: var(--red); } .cold .val { color: var(--blue); }
-.tach { position: relative; background: radial-gradient(circle at 50% 58%, #1a1a21 0, var(--bg) 70%); border: 1px solid var(--line); border-radius: 3px; min-width: 0; }
-.tach canvas { display: block; width: 100%; height: auto; aspect-ratio: 1.45 / 1; max-width: 100%; max-height: calc(100dvh - 140px); object-fit: contain; margin: 0 auto; }
+.tile { background: var(--tile); border: 1.5px solid rgba(var(--acc-rgb), .85); padding: 9px 14px 10px; border-radius: 5px; min-width: 0;
+  box-shadow: 0 0 12px rgba(var(--acc-rgb), .45), inset 0 0 14px rgba(var(--acc-rgb), .12); }
+.lbl { font-size: 14px; letter-spacing: 1.4px; text-transform: uppercase; color: #dfe4ec; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.val { font-family: var(--f-num); font-weight: 900; font-style: italic; font-size: 46px; line-height: 1.02; font-variant-numeric: tabular-nums;
+  color: var(--acc); text-shadow: 0 0 12px var(--glow); }
+.meter { height: 7px; background: #13161c; margin-top: 6px; overflow: hidden; border-radius: 2px; }
+.meter i { display: block; height: 100%; width: 0; background: var(--acc); box-shadow: 0 0 8px var(--acc); transition: width .12s linear; }
+.warn .val { color: var(--amber); text-shadow: 0 0 12px rgba(255, 176, 32, .6); }
+.crit .val { color: var(--red); text-shadow: 0 0 12px rgba(255, 42, 47, .7); }
+.cold .val { color: #8fd3ff; }
+.tile .mini { border: 1px solid #3a3f4a; background: transparent; padding: 1px 8px; font-size: 12px; border-radius: 3px; letter-spacing: 1px; }
+.tach { position: relative; border: 1px solid #2a2e37; border-radius: 6px; min-width: 0; overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(3, 5, 7, 0) 30%, rgba(3, 5, 7, .85) 100%),
+    repeating-linear-gradient(45deg, #0b0c0f 0 3px, #15171b 3px 6px),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, .025) 0 3px, transparent 3px 6px); }
+.tach canvas { display: block; width: 100%; height: auto; aspect-ratio: 1.3 / 1; max-width: 100%; max-height: calc(100dvh - 150px); object-fit: contain; margin: 0 auto; }
 
 /* ---- drag view ---- */
+.gpsbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.gl { font-size: 13px; letter-spacing: 1.2px; color: var(--muted); }
+.seg { display: inline-flex; border: 1.5px solid rgba(var(--acc-rgb), .8); border-radius: 5px; overflow: hidden; }
+.sbtn { background: rgba(6, 9, 13, .85); border: 0; padding: 7px 14px; font-size: 14px; color: var(--muted); }
+.sbtn[aria-pressed="true"] { background: rgba(var(--acc-rgb), .3); color: var(--fg); }
+#bDist[disabled] { opacity: .45; cursor: default; }
 .drag { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 12px; }
-.state { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); flex-wrap: wrap; }
-.state .big { font-family: var(--f-num); font-weight: 900; font-style: italic; font-size: 34px; letter-spacing: 1px; }
-.state .sub { font-family: var(--f-num); font-weight: 600; font-size: 20px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.rows { margin-top: 10px; border: 1px solid var(--line); }
-.row { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: baseline; padding: 6px 14px; font-family: var(--f-num); font-variant-numeric: tabular-nums; }
-.row:nth-child(even) { background: var(--panel); }
-.row .n { font-weight: 800; font-size: 18px; }
-.row .t { font-weight: 800; font-size: 20px; color: var(--green); text-align: right; min-width: 70px; }
-.row .s { font-weight: 600; font-size: 18px; color: var(--green); text-align: right; min-width: 92px; }
-.row.off .n, .row.off .t, .row.off .s { color: #4a4c56; }
-.row.best { background: linear-gradient(90deg, #7a0b10, #3d0709); border-left: 3px solid var(--red); }
-.row.best .n, .row.best .t { color: #fff; } .row.best .t { font-size: 28px; font-style: italic; }
-.row.run .t { font-size: 28px; font-style: italic; color: var(--fg); }
-.row.head .n { font-family: var(--f-ui); font-size: 13px; letter-spacing: 1px; color: var(--amber); font-weight: 700; }
+.state { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 12px 16px; flex-wrap: wrap; }
+.state .big { font-family: var(--f-num); font-weight: 900; font-style: italic; font-size: 38px; letter-spacing: 1px; }
+.state .sub2 { font-family: var(--f-num); font-weight: 600; font-size: 21px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rows { margin-top: 10px; padding: 0; overflow: hidden; }
+.row { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: baseline; padding: 6px 16px; font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.row:nth-child(even) { background: rgba(255, 255, 255, .03); }
+.row .n { font-weight: 800; font-size: 19px; }
+.row .t { font-weight: 800; font-size: 21px; color: var(--acc); text-align: right; min-width: 72px; }
+.row .s { font-weight: 600; font-size: 19px; color: var(--acc); text-align: right; min-width: 96px; }
+.row.off .n, .row.off .t, .row.off .s { color: #3d424d; }
+.row.best { background: linear-gradient(90deg, rgba(var(--acc-rgb), .55), rgba(var(--acc-rgb), .12)); }
+.row.best .n, .row.best .t, .row.best .s { color: #fff; }
+.row.best .t, .row.run .t { font-size: 30px; font-style: italic; text-shadow: 0 0 10px var(--glow); }
+.row.run .t { color: var(--fg); }
+.row.head .n { font-family: var(--f-ui); font-size: 13px; letter-spacing: 1.2px; color: var(--acc); font-weight: 700; }
 .pos { color: var(--red) !important; } .neg { color: var(--green) !important; }
-.hist h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.hlist { display: grid; gap: 6px; max-height: 420px; overflow-y: auto; }
-.h { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; background: var(--panel); border: 1px solid var(--line); font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.hist h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: 1.2px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.hlist { display: grid; gap: 8px; max-height: 440px; overflow-y: auto; }
+.h { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 12px; font-family: var(--f-num); font-variant-numeric: tabular-nums; }
 .h .d { font-size: 13px; color: var(--muted); font-family: var(--f-ui); }
-.h .tm { font-size: 24px; font-weight: 800; font-style: italic; }
-.h .tag { font-size: 12px; padding: 2px 6px; background: var(--red); color: #fff; font-family: var(--f-ui); }
-.empty { color: var(--muted); font-size: 14px; padding: 14px; border: 1px dashed var(--line); }
+.h .tm { font-size: 26px; font-weight: 800; font-style: italic; color: var(--acc); }
+.h .tag { font-size: 12px; padding: 2px 6px; background: var(--acc); color: #000; font-family: var(--f-ui); font-weight: 700; }
+.empty { color: var(--muted); font-size: 14px; padding: 14px; border: 1px dashed #333844; border-radius: 5px; background: rgba(6, 9, 13, .8); }
 
 @media (max-width: 760px) {
   .dash { grid-template-columns: 1fr 1fr; }
   .tach { grid-column: 1 / -1; order: -1; }
   .drag { grid-template-columns: 1fr; }
-  .logo { font-size: 26px; }
+  .logo { font-size: 28px; }
+  .val { font-size: 38px; }
 }
 @media (max-height: 520px) and (orientation: landscape) {   /* phone on the handlebar */
   body { padding-block: 4px 6px; }
+  .app { gap: 5px; }
   .bar { flex-wrap: nowrap; gap: 8px; }
-  .logo { font-size: 22px; } .logo span { display: none; }
-  .chip { padding: 3px 7px; font-size: 11px; }
+  .logo { font-size: 24px; }
+  .chip { padding: 3px 8px; font-size: 11px; gap: 5px; }
   .btn { padding: 5px 10px; font-size: 13px; }
-  .tabs { margin: 4px 0 6px; } .tab { font-size: 16px; padding: 4px 14px; }
-  .dash { gap: 8px; } .col { gap: 6px; } .tile { padding: 5px 9px; }
-  .val { font-size: 28px; }
+  .tab { font-size: 17px; padding: 3px 12px; }
+  .shift i { height: 11px; }
+  .frame { padding: 6px; }
+  .dash { gap: 7px; } .col { gap: 6px; } .tile { padding: 4px 10px 6px; }
+  .lbl { font-size: 11px; }
+  .val { font-size: 30px; }
   .tach canvas { max-height: calc(100dvh - 92px); }
 }
 @media (prefers-reduced-motion: reduce) { .meter i { transition: none; } }
@@ -132,57 +172,75 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 <body>
 
 
-<div class="bar">
-  <div class="logo"><b>ZAR</b> RACING<span>GAUGE LIVE</span></div>
-  <div class="chips">
-    <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
-    <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
-    <span class="chip" id="cGps"><span class="dot"></span><span>GPS</span></span>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="app">
+  <header class="bar">
+    <div class="logo"><b>ZAR</b> RACING</div>
+    <div class="chips">
+      <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
+      <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
+      <span class="chip" id="cGps"><span class="dot"></span><span>GPS</span></span>
+    </div>
+    <div class="actions">
+      <button class="btn" id="bConnect" type="button">เชื่อมต่อ</button>
+      <button class="btn" id="bDemo" type="button">DEMO</button>
+      <button class="btn icon" id="bColor" type="button" aria-label="เปลี่ยนสี" aria-expanded="false"><span class="swatch-dot"></span></button>
+      <button class="btn icon" id="bFull" type="button" aria-label="Fullscreen">⛶</button>
+    </div>
+  </header>
+
+  <div class="swatches" id="sw" hidden><span>สีธีม</span></div>
+
+  <div class="sub">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tGauge" aria-selected="true" type="button">GAUGE</button>
+      <button class="tab" role="tab" id="tDrag" aria-selected="false" type="button">DRAG LOG</button>
+    </div>
+    <div class="shift" id="shift" aria-hidden="true"></div>
   </div>
-  <div class="actions">
-    <button class="btn primary" id="bConnect" type="button">เชื่อมต่อ</button>
-    <button class="btn" id="bDemo" type="button">DEMO</button>
-    <button class="btn" id="bFull" type="button" aria-label="Fullscreen">⛶</button>
-  </div>
+
+  <p class="note" id="note" hidden></p>
+
+  <section id="vGauge">
+    <div class="frame dash">
+      <div class="col">
+        <div class="tile" id="kTps"><div class="lbl"><span>TPS</span><span>%</span></div><div class="val">--</div><div class="meter"><i></i></div></div>
+        <div class="tile" id="kAfr"><div class="lbl"><span>AFR</span><span>O2</span></div><div class="val">--</div><div class="meter"><i></i></div></div>
+        <div class="tile" id="kIgn"><div class="lbl"><span>IGN</span><span>°BTDC</span></div><div class="val">--</div></div>
+      </div>
+      <div class="tach"><canvas id="cv" width="820" height="630"></canvas></div>
+      <div class="col">
+        <div class="tile" id="kEct"><div class="lbl"><span>ECT</span><span>°C</span></div><div class="val">--</div></div>
+        <div class="tile" id="kIat"><div class="lbl"><span>IAT</span><span>°C</span></div><div class="val">--</div></div>
+        <div class="tile" id="kBat"><div class="lbl"><span>BATTERY</span><span>V</span></div><div class="val">--</div></div>
+        <div class="tile" id="kTop"><div class="lbl"><span>TOP SPEED</span><span>KM/H</span></div><div class="val">--</div></div>
+        <div class="tile" id="kPeak"><div class="lbl"><span>PEAK RPM</span><button class="mini" id="bResetPeak" type="button">RESET</button></div><div class="val">--</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="vDrag" hidden>
+    <div class="drag">
+      <div>
+        <div class="gpsbar">
+          <span class="gl">GPS</span>
+          <div class="seg" role="group" aria-label="GPS source">
+            <button type="button" data-src="auto" class="sbtn">AUTO</button>
+            <button type="button" data-src="phone" class="sbtn">มือถือ</button>
+            <button type="button" data-src="gauge" class="sbtn">เกจ</button>
+          </div>
+          <button type="button" class="btn" id="bDist">ระยะ 402 M</button>
+        </div>
+        <div class="tile state"><span class="big" id="dState">NO GPS</span><span class="sub2" id="dLive"></span></div>
+        <div class="tile rows" id="dRows"></div>
+      </div>
+      <div class="hist">
+        <h3><span>ประวัติรอบวิ่ง (เก็บในมือถือนี้)</span><button class="btn" id="bClearHist" type="button" style="padding:3px 10px;font-size:12px">ล้าง</button></h3>
+        <div class="hlist" id="hList"></div>
+      </div>
+    </div>
+  </section>
 </div>
-
-<div class="tabs" role="tablist">
-  <button class="tab" role="tab" id="tGauge" aria-selected="true" type="button">GAUGE</button>
-  <button class="tab" role="tab" id="tDrag" aria-selected="false" type="button">DRAG LOG</button>
-</div>
-
-<p class="note" id="note" hidden></p>
-
-<section id="vGauge">
-  <div class="dash">
-    <div class="col">
-      <div class="tile" id="kTps"><div class="lbl"><span>TPS</span><span>%</span></div><div class="val">--</div><div class="meter"><i></i></div></div>
-      <div class="tile" id="kAfr"><div class="lbl"><span>AFR</span><span>O2</span></div><div class="val">--</div><div class="meter"><i></i></div></div>
-      <div class="tile" id="kIgn"><div class="lbl"><span>IGN</span><span>°BTDC</span></div><div class="val">--</div></div>
-    </div>
-    <div class="tach"><canvas id="cv" width="870" height="600"></canvas></div>
-    <div class="col">
-      <div class="tile" id="kEct"><div class="lbl"><span>ECT</span><span>°C</span></div><div class="val">--</div></div>
-      <div class="tile" id="kIat"><div class="lbl"><span>IAT</span><span>°C</span></div><div class="val">--</div></div>
-      <div class="tile" id="kBat"><div class="lbl"><span>BATTERY</span><span>V</span></div><div class="val">--</div></div>
-      <div class="tile" id="kTop"><div class="lbl"><span>TOP SPEED</span><span>km/h</span></div><div class="val">--</div></div>
-      <div class="tile" id="kPeak"><div class="lbl"><span>PEAK RPM</span><button class="btn" id="bResetPeak" type="button" style="padding:0 6px;font-size:11px">RESET</button></div><div class="val">--</div></div>
-    </div>
-  </div>
-</section>
-
-<section id="vDrag" hidden>
-  <div class="drag">
-    <div>
-      <div class="state"><span class="big" id="dState">NO GPS</span><span class="sub" id="dLive"></span></div>
-      <div class="rows" id="dRows"></div>
-    </div>
-    <div class="hist">
-      <h3><span>ประวัติรอบวิ่ง (เก็บในมือถือนี้)</span><button class="btn" id="bClearHist" type="button" style="padding:3px 10px;font-size:12px">ล้าง</button></h3>
-      <div class="hlist" id="hList"></div>
-    </div>
-  </div>
-</section>
 
 <script>
 (() => {
@@ -226,7 +284,7 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
   // ---------- bluetooth ----------
   function note(html) { const n = $('note'); n.innerHTML = html; n.hidden = !html; }
   if (!navigator.bluetooth) {
-    note('เบราว์เซอร์นี้ใช้บลูทูธไม่ได้ <strong>Android:</strong> เปิดด้วย Chrome &nbsp;·&nbsp; <strong>iPhone:</strong> เปิดลิงก์นี้ในแอป Bluefy (ฟรีใน App Store) &nbsp;·&nbsp; กด DEMO เพื่อดูหน้าตาแอปก่อนได้');
+    note('เบราว์เซอร์นี้ต่อบลูทูธกับเกจไม่ได้ (<strong>Android:</strong> ใช้ Chrome · <strong>iPhone:</strong> ใช้แอป Bluefy) แต่ <strong>DRAG LOG จับเวลาด้วย GPS มือถือ</strong> ได้เลย');
   }
 
   async function connect() {
@@ -273,7 +331,7 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
     try {
       const v = await chDrag.readValue();
       const txt = new TextDecoder().decode(v);
-      onDrag(JSON.parse(txt));
+      if (!usePhone()) onDrag(JSON.parse(txt));
     } catch (e) { /* half a packet while moving: the next counter change reads again */ }
     reading = false;
   }
@@ -292,7 +350,8 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
     S.live = d;
     if (d.rpm != null && d.rpm > S.peak) S.peak = d.rpm;
     if (d.fix && d.kmh > S.top) S.top = d.kmh;
-    if (d.counter !== S.lastCounter) { S.lastCounter = d.counter; if (!S.demo) readDrag(); }
+    if (d.counter !== S.lastCounter) { S.lastCounter = d.counter; if (!S.demo && !usePhone()) readDrag(); }
+    if (S.wasPhone !== usePhone()) { S.wasPhone = usePhone(); syncGpsSource(); }
     paintTiles();
     paintDragLive();
   }
@@ -320,6 +379,11 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
     const m = el.querySelector('.meter i');
     if (m) m.style.width = v == null ? '0%' : Math.max(0, Math.min(100, opts.pct)) + '%';
   }
+  function gpsNow() {                              // what the speed / GPS chip shows
+    if (!S.demo && usePhone()) return { src: 'phone', on: S.phone.on, gps: S.phone.on, fix: S.phone.fix, kmh: S.phone.kmh, sats: null, hz: S.phone.hz, acc: S.phone.acc, err: S.phone.err };
+    const d = S.live || {};
+    return { src: 'gauge', on: !!S.live, gps: d.gps, fix: d.fix, kmh: d.kmh, sats: d.sats, hz: d.hz };
+  }
   function paintTiles() {
     const d = S.live || {};
     setTile('kTps', d.tps, v => v.toFixed(0), { pct: d.tps });
@@ -333,81 +397,162 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
     const e = $('cEcu');
     e.className = 'chip ' + (S.live ? (d.ecu ? 'ok' : 'bad') : '');
     e.lastElementChild.textContent = S.live ? (d.ecu ? 'ECU LIVE' : 'NO ECU') : 'ECU';
-    const g = $('cGps');
-    g.className = 'chip ' + (!S.live ? '' : !d.gps ? 'bad' : !d.fix ? 'wait' : 'ok');
-    g.lastElementChild.textContent = !S.live ? 'GPS' : !d.gps ? 'NO GPS' : !d.fix ? d.sats + ' SAT · NO FIX' : d.sats + ' SAT · ' + d.hz + 'HZ';
+    const g = $('cGps'), q = gpsNow();
+    if (q.src === 'phone') {
+      g.className = 'chip ' + (!q.on ? '' : q.err ? 'bad' : q.fix ? 'ok' : 'wait');
+      g.lastElementChild.textContent = !q.on ? 'GPS มือถือ' : q.err ? 'GPS มือถือ · ' + q.err : q.fix ? `GPS มือถือ · ±${Math.round(q.acc)}M` : 'GPS มือถือ · รอสัญญาณ';
+    } else {
+      g.className = 'chip ' + (!S.live ? '' : !q.gps ? 'bad' : !q.fix ? 'wait' : 'ok');
+      g.lastElementChild.textContent = !S.live ? 'GPS' : !q.gps ? 'NO GPS' : !q.fix ? q.sats + ' SAT · NO FIX' : q.sats + ' SAT · ' + q.hz + 'HZ';
+    }
   }
   $('bResetPeak').addEventListener('click', () => { S.peak = 0; S.top = 0; paintTiles(); });
 
+  // ---------- colour themes ----------
+  const THEMES = [
+    ['BLUE', '30, 167, 255'], ['RED', '255, 42, 47'], ['GREEN', '46, 230, 107'],
+    ['PURPLE', '180, 107, 255'], ['ORANGE', '255, 150, 20'], ['CYAN', '0, 235, 220'], ['PINK', '255, 64, 170'], ['WHITE', '235, 240, 248']
+  ];
+  let accRgb = THEMES[0][1];
+  function setTheme(i) {
+    const t = THEMES[i] || THEMES[0];
+    accRgb = t[1];
+    document.documentElement.style.setProperty('--acc-rgb', accRgb);
+    document.querySelectorAll('.sw').forEach((b, k) => b.setAttribute('aria-pressed', k === i));
+    store.set('zar.theme', i);
+    drawBg();
+  }
+  THEMES.forEach(([name, rgb], i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'sw'; b.title = name; b.setAttribute('aria-label', name);
+    b.style.background = `rgb(${rgb})`; b.style.color = `rgb(${rgb})`;
+    b.addEventListener('click', () => setTheme(i));
+    $('sw').appendChild(b);
+  });
+  $('bColor').addEventListener('click', () => {
+    const sw = $('sw'); sw.hidden = !sw.hidden; $('bColor').setAttribute('aria-expanded', !sw.hidden);
+  });
+
+  // ---------- background: light streaks rushing out of the centre ----------
+  const bg = $('bg'), bctx = bg.getContext('2d');
+  function drawBg() {
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = bg.width = Math.round(innerWidth * dpr), H = bg.height = Math.round(innerHeight * dpr);
+    bctx.fillStyle = '#030507'; bctx.fillRect(0, 0, W, H);
+    const cx = W / 2, cy = H * 0.55, maxR = Math.hypot(W, H) * 0.6;
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 260; i++) {
+      const a = rnd() * Math.PI * 2;
+      const r0 = maxR * (0.28 + rnd() * 0.55), len = maxR * (0.05 + rnd() * 0.25);
+      const x0 = cx + Math.cos(a) * r0, y0 = cy + Math.sin(a) * r0;
+      const x1 = cx + Math.cos(a) * (r0 + len), y1 = cy + Math.sin(a) * (r0 + len);
+      const g = bctx.createLinearGradient(x0, y0, x1, y1);
+      const al = 0.15 + rnd() * 0.55;
+      g.addColorStop(0, `rgba(${accRgb}, 0)`); g.addColorStop(1, `rgba(${accRgb}, ${al})`);
+      bctx.strokeStyle = g; bctx.lineWidth = (0.6 + rnd() * 2.2) * dpr;
+      bctx.beginPath(); bctx.moveTo(x0, y0); bctx.lineTo(x1, y1); bctx.stroke();
+    }
+    const v = bctx.createRadialGradient(cx, cy, maxR * 0.1, cx, cy, maxR);
+    v.addColorStop(0, 'rgba(3,5,7,.92)'); v.addColorStop(0.45, 'rgba(3,5,7,.55)'); v.addColorStop(1, 'rgba(3,5,7,.2)');
+    bctx.fillStyle = v; bctx.fillRect(0, 0, W, H);
+  }
+  let bgT = 0; addEventListener('resize', () => { clearTimeout(bgT); bgT = setTimeout(drawBg, 150); });
+
+  // ---------- shift light strip ----------
+  const LEDS = 48, shiftEl = $('shift');
+  for (let i = 0; i < LEDS; i++) { const e = document.createElement('i'); e.className = i < LEDS * 0.58 ? 'w' : i < LEDS * 0.82 ? 'a' : 'r'; shiftEl.appendChild(e); }
+  const ledEls = [...shiftEl.children];
+  let ledLit = -1, flashOn = false;
+  function paintShift(rpm, shift) {
+    const n = Math.round(Math.min(1, rpm / RPM_MAX) * LEDS);
+    if (n !== ledLit) { ledEls.forEach((e, i) => e.classList.toggle('on', i < n)); ledLit = n; }
+    const f = shift && (Date.now() >> 7) % 2 === 0;
+    if (f !== flashOn) { shiftEl.classList.toggle('flash', f); flashOn = f; }
+  }
+
   // ---------- paint: tach (canvas) ----------
   const cv = $('cv'), ctx = cv.getContext('2d');
-  const A0 = Math.PI * 0.80, A1 = Math.PI * 2.20;              // sweep start / end (radians)
+  const A0 = Math.PI * 0.72, A1 = Math.PI * 2.28;              // sweep start / end (radians)
   const ang = rpm => A0 + (A1 - A0) * Math.min(1, Math.max(0, rpm / RPM_MAX));
+  const P = (cx, cy, r, a) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
   function drawTach() {
-    const W = cv.width, H = cv.height, cx = W / 2, cy = H * 0.58, R = Math.min(W * 0.42, H * 0.54);
+    const W = cv.width, H = cv.height, cx = W / 2, cy = H * 0.52, R = Math.min(W * 0.40, H * 0.44);
     ctx.clearRect(0, 0, W, H);
     const d = S.live || {};
-    const target = d.rpm || 0;
-    S.rpmShown += (target - S.rpmShown) * 0.35;
+    S.rpmShown += ((d.rpm || 0) - S.rpmShown) * 0.35;
     const rpm = S.rpmShown;
-    const red = 12000;
-    // track
-    ctx.lineCap = 'butt';
-    ctx.lineWidth = R * 0.13;
-    ctx.strokeStyle = '#1f1f27';
-    ctx.beginPath(); ctx.arc(cx, cy, R, A0, A1); ctx.stroke();
-    ctx.strokeStyle = '#4a0d10';
-    ctx.beginPath(); ctx.arc(cx, cy, R, ang(red), A1); ctx.stroke();
-    // segments lit
-    const segs = 60;
+    const acc = `rgb(${accRgb})`, hot = 10000;
+    paintShift(rpm, d.shift);
+    // segmented outer ring: white, then the accent colour from 10 000 rpm
+    const segs = 64, rIn = R * 0.93, rOut = R * 1.10;
     for (let i = 0; i < segs; i++) {
-      const r0 = i / segs * RPM_MAX, r1 = (i + 0.78) / segs * RPM_MAX;
-      if (r0 > rpm) break;
-      const t = r0 / RPM_MAX;
-      ctx.strokeStyle = r0 >= red || d.shift ? '#ff2a2f' : t > 0.62 ? '#ffb020' : '#eef0f6';
-      ctx.beginPath(); ctx.arc(cx, cy, R, ang(r0), ang(Math.min(r1, rpm))); ctx.stroke();
+      const r0 = i / segs * RPM_MAX, r1 = (i + 0.72) / segs * RPM_MAX;
+      const lit = r0 < rpm, inHot = r0 >= hot;
+      const a0 = ang(r0), a1 = ang(r1);
+      ctx.beginPath();
+      ctx.moveTo(...P(cx, cy, rIn, a0)); ctx.lineTo(...P(cx, cy, rOut, a0));
+      ctx.lineTo(...P(cx, cy, rOut, a1)); ctx.lineTo(...P(cx, cy, rIn, a1)); ctx.closePath();
+      if (lit) { ctx.fillStyle = inHot ? acc : '#f4f6fb'; ctx.shadowColor = inHot ? acc : 'rgba(255,255,255,.7)'; ctx.shadowBlur = 14; }
+      else { ctx.fillStyle = inHot ? `rgba(${accRgb}, .22)` : '#1d2027'; ctx.shadowBlur = 0; }
+      ctx.fill();
     }
+    ctx.shadowBlur = 0;
+    // inner accent arc from the needle to the end of the scale (the glow in the reference)
+    ctx.lineCap = 'butt';
+    ctx.strokeStyle = `rgba(${accRgb}, .25)`; ctx.lineWidth = R * 0.035;
+    ctx.beginPath(); ctx.arc(cx, cy, R * 0.86, ang(hot), A1); ctx.stroke();
+    ctx.strokeStyle = acc; ctx.shadowColor = acc; ctx.shadowBlur = 16;
+    if (rpm > hot) { ctx.beginPath(); ctx.arc(cx, cy, R * 0.86, ang(hot), ang(rpm)); ctx.stroke(); }
+    ctx.shadowBlur = 0;
     // ticks + numbers
-    ctx.fillStyle = '#8a8e9b';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = `italic 800 ${Math.round(R * 0.13)}px "Barlow Condensed", sans-serif`;
+    ctx.font = `italic 800 ${Math.round(R * 0.15)}px "Barlow Condensed", sans-serif`;
     for (let k = 0; k <= 15; k++) {
-      const a = ang(k * 1000);
-      ctx.strokeStyle = k * 1000 >= red ? '#ff2a2f' : '#5a5c68';
-      ctx.lineWidth = k % 5 === 0 ? 4 : 2;
-      const ri = R * 0.80, ro = R * 0.90;
-      ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * ri, cy + Math.sin(a) * ri); ctx.lineTo(cx + Math.cos(a) * ro, cy + Math.sin(a) * ro); ctx.stroke();
-      ctx.fillStyle = k * 1000 >= red ? '#ff2a2f' : '#9a9eab';
-      ctx.fillText(String(k), cx + Math.cos(a) * R * 0.68, cy + Math.sin(a) * R * 0.68);
+      const a = ang(k * 1000), inHot = k * 1000 >= hot + 2000;
+      ctx.strokeStyle = inHot ? acc : '#7a808c'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(...P(cx, cy, R * 0.74, a)); ctx.lineTo(...P(cx, cy, R * 0.82, a)); ctx.stroke();
+      ctx.fillStyle = inHot ? acc : '#c9ced8';
+      ctx.fillText(String(k), ...P(cx, cy, R * 0.63, a));
     }
     // needle
     const a = ang(rpm);
-    ctx.strokeStyle = '#ff2a2f'; ctx.lineWidth = 6; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * R * 0.30, cy + Math.sin(a) * R * 0.30); ctx.lineTo(cx + Math.cos(a) * R * 1.02, cy + Math.sin(a) * R * 1.02); ctx.stroke();
+    ctx.strokeStyle = acc; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.shadowColor = acc; ctx.shadowBlur = 18;
+    ctx.beginPath(); ctx.moveTo(...P(cx, cy, R * 0.40, a)); ctx.lineTo(...P(cx, cy, R * 0.90, a)); ctx.stroke();
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.5; ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.moveTo(...P(cx, cy, R * 0.42, a)); ctx.lineTo(...P(cx, cy, R * 0.88, a)); ctx.stroke();
     // centre readouts
-    ctx.fillStyle = d.shift ? '#ff2a2f' : '#eef0f6';
-    ctx.font = `italic 900 ${Math.round(R * 0.42)}px "Barlow Condensed", sans-serif`;
-    ctx.fillText(d.rpm == null ? '----' : String(Math.round(rpm / 50) * 50), cx, cy - R * 0.06);
-    ctx.fillStyle = '#8a8e9b';
-    ctx.font = `600 ${Math.round(R * 0.11)}px "Chakra Petch", sans-serif`;
-    ctx.fillText('RPM', cx, cy + R * 0.22);
-    ctx.fillStyle = '#eef0f6';
-    ctx.font = `italic 800 ${Math.round(R * 0.30)}px "Barlow Condensed", sans-serif`;
-    ctx.fillText(d.fix ? Math.round(d.kmh) : '--', cx, cy + R * 0.48);
-    ctx.fillStyle = '#8a8e9b';
+    ctx.fillStyle = d.shift ? '#ff2a2f' : '#ffffff';
+    ctx.shadowColor = d.shift ? '#ff2a2f' : acc; ctx.shadowBlur = 26;
+    ctx.font = `italic 900 ${Math.round(R * 0.50)}px "Barlow Condensed", sans-serif`;
+    ctx.fillText(d.rpm == null ? '----' : String(Math.round(rpm / 50) * 50), cx, cy - R * 0.02);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#e6e9ef';
+    ctx.font = `700 ${Math.round(R * 0.12)}px "Chakra Petch", sans-serif`;
+    ctx.fillText('RPM', cx, cy + R * 0.28);
+    ctx.fillStyle = acc; ctx.shadowColor = acc; ctx.shadowBlur = 14;
+    ctx.font = `italic 900 ${Math.round(R * 0.26)}px "Barlow Condensed", sans-serif`;
+    const q = gpsNow();
+    ctx.fillText(q.fix ? String(Math.round(q.kmh)) : '—', cx, cy + R * 0.52);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#b8bfcc';
     ctx.font = `600 ${Math.round(R * 0.10)}px "Chakra Petch", sans-serif`;
-    ctx.fillText('km/h · GPS', cx, cy + R * 0.70);
+    ctx.fillText(q.src === 'phone' ? 'km/h · GPS มือถือ' : 'km/h · GPS', cx, cy + R * 0.74);
   }
 
   // ---------- paint: drag ----------
   const fmt = t => t == null || t < 0 ? '--.---' : t.toFixed(3);
   function paintDragLive() {
-    const d = S.live;
+    let d = S.live;
+    if (!S.demo && usePhone()) {
+      const p = S.phone;
+      d = { dst: !p.on || !p.fix ? 0 : pdrag.state, gps: p.on, el: pdrag.state === 3 ? (pdrag.t - pdrag.t0) / 1000 : 0, dist: Math.round(pdrag.d || 0), kmh: p.kmh };
+      if (!p.on) { $('dState').textContent = 'กดเลือก GPS มือถือ'; $('dState').style.color = 'var(--muted)'; $('dLive').textContent = ''; return; }
+    }
     const st = $('dState'), lv = $('dLive');
     if (!d) { st.textContent = 'ยังไม่เชื่อมต่อ'; st.style.color = 'var(--muted)'; lv.textContent = ''; return; }
     const s = d.dst;
     st.textContent = s === 3 ? fmt(d.el) : s === 0 && d.gps ? 'WAIT GPS FIX' : STATE[s] || '';
-    st.style.color = s === 2 ? 'var(--green)' : s === 3 ? 'var(--amber)' : s === 0 ? 'var(--red)' : 'var(--muted)';
+    st.style.color = s === 2 ? 'var(--green)' : s === 3 ? 'var(--acc)' : s === 0 ? 'var(--red)' : 'var(--muted)';
     lv.textContent = s === 3 ? `${Math.round(d.kmh)} km/h · ${d.dist} m` : s === 2 ? 'ออกตัวได้เลย' : s === 1 ? `${Math.round(d.kmh)} km/h · จอดนิ่งเพื่อเริ่ม` : '';
   }
   function paintDrag() {
@@ -420,7 +565,7 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
     if (r.done && r.delta != null && b.seq && b.seq !== r.seq) delta = `<span class="s ${r.delta > 0 ? 'pos' : 'neg'}">${r.delta > 0 ? '+' : '-'}${Math.abs(r.delta).toFixed(3)}</span>`;
     else if (r.done && b.seq === r.seq) delta = '<span class="s neg">BEST</span>';
     let h = `<div class="row head"><span class="n">0 KM/H - ${j.name}</span><span></span><span></span></div>`;
-    h += `<div class="row best"><span class="n">BEST</span><span class="t">${fmt(bt)}</span><span class="s" style="color:#fff">${b.seq ? '@RUN' + b.seq : ''}</span></div>`;
+    h += `<div class="row best"><span class="n">BEST</span><span class="t">${fmt(bt)}</span><span class="s">${b.seq ? '@RUN' + b.seq : ''}</span></div>`;
     h += `<div class="row run"><span class="n">RUN ${r.seq || ''}</span><span class="t">${fmt(rt)}</span>${delta || '<span class="s"></span>'}</div>`;
     SPLITS.forEach((n, i) => {
       const on = i <= tgtIdx, got = on && r.seq && r.t[i] >= 0;
@@ -487,10 +632,157 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
     if (S.demo) {
       if (dev && dev.gatt.connected) dev.gatt.disconnect();
       setLink('wait', 'DEMO');
+      stopPhoneGps();
       demoTimer = setInterval(demoTick, 100);
       if (!S.drag) onDrag({ tgt: 402.3, name: '402 M', st: 2, run: { seq: 0, done: 0, t: [-1, -1, -1, -1, -1], v: [0, 0, 0, 0, 0], vmax: 0 }, best: { seq: 0, done: 0, t: [-1, -1, -1, -1, -1], v: [0, 0, 0, 0, 0], vmax: 0 } });
       keepAwake();
-    } else { setLink('off', 'BT OFF'); S.live = null; paintTiles(); paintDragLive(); }
+    } else { setLink('off', 'BT OFF'); S.live = null; S.drag = null; syncGpsSource(); paintTiles(); paintDragLive(); }
+  });
+
+  // ---------- phone GPS + drag timer in the page (for gauges without a GPS module) ----------
+  // Same method as the gauge (src/ui/gps_drag.cpp): distance = integral of the Doppler speed with
+  // constant acceleration between fixes, split crossings solved inside each interval, launch time
+  // extrapolated back to 0 km/h from the first two moving fixes.
+  const SPLIT_M = [18.288, 100, 201.168, 402.336, 1000], TGT = [1, 2, 3, 4];
+  class DragEngine {
+    constructor(arm, launch, gapMs) { this.arm = arm; this.launchKmh = launch; this.gap = gapMs; this.target = 2; this.seq = 0;
+      this.state = 0; this.have = false; this.best = [null, null, null, null]; this.last = null; this.run = null; this.delta = 0; this.newBest = false; }
+    blank(seq) { return { seq, done: 0, t: [-1, -1, -1, -1, -1], v: [0, 0, 0, 0, 0], vmax: 0 }; }
+    begin(t0) { this.run = this.blank(this.seq); this.t0 = t0; this.t = t0; this.v = 0; this.d = 0; this.state = 3; }
+    step(t1, v1) {
+      const dt = (t1 - this.t) / 1000; if (dt <= 0) return false;
+      const u0 = this.v / 3.6, u1 = v1 / 3.6, a = (u1 - u0) / dt, d1 = this.d + (u0 + u1) / 2 * dt;
+      let split = false;
+      for (let k = 0; k <= TGT[this.target]; k++) {
+        if (this.run.t[k] >= 0) continue;
+        const D = SPLIT_M[k]; if (D > d1) break;
+        const rem = D - this.d; let tau;
+        if (Math.abs(a) < 1e-6) tau = u0 > 1e-6 ? rem / u0 : dt;
+        else { const disc = u0 * u0 + 2 * a * rem; tau = disc < 0 ? dt : (-u0 + Math.sqrt(disc)) / a; }
+        tau = Math.max(0, Math.min(dt, tau));
+        this.run.t[k] = (this.t - this.t0) / 1000 + tau; this.run.v[k] = (u0 + a * tau) * 3.6; split = true;
+      }
+      if (v1 > this.run.vmax) this.run.vmax = v1;
+      this.t = t1; this.v = v1; this.d = d1;
+      return split;
+    }
+    lost() { const was = this.state === 3; this.state = 0; this.have = false; if (was) this.seq--; return was ? 'abort' : ''; }
+    setTarget(i) { if (this.state === 3) { this.state = 1; this.seq--; } this.target = i; this.last = null; this.delta = 0; }
+    feed(valid, t, kmh) {
+      if (!valid) return this.lost();
+      kmh = Math.max(0, kmh);
+      if (this.have) {
+        const dt = t - this.t;
+        if (dt <= 0) return '';
+        if (dt > this.gap) { this.have = false; if (this.state === 3) { this.state = 1; this.seq--; return 'abort'; } }
+      }
+      if (!this.have) { this.have = true; this.t = t; this.v = kmh; if (this.state === 0 || this.state === 3) this.state = kmh < this.arm ? 2 : 1; if (this.state === 2) this.zt = t; return ''; }
+      if (this.state === 0 || this.state === 1) { this.t = t; this.v = kmh; if (kmh < this.arm) { this.state = 2; this.zt = t; return 'ready'; } return ''; }
+      if (this.state === 2) {
+        if (kmh < this.launchKmh) { this.t = t; this.v = kmh; if (kmh < 1) this.zt = t; return ''; }
+        const dt = t - this.t, a = (kmh - this.v) / dt;
+        let t0 = a > 0 ? t - kmh / a : this.t; t0 = Math.max(this.t - dt, Math.min(t, t0));
+        this.seq++; this.lt = t; this.lv = kmh; this.lstop = Math.min(this.zt ?? this.t, this.t); this.refine = true;
+        this.begin(t0); this.step(t, kmh);
+        return this.finished() ? this.finish() : 'start';
+      }
+      // running
+      if (kmh < this.arm) { this.t = t; this.v = kmh; this.zt = t; this.state = 2; this.seq--; return 'abort'; }
+      if (this.refine) {
+        this.refine = false;
+        const a = (kmh - this.lv) / (t - this.lt);
+        if (a > 0) { let t0 = this.lt - this.lv / a; t0 = Math.max(this.lstop - 100, Math.min(this.lt, t0)); this.begin(t0); this.step(this.lt, this.lv); }
+      }
+      this.step(t, kmh);
+      return this.finished() ? this.finish() : '';
+    }
+    finished() { return this.run.t[TGT[this.target]] >= 0; }
+    finish() {
+      this.run.done = 1;
+      const b = this.best[this.target], tot = this.run.t[TGT[this.target]];
+      this.delta = b ? tot - b.t[TGT[this.target]] : 0; this.run.delta = this.delta;
+      this.newBest = !b || tot < b.t[TGT[this.target]];
+      if (this.newBest) this.best[this.target] = this.run;
+      this.last = this.run; this.state = 1;
+      return 'finish';
+    }
+    view() {
+      const empty = this.blank(0);
+      return { tgt: SPLIT_M[TGT[this.target]], name: SPLITS[TGT[this.target]], st: this.state,
+               run: this.state === 3 ? this.run : (this.last || empty), best: this.best[this.target] || empty };
+    }
+  }
+  const pdrag = new DragEngine(3, 6, 3500);          // phone fixes are ~1 Hz and noisier at rest
+  pdrag.target = store.get('zar.ptarget', 2);
+  S.gpsSrc = store.get('zar.gpssrc', 'auto');
+  S.phone = { on: false, fix: false, kmh: 0, acc: 0, hz: 0, err: '' };
+  let watchId = null, lastFix = null, fixTimes = [];
+
+  function usePhone() {
+    if (S.gpsSrc === 'phone') return true;
+    if (S.gpsSrc === 'gauge') return false;
+    return !(S.live && S.live.gps);                  // AUTO: the gauge's GPS when it has one
+  }
+  function hav(a, b) {
+    const R = 6371000, r = Math.PI / 180, dLa = (b.lat - a.lat) * r, dLo = (b.lon - a.lon) * r;
+    const h = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  function startPhoneGps() {
+    if (watchId != null || !navigator.geolocation) { if (!navigator.geolocation) S.phone.err = 'NO GPS API'; return; }
+    S.phone.on = true;
+    watchId = navigator.geolocation.watchPosition(onFix, e => {
+      S.phone.err = e.code === 1 ? 'ไม่ได้อนุญาต' : 'NO FIX';
+      S.phone.fix = false; paintTiles(); paintDragLive();
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+  }
+  function stopPhoneGps() {
+    if (watchId != null) navigator.geolocation.clearWatch(watchId);
+    watchId = null; S.phone.on = false; S.phone.fix = false; lastFix = null;
+  }
+  function onFix(p) {
+    const c = p.coords, t = p.timestamp;
+    const cur = { lat: c.latitude, lon: c.longitude, t };
+    let kmh = c.speed != null && c.speed >= 0 ? c.speed * 3.6 : null;
+    if (kmh == null && lastFix && t > lastFix.t) kmh = hav(lastFix, cur) / ((t - lastFix.t) / 1000) * 3.6;   // no Doppler speed: from position
+    lastFix = cur;
+    fixTimes.push(t); fixTimes = fixTimes.filter(x => t - x < 5000);
+    const good = c.accuracy < 30 && kmh != null;
+    S.phone = { on: true, fix: good, kmh: kmh || 0, acc: c.accuracy, hz: fixTimes.length > 1 ? (fixTimes.length - 1) / ((fixTimes[fixTimes.length - 1] - fixTimes[0]) / 1000) : 0, err: '' };
+    if (S.phone.kmh > S.top && good) S.top = S.phone.kmh;
+    if (usePhone()) {
+      const ev = pdrag.feed(good, t, S.phone.kmh);
+      if (ev === 'finish' || ev === 'start' || ev === 'abort' || ev === 'ready') { onDrag(pdrag.view()); beep(ev); }
+      else if (pdrag.state === 3) paintDrag();
+    }
+    paintTiles(); paintDragLive();
+  }
+  let actx = null;
+  function beep(ev) {
+    if (ev !== 'finish' && ev !== 'start') return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.frequency.value = ev === 'finish' ? (pdrag.newBest ? 2600 : 1800) : 1400;
+      g.gain.value = 0.15; o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + (ev === 'finish' ? 0.35 : 0.12));
+    } catch (e) {}
+  }
+  function syncGpsSource() {
+    document.querySelectorAll('.sbtn').forEach(b => b.setAttribute('aria-pressed', b.dataset.src === S.gpsSrc));
+    const phone = usePhone();
+    if (phone && !S.demo) startPhoneGps(); else if (!phone) stopPhoneGps();
+    $('bDist').disabled = !phone;
+    $('bDist').textContent = 'ระยะ ' + SPLITS[TGT[pdrag.target]];
+    if (phone && !S.demo) onDrag(pdrag.view());
+    paintTiles(); paintDragLive();
+  }
+  document.querySelectorAll('.sbtn').forEach(b => b.addEventListener('click', () => {
+    S.gpsSrc = b.dataset.src; store.set('zar.gpssrc', S.gpsSrc); syncGpsSource();
+    if (!usePhone()) readDrag();
+  }));
+  $('bDist').addEventListener('click', () => {
+    pdrag.setTarget((pdrag.target + 1) % 4); store.set('zar.ptarget', pdrag.target);
+    syncGpsSource();
   });
 
   // ---------- ui ----------
@@ -508,10 +800,12 @@ button:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
   $('tDrag').addEventListener('click', () => show('drag'));
   show(store.get('zar.tab', 'gauge'));
 
+  setTheme(store.get('zar.theme', 0));
+  syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
   // first view: run the demo so the page shows what it does; Connect switches to the real gauge
-  if (!navigator.bluetooth) $('bDemo').click();
+  if (window.self !== window.top) $('bDemo').click();      // preview inside another page (no Bluetooth / GPS there)
 })();
 </script>
 
