@@ -518,7 +518,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   function paintTiles() {
     const d = S.live || {};
     setTile('kTps', d.tps, v => v.toFixed(0), { pct: d.tps });
-    setTile('kAfr', d.afr, v => v.toFixed(1), { pct: d.afr == null ? 0 : (d.afr - 10) * 10, warn: d.afr != null && d.afr < 13.8, cold: d.afr != null && d.afr > 15.2 });
+    setTile('kAfr', d.afr, v => v.toFixed(1), { pct: d.afr == null ? 0 : (d.afr - 8) / 12 * 100, warn: d.afr != null && d.afr < 13.8, cold: d.afr != null && d.afr > 15.2 });
     setTile('kIgn', d.ign, v => v.toFixed(1));
     setTile('kEct', d.ect, v => v.toFixed(0), { cold: d.ect != null && d.ect < 60, warn: d.ect >= 100 && d.ect < 105, crit: d.ect >= 105 });
     setTile('kIat', d.iat, v => v.toFixed(0));
