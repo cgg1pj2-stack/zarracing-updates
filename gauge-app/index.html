@@ -217,6 +217,13 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   .tach canvas { max-height: calc(100dvh - 92px); }
 }
 @media (prefers-reduced-motion: reduce) { .meter i { transition: none; } }
+.flash { display: flex; flex-direction: column; gap: 12px; max-width: 640px; margin: 0 auto; padding: 4px 2px; }
+.flash .tile { padding: 12px 16px 14px; }
+.flash .tile.warn { border-color: var(--amber); }
+.flash input[type=file] { color: var(--fg); width: 100%; }
+.fwbar { height: 16px; border-radius: 8px; background: rgba(255,255,255,.08); overflow: hidden; border: 1px solid rgba(var(--acc-rgb), .5); }
+.fwfill { height: 100%; width: 0; background: var(--acc); transition: width .2s; }
+.flash .btn[disabled] { opacity: .4; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -271,6 +278,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       <button class="tab" role="tab" id="tGauge" aria-selected="true" type="button">GAUGE</button>
       <button class="tab" role="tab" id="tDrag" aria-selected="false" type="button">DRAG LOG</button>
       <button class="tab" role="tab" id="tLog" aria-selected="false" type="button">DATA LOG</button>
+      <button class="tab" role="tab" id="tFlash" aria-selected="false" type="button">รีแมพ</button>
     </div>
     <div class="shift" id="shift" aria-hidden="true"></div>
   </div>
@@ -344,6 +352,34 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       </div>
     </div>
   </section>
+
+  <section id="vFlash" hidden>
+    <div class="flash">
+      <div class="tile warn" id="fwWarn">
+        <div class="lbl"><span>⚠ อัดไฟล์รีแมพเข้ากล่อง (ECU) — Keihin</span></div>
+        <p style="margin:.4rem 0 0;line-height:1.5">
+          ใช้กับกล่อง <b>Keihin</b> เท่านั้น · เปิดสวิตช์กุญแจ <b>ON</b> (ไม่ต้องติดเครื่อง) · ต่อบลูทูธกับเกจให้ขึ้น <b>CONNECTED</b> ก่อน<br>
+          <b style="color:#ff6b6b">ห้าม</b> ดับกุญแจ ถอดสาย หรือปิดบลูทูธ/แอป ระหว่างอัด — ถ้าหลุดกลางคัน กล่องจะยังว่างอยู่ ต้องอัดไฟล์เดิมซ้ำให้จบ · ควรมีแบตไฟดีหรือต่อที่ชาร์จไว้
+        </p>
+      </div>
+
+      <div class="tile">
+        <div class="lbl"><span>1 · เลือกไฟล์รีแมพ (.bin)</span></div>
+        <input type="file" id="fwFile" accept=".bin,.BIN,application/octet-stream" style="margin:.5rem 0">
+        <div class="kv" id="fwInfo" style="opacity:.85">ยังไม่ได้เลือกไฟล์</div>
+      </div>
+
+      <div class="tile">
+        <div class="lbl"><span>2 · อัดเข้ากล่อง</span></div>
+        <div class="fwbar"><div class="fwfill" id="fwFill"></div></div>
+        <div class="kv" id="fwStat" style="margin-top:.4rem">พร้อม</div>
+        <div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap">
+          <button type="button" class="btn" id="fwGo" disabled>เริ่มอัดไฟล์</button>
+          <button type="button" class="btn danger" id="fwAbort" hidden>ยกเลิก</button>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -353,6 +389,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   const DRAG = '7a617200-6761-7567-6500-000000000002';
   const LOGO = '7a617200-6761-7567-6500-000000000003';
   const MAP  = '7a617200-6761-7567-6500-000000000005';   // DATA LOG table (src/data/ble_packet.h)
+  const FLASH= '7a617200-6761-7567-6500-000000000006';   // remap flashing (src/data/flash_buf.h)
   const SPLITS = ['60 FT', '100 M', '201 M', '402 M', '1000 M'];
   const STATE = ['NO GPS', 'STOP TO ARM', 'READY', 'RUN'];
   const RPM_MAX = 15000;
@@ -428,6 +465,12 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       await chMap.startNotifications();
       await mapCmd(1);                               // send me the whole table
     } catch (e) { chMap = null; }
+    try {                                            // firmware with the remap flasher
+      chFlash = await svc.getCharacteristic(FLASH);
+      chFlash.addEventListener('characteristicvaluechanged', e => onFlash(e.target.value));
+      await chFlash.startNotifications();
+    } catch (e) { chFlash = null; }
+    fwPaint();
     lgPaintNote();
     S.demo = false; $('bDemo').classList.remove('on');
     setLink('ok', 'CONNECTED');
@@ -459,6 +502,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     S.link = cls;
     const c = $('cBle'); c.className = 'chip ' + cls; c.lastElementChild.textContent = txt;
     $('bConnect').textContent = cls === 'ok' ? 'เชื่อมต่อแล้ว' : 'เชื่อมต่อ';
+    if (typeof fwPaint === 'function') fwPaint();
   }
   async function keepAwake() {
     try { if ('wakeLock' in navigator && !wake) { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); } } catch (e) {}
@@ -1036,6 +1080,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
                ch: store.get('zar.lgch', 'afr') };
   { const sv = store.get('zar.log', null); if (sv && sv.nr === NR && sv.nc === NC && Array.isArray(sv.cells)) { LG.cells = sv.cells; LG.pts = sv.pts || 0; } }
   let chMap = null, lgSaveTimer = 0, tds = [], rowTh = [], colTh = [], lgCurTd = -1;
+  let chFlash = null, fwBytes = null, fwSize = 0, fwCks = 0, fwFree = 0, fwRun = false;
   const nearestIdx = (axis, v) => { let b = 0, d = Infinity; axis.forEach((a, i) => { const e = Math.abs(v - a); if (e < d) { d = e; b = i; } }); return b; };
   const mix = (a, b, t) => { t = Math.max(0, Math.min(1, t)); const p = x => [x >> 16 & 255, x >> 8 & 255, x & 255];
     const A = p(a), B = p(b); return 'rgb(' + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',') + ')'; };
@@ -1132,6 +1177,68 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   }
   async function mapCmd(b) { if (chMap) { try { await chMap.writeValue(new Uint8Array([b])); return true; } catch (e) {} } return false; }
 
+  // ---------- remap flashing (FLASH characteristic, src/data/flash_buf.h) ----------
+  const FW_PHASE = ['พร้อม', 'เริ่มต้นกล่อง...', 'ลบข้อมูลเก่า...', 'กำลังอัดไฟล์', 'กำลังปิดงาน...', 'สำเร็จ!', 'ล้มเหลว'];
+  const FW_ERR   = ['', 'เข้าโหมดอัดไม่ได้ (เช็กสาย/กุญแจ ON)', 'ลบข้อมูลไม่สำเร็จ', 'อัดบล็อกไม่ผ่าน', 'ปิดงานไม่สำเร็จ', 'การสตรีมไฟล์ขาด', 'ถูกยกเลิก'];
+  function fwPaint() {
+    const ok = S.link === 'ok' && !!chFlash;
+    $('fwGo').disabled = !(fwBytes && ok && !fwRun);
+    if (S.link === 'ok' && !chFlash) $('fwStat').textContent = 'เฟิร์มแวร์เกจรุ่นนี้ยังไม่รองรับการอัดรีแมพ';
+    else if (!fwRun && S.link !== 'ok') $('fwStat').textContent = 'ต่อบลูทูธกับเกจก่อน (ปุ่มเชื่อมต่อด้านบน)';
+  }
+  function onFlash(dv) {
+    if (dv.byteLength < 9 || dv.getUint8(0) !== 0xF0) return;
+    const phase = dv.getUint8(1), result = dv.getUint8(2);
+    const done = dv.getUint32(3, true); fwFree = dv.getUint16(7, true);
+    if (fwSize) $('fwFill').style.width = Math.min(100, done / fwSize * 100).toFixed(1) + '%';
+    let txt = FW_PHASE[phase] || '...';
+    if (phase === 3) txt += ' ' + (done / 1024).toFixed(0) + '/' + (fwSize / 1024).toFixed(0) + ' KB';
+    else if (phase === 5) txt = 'สำเร็จ! ดับกุญแจ 10 วินาที แล้วเปิดใหม่';
+    else if (phase === 6) txt = 'ล้มเหลว: ' + (FW_ERR[result] || ('รหัส ' + result)) + ' — กล่องยังอยู่ในโหมดอัด อัดไฟล์เดิมซ้ำได้';
+    $('fwStat').textContent = txt;
+    if (phase === 5 || phase === 6) { fwRun = false; $('fwAbort').hidden = true; fwPaint(); }
+  }
+  async function fwStart() {
+    if (!fwBytes || !chFlash || fwRun) return;
+    if (!confirm('ยืนยันอัดไฟล์รีแมพเข้ากล่อง Keihin?\n\nห้ามดับกุญแจ / ถอดสาย / ปิดบลูทูธ จนกว่าจะขึ้น "สำเร็จ"')) return;
+    fwRun = true; $('fwAbort').hidden = false; fwPaint();
+    $('fwFill').style.width = '0%'; $('fwStat').textContent = 'กำลังเริ่ม...'; fwFree = 0;
+    try {
+      const hdr = new Uint8Array(8);
+      hdr[0] = 0x01; hdr[1] = 0;                                     // START, ecu 0 = KEIHIN_128
+      hdr[2] = fwSize & 255; hdr[3] = (fwSize >> 8) & 255; hdr[4] = (fwSize >> 16) & 255; hdr[5] = (fwSize >> 24) & 255;
+      hdr[6] = fwCks & 255; hdr[7] = (fwCks >> 8) & 255;
+      await chFlash.writeValue(hdr);
+      const CH = 128; let off = 0;                                   // stream, paced by freeSpace credit
+      while (off < fwSize && fwRun && S.link === 'ok') {
+        if (fwFree < CH + 64) { await new Promise(r => setTimeout(r, 15)); continue; }
+        const end = Math.min(off + CH, fwSize);
+        const pkt = new Uint8Array(1 + (end - off)); pkt[0] = 0x02; pkt.set(fwBytes.subarray(off, end), 1);
+        try { await chFlash.writeValue(pkt); } catch (e) { await new Promise(r => setTimeout(r, 25)); continue; }
+        fwFree -= (end - off); off = end;
+      }
+      if (off >= fwSize) $('fwStat').textContent = 'ส่งไฟล์ครบแล้ว — รอกล่องเขียนจนจบ...';
+      else if (S.link !== 'ok') { $('fwStat').textContent = 'บลูทูธหลุดกลางคัน! อย่าดับกุญแจ — ต่อใหม่แล้วอัดไฟล์เดิมซ้ำให้จบ'; fwRun = false; $('fwAbort').hidden = true; }
+    } catch (e) {
+      $('fwStat').textContent = 'ส่งไฟล์ไม่สำเร็จ: ' + (e.message || e); fwRun = false; $('fwAbort').hidden = true; fwPaint();
+    }
+  }
+  function fwLoadFile(f) {
+    if (!f) { fwBytes = null; $('fwInfo').textContent = 'ยังไม่ได้เลือกไฟล์'; fwPaint(); return; }
+    f.arrayBuffer().then(ab => {
+      const buf = new Uint8Array(ab);
+      if (buf.length < 128 || buf.length % 128 !== 0) {
+        fwBytes = null;
+        $('fwInfo').innerHTML = '<b style="color:#ff6b6b">ไฟล์ไม่ถูกต้อง</b> — ขนาดต้องหารด้วย 128 ลงตัว (ไฟล์นี้ ' + buf.length + ' ไบต์)';
+        fwPaint(); return;
+      }
+      fwBytes = buf; fwSize = buf.length;
+      let s = 0; for (let i = 0; i < buf.length; i++) s = (s + buf[i]) & 0xFFFF; fwCks = s;
+      $('fwInfo').innerHTML = 'ไฟล์: <b>' + f.name + '</b> · ' + (fwSize / 1024).toFixed(0) + ' KB · ' + (fwSize / 128) + ' บล็อก';
+      fwPaint();
+    });
+  }
+
   // DEMO (no gauge): the page logs the demo ride itself, like the gauge would
   let lgLast = 0;
   function lgLocalAdd(d) {
@@ -1194,7 +1301,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     try { if (!document.fullscreenElement) { await document.documentElement.requestFullscreen(); try { await screen.orientation.lock('landscape'); } catch (e) {} } else await document.exitFullscreen(); } catch (e) {}
   });
   function show(tab) {
-    const v = { gauge: 'vGauge', drag: 'vDrag', log: 'vLog' }, t = { gauge: 'tGauge', drag: 'tDrag', log: 'tLog' };
+    const v = { gauge: 'vGauge', drag: 'vDrag', log: 'vLog', flash: 'vFlash' }, t = { gauge: 'tGauge', drag: 'tDrag', log: 'tLog', flash: 'tFlash' };
     if (!v[tab]) tab = 'gauge';
     for (const k in v) { $(v[k]).hidden = k !== tab; $(t[k]).setAttribute('aria-selected', k === tab); }
     store.set('zar.tab', tab);
@@ -1203,6 +1310,14 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   $('tGauge').addEventListener('click', () => show('gauge'));
   $('tDrag').addEventListener('click', () => show('drag'));
   $('tLog').addEventListener('click', () => show('log'));
+  $('tFlash').addEventListener('click', () => { show('flash'); fwPaint(); });
+  $('fwFile').addEventListener('change', e => fwLoadFile(e.target.files[0]));
+  $('fwGo').addEventListener('click', fwStart);
+  $('fwAbort').addEventListener('click', async () => {
+    if (chFlash) { try { await chFlash.writeValue(new Uint8Array([0x03])); } catch (e) {} }
+    fwRun = false; $('fwAbort').hidden = true;
+    $('fwStat').textContent = 'ยกเลิกแล้ว — กล่องยังอยู่ในโหมดอัด อัดไฟล์เดิมซ้ำได้'; fwPaint();
+  });
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
