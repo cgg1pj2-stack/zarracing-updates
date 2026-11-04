@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="สมาร์ทเกจ ZAR">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23030507'/%3E%3Cpath d='M12 16h40L24 48h28' stroke='%231ea7ff' stroke-width='9' fill='none'/%3E%3C/svg%3E">
 <title>สมาร์ทเกจ ZAR Racing</title>
 <meta name="description" content="สมาร์ทเกจ ZAR Racing — ดูค่าเกจสด จับเวลา และเก็บค่า A/F · IGN · INJ ผ่านบลูทูธ">
@@ -1208,6 +1209,9 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   // first view: run the demo so the page shows what it does; Connect switches to the real gauge
   if (window.self !== window.top) $('bDemo').click();      // preview inside another page (no Bluetooth / GPS there)
 })();
+
+// offline / installable app (sw.js)
+if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 </script>
 
 </body>
