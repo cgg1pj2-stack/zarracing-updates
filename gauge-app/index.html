@@ -283,6 +283,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
         <div class="tile" id="kTps"><div class="lbl"><span>TPS</span><span>%</span></div><div class="val">--</div><div class="meter"><i></i></div></div>
         <div class="tile" id="kAfr"><div class="lbl"><span>AFR</span><span>O2</span></div><div class="val">--</div><div class="meter"><i></i></div></div>
         <div class="tile" id="kIgn"><div class="lbl"><span>IGN</span><span>°BTDC</span></div><div class="val">--</div></div>
+        <div class="tile" id="kMode"><div class="lbl"><span>MODE</span><span>1-4</span></div><div class="val">--</div></div>
       </div>
       <div class="tach"><canvas id="cv" width="820" height="630"></canvas></div>
       <div class="col">
@@ -379,6 +380,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       tps: f0 & 16 ? dv.getUint8(7) : null,
       ign: f0 & 32 ? (dv.getUint8(8) - 128) / 2 : null,
       afr: f0 & 64 ? dv.getUint8(9) / 10 : null,
+      mode: (f1 >> 4) & 7 || null,                                  // ZAR remap fuel MODE 1-4
       shift: !!(f0 & 128),
       gps: !!(f1 & 1), fix: !!(f1 & 2), ecu: !!(f1 & 4), ecuSpd: f1 & 8 ? dv.getUint8(13) : null,
       kmh: dv.getUint16(10, true) / 10, sats: dv.getUint8(12), hz: dv.getUint8(14) >> 4,
@@ -520,6 +522,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     setTile('kTps', d.tps, v => v.toFixed(0), { pct: d.tps });
     setTile('kAfr', d.afr, v => v.toFixed(1), { pct: d.afr == null ? 0 : (d.afr - 8) / 12 * 100, warn: d.afr != null && d.afr < 13.8, cold: d.afr != null && d.afr > 15.2 });
     setTile('kIgn', d.ign, v => v.toFixed(1));
+    setTile('kMode', d.mode, v => String(v));
     setTile('kEct', d.ect, v => v.toFixed(0), { cold: d.ect != null && d.ect < 60, warn: d.ect >= 100 && d.ect < 105, crit: d.ect >= 105 });
     setTile('kIat', d.iat, v => v.toFixed(0));
     setTile('kBat', d.bat, v => v.toFixed(1), { warn: d.bat != null && (d.bat < 12.4 || d.bat > 14.8), crit: d.bat != null && (d.bat < 11.8 || d.bat > 15.2) });
@@ -738,7 +741,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     } else if (cyc >= 24) { kmh = 165 * (1 - (cyc - 24) / 6); rpm = 3000 + kmh * 30; dst = 1; }
     if (cyc >= 6 && cyc < 6.15 && (!demoRun.seq || demoRun.done)) { demoRun = { seq: (demoRun.seq || 0) + 1, done: 0 }; }
     rpm += Math.sin(demoT * 9) * 120;
-    const live = { rpm: Math.round(rpm), ect: 86, iat: 38, bat: 13.8, tps: dst === 3 ? 100 : 4, ign: 12 + rpm / 1200, afr: dst === 3 ? 12.9 : 14.6,
+    const live = { rpm: Math.round(rpm), ect: 86, iat: 38, bat: 13.8, tps: dst === 3 ? 100 : 4, ign: 12 + rpm / 1200, afr: dst === 3 ? 12.9 : 14.6, mode: 1,
       shift: rpm > 12000, gps: true, fix: true, ecu: true, kmh, sats: 11, hz: 10, dst, el, dist: Math.round(dist), counter: demoCounter };
     onLive(live);
   }
