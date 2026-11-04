@@ -155,10 +155,47 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 .h .tag { font-size: 12px; padding: 2px 6px; background: var(--acc); color: #000; font-family: var(--f-ui); font-weight: 700; }
 .empty { color: var(--muted); font-size: 14px; padding: 14px; border: 1px dashed #333844; border-radius: 5px; background: rgba(6, 9, 13, .8); }
 
+
+/* ---- data log view: RPM x TPS cell table (mirrors the gauge's DATA LOG page) ---- */
+.lg { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 12px; }
+.lgbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.lgbar .seg .sbtn { font-family: var(--f-num); font-weight: 800; font-style: italic; font-size: 17px; letter-spacing: 1px; padding: 5px 16px; }
+.lgbar .seg .sbtn[data-ch="inj"][aria-pressed="true"] { background: #2e6bff; color: #fff; }
+.lgbar .seg .sbtn[data-ch="afr"][aria-pressed="true"] { background: #f5e000; color: #0a0c12; }
+.lgbar .seg .sbtn[data-ch="ign"][aria-pressed="true"] { background: #28c8ff; color: #0a0c12; }
+.lgbar .btn { padding: 6px 12px; font-size: 14px; }
+.lgbar .btn.danger { border-color: var(--red); box-shadow: 0 0 10px rgba(255, 42, 47, .35); }
+.lgbar .btn.arm { background: rgba(255, 42, 47, .25); }
+.lgstat { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-family: var(--f-num); font-size: 18px; font-variant-numeric: tabular-nums; color: var(--muted); margin-left: auto; }
+.lgstat b { color: var(--fg); font-weight: 800; }
+.rec { color: var(--red); font-weight: 800; letter-spacing: 1px; }
+.rec::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--red); margin-right: 6px; vertical-align: 0; animation: blink 1s steps(1) infinite; }
+.rec.off { color: var(--muted); } .rec.off::before { background: var(--muted); border-radius: 1px; animation: none; }
+@keyframes blink { 50% { opacity: .2; } }
+.tblwrap { overflow: auto; max-height: min(64vh, 620px); border: 1px solid #1c2c66; border-radius: 6px; background: #070910; overscroll-behavior: contain; }
+table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f-num); font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+.cells th, .cells td { min-width: 46px; height: 26px; padding: 0 3px; text-align: center; border-right: 1px solid #1c2c66; border-bottom: 1px solid #1c2c66; }
+.cells thead th { position: sticky; top: 0; z-index: 2; background: #0c1020; color: #dfe4ec; font-style: italic; }
+.cells tbody th { position: sticky; left: 0; z-index: 1; background: #0c1020; color: #dfe4ec; font-style: italic; min-width: 58px; text-align: right; padding-right: 8px; }
+.cells thead th:first-child { left: 0; z-index: 3; font-size: 11px; color: var(--muted); font-style: normal; letter-spacing: .5px; }
+.cells th.cur { background: #f5e000; color: #0a0c12; }
+.cells td { color: #3a4050; font-weight: 600; cursor: pointer; }
+.cells td.v { color: #0a0c12; }
+.cells td.cur { outline: 3px solid #f5e000; outline-offset: -3px; box-shadow: 0 0 12px rgba(245, 224, 0, .6) inset; }
+.cells td.sel { outline: 2px dashed #fff; outline-offset: -4px; }
+.lgside { display: grid; gap: 10px; align-content: start; }
+.lgside .tile { padding: 10px 14px; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14px; }
+.kv span { color: var(--muted); } .kv b { font-family: var(--f-num); font-size: 19px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+.legend { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 14px; height: 14px; border-radius: 2px; vertical-align: -2px; margin-right: 6px; }
+
 @media (max-width: 760px) {
   .dash { grid-template-columns: 1fr 1fr; }
   .tach { grid-column: 1 / -1; order: -1; }
   .drag { grid-template-columns: 1fr; }
+  .lg { grid-template-columns: 1fr; }
+  .lgstat { margin-left: 0; }
   .logo { font-size: 28px; }
   .val { font-size: 38px; }
 }
@@ -231,6 +268,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" id="tGauge" aria-selected="true" type="button">GAUGE</button>
       <button class="tab" role="tab" id="tDrag" aria-selected="false" type="button">DRAG LOG</button>
+      <button class="tab" role="tab" id="tLog" aria-selected="false" type="button">DATA LOG</button>
     </div>
     <div class="shift" id="shift" aria-hidden="true"></div>
   </div>
@@ -276,6 +314,33 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
       </div>
     </div>
   </section>
+
+  <section id="vLog" hidden>
+    <div class="lgbar">
+      <div class="seg" role="group" aria-label="ค่าที่แสดง">
+        <button type="button" class="sbtn" data-ch="inj" aria-pressed="false">INJ</button>
+        <button type="button" class="sbtn" data-ch="afr" aria-pressed="true">AFR</button>
+        <button type="button" class="sbtn" data-ch="ign" aria-pressed="false">IGT</button>
+      </div>
+      <button type="button" class="btn" id="lgFollow" aria-pressed="true">ตามจุด: เปิด</button>
+      <button type="button" class="btn" id="lgRec">หยุดเก็บ</button>
+      <button type="button" class="btn danger" id="lgClear">ล้างค่า</button>
+      <button type="button" class="btn" id="lgPull" title="ดึงตารางทั้งหมดจากเกจอีกครั้ง">ดึงจากเกจ</button>
+      <button type="button" class="btn" id="lgCsv">CSV</button>
+      <div class="lgstat"><span class="rec" id="lgRecTag">REC</span><span>RPM <b id="lgRpm">--</b></span><span>TPS <b id="lgTps">--</b></span><span>A/F <b id="lgAfr">--</b></span><span>PTS <b id="lgPts">0</b></span></div>
+    </div>
+    <div class="lg">
+      <div class="tblwrap" id="lgWrap"><table class="cells" id="lgTbl"></table></div>
+      <div class="lgside">
+        <div class="tile">
+          <div class="lbl"><span id="lgCellT">ช่องที่เคอร์เซอร์อยู่</span></div>
+          <div class="kv" id="lgCell"></div>
+        </div>
+        <div class="tile legend" id="lgLegend"></div>
+        <p class="empty" id="lgNote">เกจเก็บค่าเฉลี่ย A/F · IGN · INJ ลงตาราง RPM × TPS ตลอดเวลาที่ขี่ (แม้ไม่ได้ต่อมือถือ) · ต่อบลูทูธแล้วตารางจะดึงมาแสดงที่นี่ · แตะช่องเพื่อดูรายละเอียด</p>
+      </div>
+    </div>
+  </section>
 </div>
 
 <script>
@@ -284,6 +349,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
   const LIVE = '7a617200-6761-7567-6500-000000000001';
   const DRAG = '7a617200-6761-7567-6500-000000000002';
   const LOGO = '7a617200-6761-7567-6500-000000000003';
+  const MAP  = '7a617200-6761-7567-6500-000000000005';   // DATA LOG table (src/data/ble_packet.h)
   const SPLITS = ['60 FT', '100 M', '201 M', '402 M', '1000 M'];
   const STATE = ['NO GPS', 'STOP TO ARM', 'READY', 'RUN'];
   const RPM_MAX = 15000;
@@ -352,6 +418,13 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
       chLogo.addEventListener('characteristicvaluechanged', e => { const w = logoWait; logoWait = null; if (w) w(new Uint8Array(e.target.value.buffer)); });
       await chLogo.startNotifications();
     } catch (e) { chLogo = null; }
+    try {                                            // firmware with the DATA LOG table
+      chMap = await svc.getCharacteristic(MAP);
+      chMap.addEventListener('characteristicvaluechanged', e => onMap(e.target.value));
+      await chMap.startNotifications();
+      await mapCmd(1);                               // send me the whole table
+    } catch (e) { chMap = null; }
+    lgPaintNote();
     S.demo = false; $('bDemo').classList.remove('on');
     setLink('ok', 'CONNECTED');
     note('');
@@ -397,6 +470,8 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     if (S.wasPhone !== usePhone()) { S.wasPhone = usePhone(); syncGpsSource(); }
     paintTiles();
     paintDragLive();
+    if (S.demo) lgLocalAdd(d);
+    lgPaintStatus();
   }
   function onDrag(j) {
     S.drag = j;
@@ -944,19 +1019,185 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
     catch (e) { lgMsg('ไม่สำเร็จ: ' + (e.message || e)); }
   });
 
+
+  // ---------- data log (axes = src/data/datalog.h, packets = MAP in src/data/ble_packet.h) ----------
+  const LOG_RPM = [1000, 1200, 1400, 1500, 1600, 1700, 1800, 2000, 2250, 2500, 3000, 3500, 3750, 4000, 4250, 4500, 4750,
+    5000, 5250, 5500, 5750, 6000, 6250, 6500, 6750, 7000, 7250, 7500, 8000, 8250, 8500, 8750, 9000, 9500, 9850,
+    10000, 10250, 10500, 10750, 11000];
+  const LOG_TPS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 71, 73];
+  const NR = LOG_RPM.length, NC = LOG_TPS.length;
+  const CHN = { inj: 'INJ', afr: 'AFR', ign: 'IGT' };
+  const LG = { cells: new Array(NR * NC).fill(null), cur: null, rec: true, pts: 0, inj: null, follow: true, sel: null, arm: 0,
+               ch: store.get('zar.lgch', 'afr') };
+  { const sv = store.get('zar.log', null); if (sv && sv.nr === NR && sv.nc === NC && Array.isArray(sv.cells)) { LG.cells = sv.cells; LG.pts = sv.pts || 0; } }
+  let chMap = null, lgSaveTimer = 0, tds = [], rowTh = [], colTh = [], lgCurTd = -1;
+  const nearestIdx = (axis, v) => { let b = 0, d = Infinity; axis.forEach((a, i) => { const e = Math.abs(v - a); if (e < d) { d = e; b = i; } }); return b; };
+  const mix = (a, b, t) => { t = Math.max(0, Math.min(1, t)); const p = x => [x >> 16 & 255, x >> 8 & 255, x & 255];
+    const A = p(a), B = p(b); return 'rgb(' + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',') + ')'; };
+  function cellColor(ch, v) {                      // same colours as the gauge (src/ui/datalog_ui.cpp)
+    if (ch === 'afr') return v < 12 ? '#ff4a3a' : v < 13 ? '#ff9a2a' : v < 13.8 ? '#c8e83c' : v < 15 ? '#46e06a' : '#3cb4ff';
+    if (ch === 'ign') return mix(0x46e06a, 0xffd228, v / 40);
+    return mix(0x5cc8ff, 0xc28cff, v / 10);
+  }
+  const fmtV = (ch, v) => ch === 'inj' ? (v >= 9.995 ? v.toFixed(1) : v.toFixed(2)) : v.toFixed(1);
+
+  function lgBuild() {
+    const t = $('lgTbl');
+    let h = '<thead><tr><th>RPM\\TPS</th>' + LOG_TPS.map(x => '<th>' + x + '</th>').join('') + '</tr></thead><tbody>';
+    for (let r = 0; r < NR; r++) h += '<tr><th>' + LOG_RPM[r] + '</th>' + '<td></td>'.repeat(NC) + '</tr>';
+    t.innerHTML = h + '</tbody>';
+    colTh = [...t.tHead.rows[0].cells].slice(1);
+    rowTh = []; tds = new Array(NR * NC);
+    [...t.tBodies[0].rows].forEach((tr, i) => { const r = i; rowTh[r] = tr.cells[0];
+      for (let c = 0; c < NC; c++) { const td = tr.cells[c + 1]; td.dataset.i = r * NC + c; tds[r * NC + c] = td; } });
+    t.addEventListener('click', e => { const td = e.target.closest('td'); if (!td) return;
+      LG.sel = +td.dataset.i; tds.forEach(x => x.classList.remove('sel')); td.classList.add('sel'); lgDetail(); });
+  }
+  function lgPaintCell(i) {
+    const k = LG.cells[i], td = tds[i], v = k && k[LG.ch];
+    if (v == null) { td.textContent = '–'; td.style.background = ''; td.classList.remove('v'); }
+    else { td.textContent = fmtV(LG.ch, v); td.style.background = cellColor(LG.ch, v); td.classList.add('v'); }
+  }
+  function lgPaintAll() { for (let i = 0; i < NR * NC; i++) lgPaintCell(i); lgPaintCursor(true); lgLegend(); lgDetail(); }
+  function lgPaintCursor(force) {
+    const i = LG.cur ? LG.cur.r * NC + LG.cur.c : -1;
+    if (i === lgCurTd && !force) return;
+    rowTh.forEach(x => x.classList.remove('cur')); colTh.forEach(x => x.classList.remove('cur'));
+    if (lgCurTd >= 0) tds[lgCurTd].classList.remove('cur');
+    lgCurTd = i;
+    if (i < 0) return;
+    tds[i].classList.add('cur'); rowTh[LG.cur.r].classList.add('cur'); colTh[LG.cur.c].classList.add('cur');
+    if (LG.follow && !$('vLog').hidden) {             // keep the cursor in view, inside the table box only
+      const w = $('lgWrap'), td = tds[i], m = 40;
+      if (td.offsetTop - m < w.scrollTop + 26) w.scrollTop = td.offsetTop - 26 - m;
+      else if (td.offsetTop + td.offsetHeight + m > w.scrollTop + w.clientHeight) w.scrollTop = td.offsetTop + td.offsetHeight + m - w.clientHeight;
+      if (td.offsetLeft - m < w.scrollLeft + 58) w.scrollLeft = td.offsetLeft - 58 - m;
+      else if (td.offsetLeft + td.offsetWidth + m > w.scrollLeft + w.clientWidth) w.scrollLeft = td.offsetLeft + td.offsetWidth + m - w.clientWidth;
+    }
+    if (LG.sel == null) lgDetail();
+  }
+  function lgDetail() {
+    const i = LG.sel != null ? LG.sel : LG.cur ? LG.cur.r * NC + LG.cur.c : -1;
+    $('lgCellT').textContent = LG.sel != null ? 'ช่องที่เลือก' : 'ช่องที่เคอร์เซอร์อยู่';
+    if (i < 0) { $('lgCell').innerHTML = '<span>ยังไม่มีข้อมูล</span><b></b>'; return; }
+    const k = LG.cells[i] || {}, r = Math.floor(i / NC), c = i % NC, f = (v, d) => v == null ? '--' : v.toFixed(d);
+    $('lgCell').innerHTML = `<span>ช่อง</span><b>${LOG_RPM[r]} rpm · TPS ${LOG_TPS[c]}</b>` +
+      `<span>A/F เฉลี่ย</span><b>${f(k.afr, 1)}</b><span>A/F ต่ำ / สูง</span><b>${k.afr == null ? '--' : f(k.amin, 1) + ' / ' + f(k.amax, 1)}</b>` +
+      `<span>IGN °BTDC</span><b>${f(k.ign, 1)}</b><span>INJ ms</span><b>${f(k.inj, 2)}</b><span>จำนวนครั้ง</span><b>${k.n || 0}</b>`;
+  }
+  function lgLegend() {
+    const L = { afr: [['#ff4a3a', 'หนามาก < 12.0'], ['#ff9a2a', 'หนา 12.0–13.0'], ['#c8e83c', 'กำลัง 13.0–13.8'], ['#46e06a', 'ปกติ 13.8–15.0'], ['#3cb4ff', 'บาง > 15.0']],
+                ign: [[mix(0x46e06a, 0xffd228, 0), '0°'], [mix(0x46e06a, 0xffd228, .5), '20°'], [mix(0x46e06a, 0xffd228, 1), '40°+']],
+                inj: [[mix(0x5cc8ff, 0xc28cff, 0), '0 ms'], [mix(0x5cc8ff, 0xc28cff, .5), '5 ms'], [mix(0x5cc8ff, 0xc28cff, 1), '10 ms+']] }[LG.ch];
+    $('lgLegend').innerHTML = '<span>สีของ ' + CHN[LG.ch] + '</span>' + L.map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join('');
+  }
+  function lgPaintStatus() {
+    const d = S.live || {};
+    $('lgRpm').textContent = d.rpm != null ? d.rpm : '--';
+    $('lgTps').textContent = d.tps != null ? d.tps : '--';
+    $('lgAfr').textContent = d.afr != null ? d.afr.toFixed(1) : '--';
+    $('lgPts').textContent = LG.pts;
+    const t = $('lgRecTag'); t.textContent = LG.rec ? 'REC' : 'STOP'; t.classList.toggle('off', !LG.rec);
+    $('lgRec').textContent = LG.rec ? 'หยุดเก็บ' : 'เริ่มเก็บ';
+  }
+  function lgPaintNote() {
+    $('lgNote').innerHTML = S.link === 'ok' && !chMap
+      ? 'เกจที่ต่ออยู่ยังเป็นเฟิร์มแวร์เก่า (ไม่มี DATA LOG) อัปเฟิร์มแวร์ใหม่ก่อน'
+      : 'เกจเก็บค่าเฉลี่ย A/F · IGN · INJ ลงตาราง RPM × TPS ตลอดเวลาที่ขี่ (แม้ไม่ได้ต่อมือถือ) · ต่อบลูทูธแล้วตารางจะดึงมาแสดงที่นี่ · แตะช่องเพื่อดูรายละเอียด';
+  }
+  function lgSave() { clearTimeout(lgSaveTimer); lgSaveTimer = setTimeout(() => store.set('zar.log', { nr: NR, nc: NC, cells: LG.cells, pts: LG.pts }), 1500); }
+  function lgClearLocal() { LG.cells = new Array(NR * NC).fill(null); LG.pts = 0; LG.sel = null; lgPaintAll(); lgSave(); lgPaintStatus(); }
+
+  function onMap(dv) {                              // decode one MAP packet from the gauge
+    const t = dv.getUint8(0);
+    if (t === 0xA0) {
+      const f = dv.getUint8(1);
+      LG.rec = !!(f & 1); LG.inj = f & 2 ? dv.getUint16(4, true) / 100 : null; LG.pts = dv.getUint32(6, true);
+      LG.cur = f & 4 ? { r: dv.getUint8(2), c: dv.getUint8(3) } : null;
+      lgPaintCursor(); lgPaintStatus();
+    } else if (t === 0xC0) {
+      lgClearLocal();
+    } else if (t === 0xC1) {
+      const r = dv.getUint8(1), c = dv.getUint8(2); if (r >= NR || c >= NC) return;
+      const afr = dv.getUint8(5), ign = dv.getUint8(6), inj = dv.getUint16(7, true);
+      LG.cells[r * NC + c] = { n: dv.getUint16(3, true), afr: afr ? afr / 10 : null, ign: ign ? (ign - 128) / 2 : null,
+                               inj: inj ? inj / 100 : null, amin: dv.getUint8(9) / 10, amax: dv.getUint8(10) / 10 };
+      lgPaintCell(r * NC + c); if (LG.sel === r * NC + c || LG.sel == null) lgDetail(); lgSave();
+    }
+  }
+  async function mapCmd(b) { if (chMap) { try { await chMap.writeValue(new Uint8Array([b])); return true; } catch (e) {} } return false; }
+
+  // DEMO (no gauge): the page logs the demo ride itself, like the gauge would
+  let lgLast = 0;
+  function lgLocalAdd(d) {
+    if (d.rpm == null || d.tps == null) { LG.cur = null; lgPaintCursor(); return; }
+    const r = nearestIdx(LOG_RPM, d.rpm), c = nearestIdx(LOG_TPS, d.tps);
+    LG.cur = { r, c };
+    const inj = 1.8 + d.tps / 100 * 4.2 + d.rpm / 6000;
+    if (LG.rec && d.rpm >= 500) {
+      const i = r * NC + c, k = LG.cells[i] || { n: 0, afr: null, ign: null, inj: null, amin: null, amax: null };
+      k.n++; const w = Math.min(k.n, 400), avg = (o, v) => o == null ? v : o + (v - o) / w;
+      if (d.afr != null) { k.afr = avg(k.afr, d.afr); k.amin = k.amin == null ? d.afr : Math.min(k.amin, d.afr); k.amax = k.amax == null ? d.afr : Math.max(k.amax, d.afr); }
+      if (d.ign != null) k.ign = avg(k.ign, d.ign);
+      k.inj = avg(k.inj, inj);
+      LG.cells[i] = k; LG.pts++;
+      lgPaintCell(i); if (LG.sel === i) lgDetail();
+      if (Date.now() - lgLast > 2000) { lgLast = Date.now(); lgSave(); }
+    }
+    lgPaintCursor();
+  }
+
+  lgBuild(); lgPaintAll(); lgPaintStatus();
+  document.querySelectorAll('.lgbar [data-ch]').forEach(b => b.addEventListener('click', () => {
+    LG.ch = b.dataset.ch; store.set('zar.lgch', LG.ch);
+    document.querySelectorAll('.lgbar [data-ch]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    lgPaintAll();
+  }));
+  document.querySelectorAll('.lgbar [data-ch]').forEach(x => x.setAttribute('aria-pressed', x.dataset.ch === LG.ch));
+  $('lgFollow').addEventListener('click', () => {
+    LG.follow = !LG.follow; $('lgFollow').textContent = 'ตามจุด: ' + (LG.follow ? 'เปิด' : 'ปิด');
+    $('lgFollow').setAttribute('aria-pressed', LG.follow);
+    if (LG.follow) { LG.sel = null; tds.forEach(x => x.classList.remove('sel')); lgPaintCursor(true); }
+  });
+  $('lgWrap').addEventListener('wheel', () => { if (LG.follow) $('lgFollow').click(); }, { passive: true });
+  $('lgWrap').addEventListener('touchmove', () => { if (LG.follow) $('lgFollow').click(); }, { passive: true });
+  $('lgRec').addEventListener('click', async () => {
+    if (chMap && S.link === 'ok') await mapCmd(LG.rec ? 4 : 3);
+    else { LG.rec = !LG.rec; lgPaintStatus(); }
+  });
+  $('lgClear').addEventListener('click', async () => {
+    const b = $('lgClear');
+    if (Date.now() - LG.arm > 3000) { LG.arm = Date.now(); b.textContent = 'แตะอีกครั้งเพื่อล้าง'; b.classList.add('arm');
+      setTimeout(() => { if (Date.now() - LG.arm >= 3000) { b.textContent = 'ล้างค่า'; b.classList.remove('arm'); } }, 3100); return; }
+    LG.arm = 0; b.textContent = 'ล้างค่า'; b.classList.remove('arm');
+    if (chMap && S.link === 'ok') await mapCmd(2);   // the gauge clears and sends C0 back
+    else lgClearLocal();
+  });
+  $('lgPull').addEventListener('click', async () => { if (!(await mapCmd(1))) lgPaintNote(); });
+  $('lgCsv').addEventListener('click', () => {
+    const rows = [['RPM\\TPS', ...LOG_TPS].join(',')];
+    for (let r = 0; r < NR; r++) rows.push([LOG_RPM[r], ...LOG_TPS.map((_, c) => { const k = LG.cells[r * NC + c]; return k && k[LG.ch] != null ? fmtV(LG.ch, k[LG.ch]) : ''; })].join(','));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv' }));
+    a.download = 'zar_datalog_' + LG.ch + '.csv'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+
   // ---------- ui ----------
   $('bConnect').addEventListener('click', () => { if (S.link !== 'ok') { if (S.demo) $('bDemo').click(); connect(); } });
   $('bFull').addEventListener('click', async () => {
     try { if (!document.fullscreenElement) { await document.documentElement.requestFullscreen(); try { await screen.orientation.lock('landscape'); } catch (e) {} } else await document.exitFullscreen(); } catch (e) {}
   });
   function show(tab) {
-    const g = tab === 'gauge';
-    $('vGauge').hidden = !g; $('vDrag').hidden = g;
-    $('tGauge').setAttribute('aria-selected', g); $('tDrag').setAttribute('aria-selected', !g);
+    const v = { gauge: 'vGauge', drag: 'vDrag', log: 'vLog' }, t = { gauge: 'tGauge', drag: 'tDrag', log: 'tLog' };
+    if (!v[tab]) tab = 'gauge';
+    for (const k in v) { $(v[k]).hidden = k !== tab; $(t[k]).setAttribute('aria-selected', k === tab); }
     store.set('zar.tab', tab);
+    if (tab === 'log') lgPaintCursor(true);
   }
   $('tGauge').addEventListener('click', () => show('gauge'));
   $('tDrag').addEventListener('click', () => show('drag'));
+  $('tLog').addEventListener('click', () => show('log'));
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
