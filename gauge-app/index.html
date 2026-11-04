@@ -247,7 +247,14 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .fwstatus b.bad { color: #ff6b6b; }
 .fwright { display: flex; flex-direction: column; gap: 12px; }
 .fwread { text-align: left; width: 100%; border: 1px solid var(--amber); color: var(--amber); background: rgba(255,176,32,.08); padding: 10px 14px; border-radius: 6px; font: inherit; font-weight: 700; cursor: pointer; }
-.fwrate { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; margin-left: auto; }
+.fwrate { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.fwwarn { font-size: 12.5px; color: var(--amber); border: 1px solid rgba(255,176,32,.45); border-radius: 6px; padding: 7px 12px; background: rgba(255,176,32,.06); }
+.fwprog { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.fwprog span { font-size: 14px; } .fwprog b { font-family: var(--f-num); font-size: 30px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.fwbtns { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.fwgo { flex: 1; min-width: 160px; font-weight: 800; letter-spacing: 1px; padding: 12px 18px; background: rgba(var(--acc-rgb), .18); border-color: var(--acc); }
+.fwstatus b.warn { color: var(--amber); }
+.flash .tile .lbl { margin-bottom: 6px; }
 @media (max-width: 620px) { .fwgrid { grid-template-columns: 1fr; } .fwcount b { font-size: 44px; } }
 </style>
 </head>
@@ -386,7 +393,6 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
         <span class="fwbadge brand">ZAR RACING</span>
         <span class="fwconn" id="fwConn">ยังไม่ต่อเกจ</span>
       </div>
-
       <div class="fwgrid">
         <div class="tile fwcard">
           <div class="fwcount"><b id="fwFlashCnt">—</b><span>FLASH COUNT</span></div>
@@ -401,28 +407,19 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
           <div class="fwnote" id="fwIdNote" hidden></div>
           <div class="fwstatus"><span>สถานะ</span><b id="fwEcuState">—</b></div>
         </div>
-
         <div class="fwright">
           <div class="tile">
-            <div class="lbl"><span>1 · เลือกไฟล์รีแมพ (.bin)</span></div>
-            <input type="file" id="fwFile" accept=".bin,.BIN,application/octet-stream" style="margin:.5rem 0">
-            <div class="fwline" id="fwInfo" style="opacity:.85">ยังไม่ได้เลือกไฟล์</div>
+            <div class="lbl"><span>ไฟล์รีแมพ (.BIN)</span></div>
+            <input type="file" id="fwFile" accept=".bin,.BIN,application/octet-stream">
+            <div class="fwline" id="fwInfo">—</div>
           </div>
-
-          <button type="button" class="fwread" id="fwReadBtn" aria-expanded="false">⚠ โปรดอ่านก่อนอัด (คลิก)</button>
-          <div class="tile warn" id="fwWarn" hidden>
-            <p style="margin:0;line-height:1.55">
-              ใช้กับกล่อง <b>Keihin</b> เท่านั้น · กุญแจ <b>ON</b> (ไม่ต้องติดเครื่อง) · ต่อบลูทูธให้ขึ้น <b>CONNECTED</b> · <b>สำรองไฟล์เดิมด้วย v3/FTDI ก่อน</b><br>
-              <b style="color:#ff6b6b">ห้าม</b> ดับกุญแจ/ถอดสาย/ปิดบลูทูธ ระหว่างอัด — หลุดกลางคันกล่องยังว่าง อัดไฟล์เดิมซ้ำให้จบได้ · ควรต่อที่ชาร์จ
-            </p>
-          </div>
-
+          <div class="fwwarn" id="fwWarn">⚠ กุญแจ ON · ห้ามดับกุญแจ / ถอดสาย / ปิดบลูทูธ ระหว่างอัด</div>
           <div class="tile">
-            <div class="lbl"><span>2 · อัดเข้ากล่อง</span><span class="fwrate" id="fwRate"></span></div>
+            <div class="fwprog"><span id="fwStat">พร้อม</span><b id="fwPct">0%</b></div>
             <div class="fwbar"><div class="fwfill" id="fwFill"></div></div>
-            <div class="fwline" id="fwStat" style="margin-top:.45rem">พร้อม</div>
-            <div style="display:flex;gap:.5rem;margin-top:.7rem;flex-wrap:wrap">
-              <button type="button" class="btn" id="fwGo" disabled>เริ่มอัดไฟล์</button>
+            <div class="fwline fwrate" id="fwRate">&nbsp;</div>
+            <div class="fwbtns">
+              <button type="button" class="btn fwgo" id="fwGo" disabled>เขียน ECM</button>
               <button type="button" class="btn danger" id="fwAbort" hidden>ยกเลิก</button>
             </div>
           </div>
@@ -563,6 +560,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   // ---------- data in ----------
   function onLive(d) {
     S.live = d;
+    if (typeof fwStatePaint === 'function') fwStatePaint();
     if (d.rpm != null && d.rpm > S.peak) S.peak = d.rpm;
     if (d.fix && d.kmh > S.top) S.top = d.kmh;
     if (d.counter !== S.lastCounter) { S.lastCounter = d.counter; if (!S.demo && !usePhone()) readDrag(); }
@@ -1358,20 +1356,28 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     c.className = 'fwconn' + (ok ? ' ok' : '');
     c.textContent = ok ? 'ต่อเกจแล้ว ● CONNECTED' : (S.link === 'ok' ? 'เกจรุ่นนี้ยังไม่รองรับ' : 'ยังไม่ต่อเกจ');
   }
+  let fwLastFail = false, ecuSeen = false;
   function fwPaint() {
     const ok = S.link === 'ok' && !!chFlash;
     $('fwGo').disabled = !(fwBytes && ok && !fwRun);
-    fwConnPaint();
-    if (S.link === 'ok' && !chFlash) $('fwStat').textContent = 'เฟิร์มแวร์เกจรุ่นนี้ยังไม่รองรับการอัดรีแมพ';
-    else if (!fwRun && S.link !== 'ok') $('fwStat').textContent = 'ต่อบลูทูธกับเกจก่อน (ปุ่มเชื่อมต่อด้านบน)';
+    fwConnPaint(); fwStatePaint();
+    if (S.link === 'ok' && !chFlash) $('fwStat').textContent = 'เกจรุ่นนี้ยังไม่รองรับ';
+    else if (!fwRun && S.link !== 'ok') $('fwStat').textContent = 'ต่อเกจก่อน';
+  }
+  // ECU status line, like the v3 tool: normal / recovery (program mode, not answering polls)
+  function fwStatePaint() {
+    const e = $('fwEcuState'); if (!e || fwRun) return;
+    if (!(S.link === 'ok' && chFlash)) { e.textContent = '—'; e.className = ''; return; }
+    if (S.live && S.live.ecu) { e.textContent = 'ปกติ'; e.className = ''; fwLastFail = false; return; }
+    if (fwLastFail) { e.textContent = 'RECOVERY — รอเขียนใหม่'; e.className = 'warn'; return; }
+    e.textContent = ecuSeen ? 'RECOVERY / ไม่ตอบ — กุญแจ ON?' : 'ไม่ตอบ — กุญแจ ON?'; e.className = 'warn';
   }
   async function fwReqInfo() { if (chFlash && S.link === 'ok') { try { await chFlash.writeValue(new Uint8Array([0x04])); } catch (e) {} } }
   function fmtMMSS(s){ s=Math.max(0,Math.round(s)); return ('0'+Math.floor(s/60)).slice(-2)+':'+('0'+(s%60)).slice(-2); }
   function decodeEcuInfo(dv) {
-    const st = dv.getUint8(1);                       // 2 = read ok, else no answer
-    if (st !== 2) { $('fwRowId').textContent='—'; $('fwRowPart').textContent='—'; $('fwRowModel').textContent='—';
-      $('fwFlashCnt').textContent='—'; $('fwIdNote').hidden=true;
-      const e=$('fwEcuState'); e.textContent='อ่าน ECM ID ไม่ได้'; e.className='bad'; return; }
+    const st = dv.getUint8(1);                       // 2 = read ok, else the ECU did not answer
+    if (st !== 2) { fwStatePaint(); return; }        // keep the last known identity on the card
+    ecuSeen = true;
     const hex = ecuHex(dv);
     const fc = dv.getUint16(7, true);
     $('fwRowId').textContent = hex;
@@ -1388,8 +1394,8 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       $('fwRowPart').textContent='ไม่รู้จัก'; $('fwRowModel').textContent='—'; ecuRom=0; ecuMaker='';
       $('fwIdNote').hidden=false; $('fwIdNote').textContent='ไม่พบ ECM ID นี้ในฐานข้อมูล — ตรวจสอบรุ่น/ไฟล์ให้ชัวร์ก่อนอัด';
     }
-    const e=$('fwEcuState'); e.textContent='พร้อม'; e.className='';
-    if (ecuMaker === 'S') { e.textContent='Shindengen — ยังไม่รองรับ'; e.className='bad'; }
+    fwStatePaint();
+    if (ecuMaker === 'S') { const e=$('fwEcuState'); e.textContent='Shindengen — ยังไม่รองรับ'; e.className='bad'; }
     fwCheckMatch();
   }
   function fwCheckMatch() {
@@ -1404,15 +1410,18 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     if (tag !== 0xF0 || dv.byteLength < 9) return;
     const phase = dv.getUint8(1), result = dv.getUint8(2);
     const done = dv.getUint32(3, true); fwFree = dv.getUint16(7, true);
-    if (fwSize) $('fwFill').style.width = Math.min(100, done / fwSize * 100).toFixed(1) + '%';
+    const pct = fwSize ? Math.min(100, done / fwSize * 100) : 0;
+    if (fwSize) $('fwFill').style.width = pct.toFixed(1) + '%';
+    $('fwPct').textContent = (phase === 5 ? 100 : pct).toFixed(0) + '%';
     let txt = FW_PHASE[phase] || '...';
+    const el = (Date.now()-fwT0)/1000;
     if (phase === 3) {
-      txt += ' ' + (done/1024).toFixed(0) + '/' + (fwSize/1024).toFixed(0) + ' KB · ' + (done/fwSize*100).toFixed(1) + '%';
-      const el = (Date.now()-fwT0)/1000;
-      if (el > 0.5 && done > 0) { const rate = done/el; $('fwRate').textContent = (rate/1024).toFixed(1)+' KB/s · เหลือ '+fmtMMSS((fwSize-done)/rate); }
-    } else $('fwRate').textContent = '';
-    if (phase === 5) { txt = 'สำเร็จ! ดับกุญแจ 10 วินาที แล้วเปิดใหม่'; $('fwRate').textContent=''; }
-    else if (phase === 6) { txt = 'ล้มเหลว: ' + (FW_ERR[result] || ('รหัส ' + result)) + ' — กล่องยังอยู่ในโหมดอัด อัดไฟล์เดิมซ้ำได้'; $('fwRate').textContent=''; }
+      txt = 'กำลังเขียน ECM...';
+      const rate = (el > 0.5 && done > 0) ? done/el : 0;
+      $('fwRate').textContent = (done/1024).toFixed(2) + ' / ' + (fwSize/1024).toFixed(2) + ' KB' + (rate ? ' · ' + (rate/1024).toFixed(1) + ' KB/s · ' + fmtMMSS((fwSize-done)/rate) : '');
+    } else $('fwRate').textContent = fmtMMSS(el);
+    if (phase === 5) { txt = 'อัดเสร็จแล้ว — ปิด-เปิดกุญแจใหม่'; fwLastFail = false; }
+    else if (phase === 6) { txt = 'ล้มเหลว: ' + (FW_ERR[result] || ('รหัส ' + result)); fwLastFail = true; }
     $('fwStat').textContent = txt;
     if (phase === 5 || phase === 6) { fwRun = false; $('fwAbort').hidden = true; fwPaint(); }
   }
@@ -1421,7 +1430,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     if (ecuMaker === 'S') { alert('กล่องนี้เป็น Shindengen ซึ่งยังไม่รองรับการอัด (รองรับเฉพาะ Keihin)'); return; }
     if (!confirm('ยืนยันอัดไฟล์รีแมพเข้ากล่อง Keihin?\n\nห้ามดับกุญแจ / ถอดสาย / ปิดบลูทูธ จนกว่าจะขึ้น "สำเร็จ"')) return;
     fwRun = true; $('fwAbort').hidden = false; fwPaint();
-    $('fwFill').style.width = '0%'; $('fwStat').textContent = 'กำลังเริ่ม...'; $('fwRate').textContent=''; fwFree = 0; fwT0 = Date.now();
+    $('fwFill').style.width = '0%'; $('fwPct').textContent = '0%'; $('fwStat').textContent = 'กำลังเริ่ม...'; $('fwRate').textContent=''; fwFree = 0; fwT0 = Date.now();
     try {
       const hdr = new Uint8Array(8);
       hdr[0] = 0x01; hdr[1] = 0;                                     // START, ecu 0 = KEIHIN_128
@@ -1436,8 +1445,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
         try { await chFlash.writeValue(pkt); } catch (e) { await new Promise(r => setTimeout(r, 25)); continue; }
         fwFree -= (end - off); off = end;
       }
-      if (off >= fwSize) $('fwStat').textContent = 'ส่งไฟล์ครบแล้ว — รอกล่องเขียนจนจบ...';
-      else if (S.link !== 'ok') { $('fwStat').textContent = 'บลูทูธหลุดกลางคัน! อย่าดับกุญแจ — ต่อใหม่แล้วอัดไฟล์เดิมซ้ำให้จบ'; fwRun = false; $('fwAbort').hidden = true; }
+      if (off < fwSize && S.link !== 'ok') { $('fwStat').textContent = 'บลูทูธหลุด — ต่อใหม่แล้วอัดไฟล์เดิมซ้ำ'; fwRun = false; fwLastFail = true; $('fwAbort').hidden = true; }
     } catch (e) {
       $('fwStat').textContent = 'ส่งไฟล์ไม่สำเร็จ: ' + (e.message || e); fwRun = false; $('fwAbort').hidden = true; fwPaint();
     }
@@ -1456,7 +1464,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     buf[off] = (-s) & 0xFF;
   }
   function fwLoadFile(f) {
-    if (!f) { fwBytes = null; $('fwInfo').textContent = 'ยังไม่ได้เลือกไฟล์'; $('fwRowFile').textContent='—'; $('fwRowSize').textContent='—'; fwPaint(); return; }
+    if (!f) { fwBytes = null; $('fwInfo').textContent = '—'; $('fwRowFile').textContent='—'; $('fwRowSize').textContent='—'; fwPaint(); return; }
     f.arrayBuffer().then(ab => {
       const buf = new Uint8Array(ab);
       if (buf.length < 128 || buf.length % 128 !== 0) {
@@ -1470,8 +1478,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       const ko = keihinOffsets(fwSize);
       keihinAutoChecksum(buf, ko.cks);
       let s = 0; for (let i = 0; i < buf.length; i++) s = (s + buf[i]) & 0xFFFF; fwCks = s;
-      $('fwInfo').innerHTML = 'ไฟล์: <b>' + f.name + '</b> · ' + (fwSize / 1024).toFixed(0) + ' KB · ' + (fwSize / 128) + ' บล็อก'
-        + ' · เขียนที่ 0x' + ko.start.toString(16).toUpperCase() + ' · checksum @0x' + ko.cks.toString(16).toUpperCase() + ' (แพตช์แล้ว)';
+      $('fwInfo').textContent = (fwSize / 1024).toFixed(0) + ' KB · ' + (fwSize / 128) + ' บล็อก · @0x' + ko.start.toString(16).toUpperCase() + ' · cks 0x' + ko.cks.toString(16).toUpperCase();
       $('fwRowFile').textContent = f.name;
       $('fwRowSize').textContent = (fwSize/1024).toFixed(0) + ' KB';
       if ($('fwRowType').textContent === '—') $('fwRowType').textContent = 'Keihin';
@@ -1552,13 +1559,12 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   $('tDrag').addEventListener('click', () => show('drag'));
   $('tLog').addEventListener('click', () => show('log'));
   $('tFlash').addEventListener('click', () => { show('flash'); fwPaint(); fwReqInfo(); });
-  $('fwReadBtn').addEventListener('click', e => { const w = $('fwWarn'); w.hidden = !w.hidden; e.target.setAttribute('aria-expanded', !w.hidden); });
   $('fwFile').addEventListener('change', e => fwLoadFile(e.target.files[0]));
   $('fwGo').addEventListener('click', fwStart);
   $('fwAbort').addEventListener('click', async () => {
     if (chFlash) { try { await chFlash.writeValue(new Uint8Array([0x03])); } catch (e) {} }
     fwRun = false; $('fwAbort').hidden = true;
-    $('fwStat').textContent = 'ยกเลิกแล้ว — กล่องยังอยู่ในโหมดอัด อัดไฟล์เดิมซ้ำได้'; fwPaint();
+    $('fwStat').textContent = 'ยกเลิกแล้ว'; fwLastFail = true; fwPaint();
   });
   show(store.get('zar.tab', 'gauge'));
 
