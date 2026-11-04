@@ -1442,6 +1442,19 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       $('fwStat').textContent = 'ส่งไฟล์ไม่สำเร็จ: ' + (e.message || e); fwRun = false; $('fwAbort').hidden = true; fwPaint();
     }
   }
+  // v3 GetOffsetsFromBinType: Keihin image size -> start address + checksum byte offset
+  function keihinOffsets(size) {
+    if (size === 49152) return { start: 0x4000, cks: 0x7600 };
+    if (size === 57344) return { start: 0, cks: 0xDFEF };
+    if (size === 65536 || size === 98304) return { start: 0x8000, cks: 0 };
+    if (size === 131072) return { start: 0xE0000, cks: 0xB000 };
+    return { start: 0, cks: 0 };
+  }
+  // v3 KeihinAutoChecksum: buf[off] = -(sum of every other byte), so the whole image sums to 0
+  function keihinAutoChecksum(buf, off) {
+    let s = 0; for (let i = 0; i < buf.length; i++) if (i !== off) s = (s + buf[i]) & 0xFF;
+    buf[off] = (-s) & 0xFF;
+  }
   function fwLoadFile(f) {
     if (!f) { fwBytes = null; $('fwInfo').textContent = 'ยังไม่ได้เลือกไฟล์'; $('fwRowFile').textContent='—'; $('fwRowSize').textContent='—'; fwPaint(); return; }
     f.arrayBuffer().then(ab => {
@@ -1452,8 +1465,13 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
         fwPaint(); return;
       }
       fwBytes = buf; fwSize = buf.length;
+      // Same as the v3 tool before every Keihin flash: where the image lives + the byte that
+      // makes the 8-bit sum of the whole image 0 (the ECU checks it at finalize).
+      const ko = keihinOffsets(fwSize);
+      keihinAutoChecksum(buf, ko.cks);
       let s = 0; for (let i = 0; i < buf.length; i++) s = (s + buf[i]) & 0xFFFF; fwCks = s;
-      $('fwInfo').innerHTML = 'ไฟล์: <b>' + f.name + '</b> · ' + (fwSize / 1024).toFixed(0) + ' KB · ' + (fwSize / 128) + ' บล็อก';
+      $('fwInfo').innerHTML = 'ไฟล์: <b>' + f.name + '</b> · ' + (fwSize / 1024).toFixed(0) + ' KB · ' + (fwSize / 128) + ' บล็อก'
+        + ' · เขียนที่ 0x' + ko.start.toString(16).toUpperCase() + ' · checksum @0x' + ko.cks.toString(16).toUpperCase() + ' (แพตช์แล้ว)';
       $('fwRowFile').textContent = f.name;
       $('fwRowSize').textContent = (fwSize/1024).toFixed(0) + ' KB';
       if ($('fwRowType').textContent === '—') $('fwRowType').textContent = 'Keihin';
