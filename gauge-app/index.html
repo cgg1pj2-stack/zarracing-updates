@@ -217,10 +217,11 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   .tach canvas { max-height: calc(100dvh - 92px); }
 }
 @media (prefers-reduced-motion: reduce) { .meter i { transition: none; } }
-.flash { display: flex; flex-direction: column; gap: 12px; max-width: 640px; margin: 0 auto; padding: 4px 2px; }
-.flash .tile { padding: 12px 16px 14px; }
+.flash { flex-basis: 100%; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; max-width: 640px; margin: 8px auto 0; padding: 4px 2px; }
+.flash .tile { padding: 12px 16px 14px; box-sizing: border-box; }
 .flash .tile.warn { border-color: var(--amber); }
-.flash input[type=file] { color: var(--fg); width: 100%; }
+.flash input[type=file] { color: var(--fg); width: 100%; box-sizing: border-box; }
+.fwline { font-size: 14px; line-height: 1.5; word-break: break-word; color: var(--fg); }
 .fwbar { height: 16px; border-radius: 8px; background: rgba(255,255,255,.08); overflow: hidden; border: 1px solid rgba(var(--acc-rgb), .5); }
 .fwfill { height: 100%; width: 0; background: var(--acc); transition: width .2s; }
 .flash .btn[disabled] { opacity: .4; pointer-events: none; }
@@ -366,13 +367,13 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       <div class="tile">
         <div class="lbl"><span>1 · เลือกไฟล์รีแมพ (.bin)</span></div>
         <input type="file" id="fwFile" accept=".bin,.BIN,application/octet-stream" style="margin:.5rem 0">
-        <div class="kv" id="fwInfo" style="opacity:.85">ยังไม่ได้เลือกไฟล์</div>
+        <div class="fwline" id="fwInfo" style="opacity:.85">ยังไม่ได้เลือกไฟล์</div>
       </div>
 
       <div class="tile">
         <div class="lbl"><span>2 · อัดเข้ากล่อง</span></div>
         <div class="fwbar"><div class="fwfill" id="fwFill"></div></div>
-        <div class="kv" id="fwStat" style="margin-top:.4rem">พร้อม</div>
+        <div class="fwline" id="fwStat" style="margin-top:.4rem">พร้อม</div>
         <div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap">
           <button type="button" class="btn" id="fwGo" disabled>เริ่มอัดไฟล์</button>
           <button type="button" class="btn danger" id="fwAbort" hidden>ยกเลิก</button>
