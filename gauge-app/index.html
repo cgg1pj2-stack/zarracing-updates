@@ -237,6 +237,8 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   font-family: var(--f-num); font-style: italic; font-weight: 900; font-size: 22px; letter-spacing: 1.5px; padding: 14px; }
 .fl-flash svg { width: 22px; height: 22px; flex: none; }
 .fl-flash:disabled { opacity: .4; }
+.fl-flash.aborting { background: #3a0d12; border-color: var(--red); box-shadow: none; }
+.fl-flash.aborting svg { display: none; }
 .fl-flash.arm { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 0 18px rgba(255,42,47,.6); }
 .rbar { height: 12px; margin: 12px 16px 0; }
 .rbar i { background: var(--acc); }
@@ -1684,13 +1686,15 @@ function shDetectECU(bin) {
 
   // compare the picked file against the connected ECU; set the verdict + enable/disable flashing
   function rmVerdict() {
-    const v = $('rVerdict'), btn = $('bFlash'), f = S.rm.file, e = S.ecu;
+    const v = $('rVerdict'), btn = $('bFlash'), f = S.rm.file, e = S.ecu, lbl = $('flLbl');
+    if (S.rm.busy) { btn.disabled = false; btn.classList.add('aborting'); lbl.textContent = 'ยกเลิกการอัด'; }
+    else { btn.classList.remove('aborting'); lbl.textContent = 'FLASH ECU'; }
     const set = (cls, head, body, canFlash) => {
       v.hidden = false; v.className = 'verdict ' + cls;
       v.innerHTML = '<div class="vhead">' + head + '</div><div>' + body + '</div>';
-      btn.disabled = !canFlash || S.rm.busy;
+      btn.disabled = S.rm.busy ? false : !canFlash;
     };
-    if (!f) { v.hidden = true; btn.disabled = true; return; }
+    if (!f) { v.hidden = true; btn.disabled = S.rm.busy ? false : true; return; }
     const fi = f.sizeKb + ' KB · ' + MK[f.maker] + (f.chip ? ' ' + f.chip : '');
     if (!e || e.state !== 2) return set('warn', '⚠️ ยังตรวจรุ่นไม่ได้ — อัดได้ (ตรวจไฟล์เอง)', 'ไฟล์: ' + fi + '<br>ยังไม่ได้อ่านรหัสกล่องจากรถ (กล่องอยู่ในโหมด Recovery หรือยังไม่ตอบ) — ตรวจเองว่าไฟล์ตรงรุ่น แล้วกดอัดได้', true);
     if (!e.info) return set('warn', '⚠️ กล่องไม่อยู่ในฐานข้อมูล — อัดได้ (ตรวจไฟล์เอง)', 'ไฟล์: ' + fi + '<br>ECM ID <b>' + e.idHex + '</b> ยังไม่มีในฐานข้อมูล จึงยืนยันความตรงให้ไม่ได้ — ตรวจเองว่าไฟล์ตรงรุ่น แล้วกดอัดได้', true);
@@ -1762,7 +1766,7 @@ function shDetectECU(bin) {
   async function rmFlash() {
     const f = S.rm.file; if (!f || !chFlash) return;
     const RES = ['สำเร็จ', 'เริ่มต้นกล่องไม่ผ่าน', 'ลบไม่ผ่าน', 'เขียนไม่ผ่าน', 'ปิดงานไม่ผ่าน', 'ข้อมูลไฟล์ขาด', 'ยกเลิก'];
-    S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; S.rm.t0 = Date.now(); S.rm.keyErr = false; S.rm.keyHex = null; S.rm.seedHex = null; S.rm.free = 0; S.rm.sentSince = 0; $('rTrace').textContent = ''; $('rTrace').hidden = true; $('fSpeed').textContent = '—'; $('bFlash').disabled = true; rmProgress();
+    S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; S.rm.t0 = Date.now(); S.rm.keyErr = false; S.rm.keyHex = null; S.rm.seedHex = null; S.rm.free = 0; S.rm.sentSince = 0; $('rTrace').textContent = ''; $('rTrace').hidden = true; $('fSpeed').textContent = '—'; { const b = $('bFlash'); b.disabled = false; b.classList.add('aborting'); $('flLbl').textContent = 'ยกเลิกการอัด'; } rmProgress();
     const _tick = setInterval(() => { if (S.rm.busy) rmProgress(); else clearInterval(_tick); }, 500);
     try {
       const sz = f.size, cks = f.cks;
@@ -1803,8 +1807,14 @@ function shDetectECU(bin) {
   });
   $('bReadEcu').addEventListener('click', rmReadEcu);
   $('bFlash').addEventListener('click', () => {
-    if (S.rm.busy || $('bFlash').disabled) return;
     const b = $('bFlash');
+    if (S.rm.busy) {                                   // ABORT a running / stuck flash
+      if (chFlash) gattWrite(chFlash, Uint8Array.of(0x03)).catch(() => {});
+      S.rm.result = 6; S.rm.phase = 6;                 // unblocks rmFlash's wait loops -> clears busy
+      $('rFlashMsg').textContent = 'ยกเลิกแล้ว — กล่องยังอยู่ในโหมดอัด อัดไฟล์เดิมซ้ำได้';
+      return;
+    }
+    if (b.disabled) return;
     if (!S.rm.arm) { S.rm.arm = 1; b.classList.add('arm'); $('flLbl').textContent = 'แตะอีกครั้งเพื่อยืนยัน'; setTimeout(() => { S.rm.arm = 0; b.classList.remove('arm'); $('flLbl').textContent = 'FLASH ECU'; }, 4000); return; }
     S.rm.arm = 0; b.classList.remove('arm'); $('flLbl').textContent = 'FLASH ECU';
     rmFlash();
@@ -1999,7 +2009,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v14 · 11-05'; } catch (e) {}
+  try { $('appVer').textContent = 'app v15 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
