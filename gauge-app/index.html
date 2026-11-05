@@ -1734,14 +1734,20 @@ function shDetectECU(bin) {
       if (el.textContent.length > 6000) el.textContent = el.textContent.slice(-5000);
       el.scrollTop = el.scrollHeight;
     } else if (u8[0] === 0xE1) {                      // Shindengen: ECU seed -> compute key -> send back
-      const seed = [u8[1], u8[2]]; S.rm.seedHex = hex(seed);
+      const seed = [u8[1], u8[2]], kind = u8[3] || 0;  // kind: 0 write key, 1 recovery key
+      S.rm.seedHex = hex(seed);
       let key = null;
-      try { if (S.rm.file) key = shWriteKey(seed, S.rm.file.bytes); } catch (e) { key = null; }
+      try { if (S.rm.file) key = kind ? shRecoveryKey(seed, S.rm.file.bytes) : shWriteKey(seed, S.rm.file.bytes); } catch (e) { key = null; }
       if (key && chFlash) {
         S.rm.keyErr = false; S.rm.keyHex = hex(key);
         gattWrite(chFlash, Uint8Array.of(0x05, key[0] & 255, key[1] & 255)).catch(() => gattWrite(chFlash, Uint8Array.of(0x05, key[0] & 255, key[1] & 255)).catch(() => {}));
-        typeof rmLog === 'function' && rmLog('seed ' + hex(seed) + ' -> key ' + hex(key));
-      } else { S.rm.keyErr = true; S.rm.keyHex = null; }
+        typeof rmLog === 'function' && rmLog('seed ' + hex(seed) + ' -> ' + (kind ? 'recovery' : 'write') + ' key ' + hex(key));
+      } else {
+        // no key material of that kind in this file — tell the gauge so it stops waiting and moves on
+        S.rm.keyHex = null;
+        if (chFlash) gattWrite(chFlash, Uint8Array.of(0x05, 0, 0)).catch(() => {});
+        typeof rmLog === 'function' && rmLog('seed ' + hex(seed) + ' -> no ' + (kind ? 'recovery' : 'write') + ' key in file');
+      }
     }
   }
 
@@ -1993,7 +1999,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v13 · 11-05'; } catch (e) {}
+  try { $('appVer').textContent = 'app v14 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
