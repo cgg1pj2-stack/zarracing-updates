@@ -189,26 +189,67 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .lgside .tile { padding: 10px 14px; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14px; }
 .kv span { color: var(--muted); } .kv b { font-family: var(--f-num); font-size: 19px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
-.remap { display: grid; gap: 12px; max-width: 640px; margin: 0 auto; }
-.remap .rEcu .val { font-size: 26px; font-style: normal; }
-.remap .lgc { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
-.remap #rFileName { color: var(--muted); font-size: 14px; word-break: break-all; }
-.verdict { margin-top: 10px; padding: 10px 12px; border-radius: 6px; font-size: 15px; line-height: 1.5; border: 1px solid #3a3f4a; }
+/* ---- flash / remap page (ZAR RACING tuning console) ---- */
+.flwrap { display: grid; gap: 12px; max-width: 980px; margin: 0 auto; }
+.fl-sub { display: flex; align-items: baseline; gap: 8px 14px; flex-wrap: wrap; padding: 2px; }
+.fl-title { font-family: var(--f-num); font-style: italic; font-weight: 800; font-size: 23px; letter-spacing: .5px; }
+.fl-sub2 { color: var(--acc); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 0 10px var(--glow); }
+.fl-link { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase;
+  border: 1px solid var(--line); border-radius: 20px; padding: 5px 13px; background: rgba(10,12,16,.85); color: var(--muted); }
+.fl-link i.d { width: 9px; height: 9px; border-radius: 50%; background: #555b66; flex: none; }
+.fl-link.ok i.d { background: var(--green); box-shadow: 0 0 8px var(--green); } .fl-link.ok b { color: var(--green); }
+.fl-link.wait i.d { background: var(--amber); box-shadow: 0 0 6px var(--amber); } .fl-link.wait b { color: var(--amber); }
+.fl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+@media (max-width: 760px) { .fl-grid { grid-template-columns: 1fr; } }
+.fl-panel { position: relative; background: var(--tile); border: 1.5px solid rgba(var(--acc-rgb), .85); border-radius: 10px; padding-bottom: 14px;
+  box-shadow: 0 0 16px rgba(var(--acc-rgb), .35), inset 0 0 18px rgba(var(--acc-rgb), .10); overflow: hidden; }
+.fl-head { display: flex; align-items: center; gap: 10px; font-family: var(--f-num); font-style: italic; font-weight: 800; font-size: 20px; letter-spacing: 1px;
+  padding: 11px 16px; margin-bottom: 10px; background: linear-gradient(90deg, rgba(var(--acc-rgb), .30), rgba(var(--acc-rgb), 0));
+  border-bottom: 1px solid rgba(var(--acc-rgb), .35); }
+.fl-head svg { width: 20px; height: 20px; color: var(--acc); filter: drop-shadow(0 0 6px var(--glow)); flex: none; }
+.fl-rows { display: grid; gap: 1px; padding: 0 16px; }
+.fl-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px dashed rgba(255,255,255,.06); font-size: 14px; }
+.fl-row > span { color: var(--muted); letter-spacing: .5px; flex: none; }
+.fl-row > b { font-family: var(--f-num); font-weight: 800; font-size: 18px; text-align: right; word-break: break-word; line-height: 1.25; }
+.fl-row b.good { color: var(--green); } .fl-row b.amber { color: var(--amber); } .fl-row b.acc { color: var(--acc); text-shadow: 0 0 10px var(--glow); }
+.fl-div { margin: 11px 0 1px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--acc); opacity: .9; border-top: 1px solid rgba(var(--acc-rgb), .2); padding-top: 9px; }
+.fl-readbtn { margin: 10px 16px 0; border: 1px solid rgba(var(--acc-rgb), .6); background: rgba(var(--acc-rgb), .08); padding: 7px; width: calc(100% - 32px);
+  font-size: 13px; letter-spacing: 1px; border-radius: 6px; color: var(--fg); }
+.fl-brand { position: absolute; right: 12px; bottom: 5px; font-family: var(--f-num); font-style: italic; font-weight: 900; font-size: 28px;
+  letter-spacing: 1px; color: rgba(var(--acc-rgb), .12); pointer-events: none; }
+.fl-file { display: flex; align-items: center; gap: 10px; margin: 0 16px 12px; padding: 12px 14px; cursor: pointer;
+  border: 1.5px dashed rgba(var(--acc-rgb), .7); border-radius: 8px; background: rgba(var(--acc-rgb), .06); color: var(--fg); font-size: 14px; }
+.fl-file svg { width: 18px; height: 18px; color: var(--acc); flex: none; }
+.fl-file span { word-break: break-all; }
+.fl-modes { display: grid; gap: 8px; padding: 0 16px; margin-bottom: 12px; }
+.fl-mode { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(8,10,14,.6); opacity: .45; transition: .15s; }
+.fl-mode i.r { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--muted); flex: none; }
+.fl-mode b { font-family: var(--f-num); font-weight: 800; font-size: 16px; display: block; line-height: 1.1; }
+.fl-mode small { color: var(--muted); font-size: 12px; }
+.fl-mode.on { opacity: 1; border-color: var(--acc); background: rgba(var(--acc-rgb), .14); box-shadow: 0 0 12px rgba(var(--acc-rgb), .3); }
+.fl-mode.on i.r { border-color: var(--acc); background: radial-gradient(circle, var(--acc) 42%, transparent 48%); box-shadow: 0 0 8px var(--glow); }
+.fl-seed { margin: 0 16px 12px; padding: 8px 12px 10px; border: 1px solid var(--line); border-radius: 8px; background: rgba(8,10,14,.5); }
+.fl-seed-h { display: flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--acc); margin-bottom: 4px; }
+.fl-seed .fl-row { font-size: 13px; padding: 5px 0; } .fl-seed .fl-row > b { font-size: 15px; }
+.fl-flash { width: calc(100% - 32px); margin: 0 16px; display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--f-num); font-style: italic; font-weight: 900; font-size: 22px; letter-spacing: 1.5px; padding: 14px; }
+.fl-flash svg { width: 22px; height: 22px; flex: none; }
+.fl-flash:disabled { opacity: .4; }
+.fl-flash.arm { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 0 18px rgba(255,42,47,.6); }
+.rbar { height: 12px; margin: 12px 16px 0; }
+.rbar i { background: var(--acc); }
+.rmsg { display: block; margin: 8px 16px 0; color: var(--muted); font-size: 13px; }
+.verdict { margin: 10px 16px 0; padding: 10px 12px; border-radius: 8px; font-size: 14px; line-height: 1.5; border: 1px solid #3a3f4a; }
 .verdict b { font-family: var(--f-num); }
-.verdict.ok { border-color: #2f7d4e; background: rgba(70,224,106,.10); }
-.verdict.ok .vhead { color: #46e06a; }
-.verdict.warn { border-color: #8a6a1e; background: rgba(255,176,32,.10); }
-.verdict.warn .vhead { color: var(--amber); }
-.verdict.bad { border-color: #8a2b2b; background: rgba(255,42,47,.10); }
-.verdict.bad .vhead { color: var(--red); }
-.verdict .vhead { font-weight: 800; letter-spacing: .5px; }
-.remap #bFlash { width: 100%; font-size: 17px; padding: 12px; }
-.remap #bFlash:disabled { opacity: .45; }
-.remap #bFlash.arm { background: var(--red); border-color: var(--red); color: #fff; }
-.remap .rbar { height: 12px; margin-top: 10px; }
-.remap .rbar i { background: var(--acc); }
-.remap .rmsg { display: block; margin-top: 8px; color: var(--muted); font-size: 14px; }
-.remap .rwarn { color: var(--amber); font-size: 13px; line-height: 1.6; background: rgba(255,176,32,.07); border: 1px solid #5a4a1e; border-radius: 6px; padding: 10px 12px; margin: 0; }
+.verdict.ok { border-color: #2f7d4e; background: rgba(70,224,106,.10); } .verdict.ok .vhead { color: #46e06a; }
+.verdict.warn { border-color: #8a6a1e; background: rgba(255,176,32,.10); } .verdict.warn .vhead { color: var(--amber); }
+.verdict.bad { border-color: #8a2b2b; background: rgba(255,42,47,.10); } .verdict.bad .vhead { color: var(--red); }
+.verdict .vhead { font-weight: 800; letter-spacing: .5px; margin-bottom: 3px; }
+.fl-foot { display: flex; flex-wrap: wrap; gap: 10px 22px; justify-content: center; padding: 11px 14px; border: 1px solid var(--line); border-radius: 8px;
+  background: rgba(8,10,14,.7); font-size: 13px; color: var(--muted); letter-spacing: .5px; }
+.fl-foot span { display: inline-flex; align-items: center; gap: 6px; }
+.fl-foot b { font-family: var(--f-num); font-size: 17px; color: var(--fg); }
+.rwarn { color: var(--amber); font-size: 13px; line-height: 1.6; background: rgba(255,176,32,.07); border: 1px solid #5a4a1e; border-radius: 8px; padding: 10px 14px; margin: 0; }
 .legend { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
 .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 2px; vertical-align: -2px; margin-right: 6px; }
 
@@ -367,27 +408,58 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   </section>
 
   <section id="vRemap" hidden>
-    <div class="remap">
-      <div class="tile rEcu">
-        <div class="lbl"><span>กล่อง ECU (อ่านตอนเชื่อมรถ)</span><button class="mini" id="bReadEcu" type="button">อ่านใหม่</button></div>
-        <div class="val" id="rEcuPart">--</div>
-        <div class="kv" id="rEcuMeta"><span>สถานะ</span><b id="rEcuState">ยังไม่ได้เชื่อมต่อ</b></div>
+    <div class="flwrap">
+      <div class="fl-sub">
+        <span class="fl-title">Honda ECU Tuning Tool</span>
+        <span class="fl-sub2">Remap · Flash · Diagnose</span>
+        <span class="fl-link" id="rKline"><i class="d"></i><b>ยังไม่เชื่อม</b></span>
       </div>
-      <div class="tile">
-        <div class="lbl"><span>ไฟล์รีแมพ (.bin)</span></div>
-        <div class="lgc">
-          <label class="btn" for="rFile">เลือกไฟล์ .bin</label>
-          <input type="file" id="rFile" accept=".bin,application/octet-stream" hidden>
-          <span id="rFileName">ยังไม่ได้เลือกไฟล์</span>
+      <div class="fl-grid">
+        <div class="fl-panel">
+          <div class="fl-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="7" width="10" height="10" rx="1"/><path d="M4 10h3M4 14h3M17 10h3M17 14h3M10 4v3M14 4v3M10 17v3M14 17v3"/></svg>ECU INFORMATION</div>
+          <div class="fl-rows">
+            <div class="fl-row"><span>ไฟล์รีแมพ</span><b id="iFile">— ยังไม่ได้เลือก</b></div>
+            <div class="fl-row"><span>ขนาดไฟล์</span><b id="iSize">—</b></div>
+            <div class="fl-row"><span>ชนิดกล่อง</span><b id="iType">—</b></div>
+            <div class="fl-row"><span>Checksum (ไฟล์)</span><b id="iCks">—</b></div>
+            <div class="fl-row"><span>ECM ID (ไฟล์)</span><b id="iFid">—</b></div>
+            <div class="fl-row"><span>รุ่นที่ใช้ไฟล์นี้</span><b id="iFit">—</b></div>
+            <div class="fl-div">กล่องที่ต่ออยู่ (อ่านจากรถ)</div>
+            <div class="fl-row"><span>พาร์ท</span><b id="iEpart">—</b></div>
+            <div class="fl-row"><span>รุ่น / ยี่ห้อ</span><b id="iEmodel">—</b></div>
+            <div class="fl-row"><span>ECM ID</span><b id="iEid">—</b></div>
+            <div class="fl-row"><span>ขนาด ROM</span><b id="iErom">—</b></div>
+            <div class="fl-row"><span>อัดมาแล้ว</span><b id="iEfc">—</b></div>
+          </div>
+          <button class="fl-readbtn" id="bReadEcu" type="button">อ่านรหัสกล่องใหม่</button>
+          <div class="fl-brand">ZAR RACING</div>
         </div>
-        <div id="rVerdict" class="verdict" hidden></div>
+        <div class="fl-panel">
+          <div class="fl-head"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>FLASH CONTROL</div>
+          <label class="fl-file" for="rFile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span id="rFileName">เลือกไฟล์ .bin</span></label>
+          <input type="file" id="rFile" accept=".bin,application/octet-stream" hidden>
+          <div class="fl-modes" id="rModes">
+            <div class="fl-mode" data-m="K"><i class="r"></i><div><b>Fast Keihin</b><small>กล่อง Keihin · ตรวจอัตโนมัติ</small></div></div>
+            <div class="fl-mode" data-m="S"><i class="r"></i><div><b>Fast Shindengen</b><small>กล่อง Shindengen · คำนวณ KEY อัตโนมัติ</small></div></div>
+          </div>
+          <div class="fl-seed">
+            <div class="fl-seed-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M14 7a4 4 0 1 0-4 4l-6 6v3h3l6-6a4 4 0 0 0 1-7z"/></svg>Seed-Key / Offset</div>
+            <div class="fl-row"><span>Seed-Key</span><b id="sSeed">—</b></div>
+            <div class="fl-row"><span>Start Offset</span><b id="sStart">—</b></div>
+            <div class="fl-row"><span>Checksum</span><b id="sCk">—</b></div>
+          </div>
+          <div id="rVerdict" class="verdict" hidden></div>
+          <button class="btn fl-flash" id="bFlash" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><span id="flLbl">FLASH ECU</span></button>
+          <div class="meter rbar"><i id="rBar"></i></div>
+          <span id="rFlashMsg" class="rmsg">เชื่อมต่อรถ → อ่านรหัสกล่อง → เลือกไฟล์ให้ตรงรุ่น → กดอัด</span>
+        </div>
       </div>
-      <div class="tile">
-        <button class="btn" id="bFlash" type="button" disabled>อัดเข้ากล่อง</button>
-        <div class="meter rbar"><i id="rBar"></i></div>
-        <span id="rFlashMsg" class="rmsg">เชื่อมต่อรถ → อ่านรหัสกล่อง → เลือกไฟล์ให้ตรงรุ่น → กดอัด</span>
+      <div class="fl-foot">
+        <span>⇄ ความเร็ว <b id="fSpeed">—</b></span>
+        <span>⏱ เวลา <b id="fElapsed">00:00</b></span>
+        <span>📊 ความคืบหน้า <b id="fPct">0%</b></span>
       </div>
-      <p class="rwarn">⚠️ การอัดกล่องมีความเสี่ยง — อัดเฉพาะไฟล์ที่ตรงรุ่น/ขนาดกับกล่อง · ห้ามดับเครื่องหรือตัดไฟระหว่างอัด · รองรับ Keihin และ Shindengen (256/384KB) · กล่อง Shindengen ต้องใส่สูตร KEY (shWriteKey) จาก v3 ก่อน</p>
+      <p class="rwarn">⚠️ การอัดกล่องมีความเสี่ยง — อัดเฉพาะไฟล์ที่ตรงรุ่น/ขนาดกับกล่อง · ห้ามดับเครื่องหรือตัดไฟระหว่างอัด · รองรับ Keihin และ Shindengen (256/384KB)</p>
     </div>
   </section>
 </div>
@@ -1151,6 +1223,36 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     return null;
   }
 
+  // ---- read the ECM ID straight from a .bin (offsets ported from v3 FindID; [guardOff, guardBytes|null, idOff, idLen]) ----
+  const FIND_CAND = {
+    32768:  [[31952, [255,0,0,0], 31956, 5]],
+    49152:  [[38809, null, 38813, 5]],
+    57344:  [[50120, [0,0,0,0], 50124, 5], [31870, [255,0,0,0], 31874, 5], [49564, [0,0,0,0], 49568, 5]],
+    65536:  [[9140, [0,0,0,0], 9144, 5], [11127, [0,0,0,255], 11122, 5], [9736, [0,0,0,0], 9740, 5], [11150, [0,0,0,0], 11154, 5], [10298, [0,0,0,0], 10302, 5], [9106, [0,0,0,0], 9110, 5]],
+    98304:  [[15947, null, 15951, 5]],
+    131072: [[55925, null, 55929, 5]],
+    262144: [[2044, [0,0,0,0], 2048, 3], [1924, [255,255,255,255], 1928, 3], [224460, [0,32,32,32], 224455, 3]],
+    393216: [[1924, [255,255,255,255], 1928, 3], [2044, [0,0,0,0], 2048, 3]],
+    524288: [[99412, null, 99416, 5]],
+  };
+  const idOk = id => id && id[0] === 1 && (id.length === 3 || [1, 2, 0x11, 0].includes(id[4]));
+  function findBinId(b) {                            // -> hex string (6 hex Shindengen, 10 hex Keihin) or null
+    const cand = FIND_CAND[b.length]; if (!cand) return null;
+    for (const [g, gb, o, l] of cand) {
+      if (o + l > b.length) continue;
+      if (gb) { let ok = true; for (let i = 0; i < gb.length; i++) if (b[g + i] !== gb[i]) { ok = false; break; } if (!ok) continue; }
+      const id = b.subarray(o, o + l);
+      if (idOk(id)) return hex(id);
+    }
+    return null;
+  }
+  function ecuFits(idHex) {                           // DB models sharing this id (exact, else same first 3 bytes)
+    if (!idHex) return [];
+    const p = idHex.slice(0, 6), out = [];
+    for (const e of ECU_DB) if (e[0] === idHex || e[0].slice(0, 6) === p) out.push(e[1] + (e[2] ? ' (' + e[2] + ')' : ''));
+    return [...new Set(out)];
+  }
+
   S.ecu = null;                                     // {state, idHex, flashCount, info}
   S.rm = { file: null, phase: 0, result: 0, done: 0, free: 0, busy: false, arm: 0 };
 
@@ -1512,22 +1614,44 @@ function shDetectECU(bin) {
     return { size: n, sizeKb, maker, chip, blockType, ecuType, cks, bytes: b };
   }
 
-  // paint the ECU identity panel from S.ecu + the current link
+  const fmtTime = s => { s = Math.floor(s); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
+  function rmModes(mk) { document.querySelectorAll('#rModes .fl-mode').forEach(m => m.classList.toggle('on', !!mk && m.dataset.m === mk)); }
+  function rmSeed(f) {
+    const seed = $('sSeed'), st = $('sStart'), ck = $('sCk');
+    if (!f) { seed.textContent = '—'; seed.className = ''; st.textContent = '—'; ck.textContent = '—'; return; }
+    if (f.maker === 'S') {
+      seed.textContent = SHIN_KEY_READY ? 'อัตโนมัติ ✓' : 'ไม่พร้อม';
+      seed.className = SHIN_KEY_READY ? 'acc' : 'amber';
+      st.textContent = '0x' + (f.ecuType === 4 ? 0xA000 : 0x10000).toString(16).toUpperCase();
+    } else { seed.textContent = 'ไม่ต้องใช้'; seed.className = ''; st.textContent = '0x0'; }
+    ck.textContent = '0x' + (f.cks >>> 0).toString(16).toUpperCase().padStart(4, '0');
+  }
+  // paint the file panel (name / size / type / checksum / file-ECM-ID / fitment) + mode + seed
+  function rmSetFile() {
+    const f = S.rm.file, T = (id, v, c) => { const el = $(id); el.textContent = v; el.className = c || ''; };
+    if (!f) { $('rFileName').textContent = 'เลือกไฟล์ .bin'; ['iFile','iSize','iType','iCks','iFid','iFit'].forEach(i => T(i, '—')); rmModes(null); rmSeed(null); return; }
+    $('rFileName').textContent = f.name;
+    T('iFile', f.name); T('iSize', f.sizeKb + ' KB'); T('iType', MK[f.maker] + (f.chip ? ' · ' + f.chip : ''), 'acc');
+    T('iCks', '0x' + (f.cks >>> 0).toString(16).toUpperCase().padStart(4, '0'));
+    const fid = f.fid, fits = f.fits || [];
+    T('iFid', fid ? fid.replace(/(..)/g, '$1 ').trim() + (fid.length === 6 ? ' ··' : '') : 'อ่านไม่ได้');
+    $('iFit').innerHTML = fits.length ? fits.slice(0, 4).join('<br>') + (fits.length > 4 ? '<br>…' : '') : '—';
+    $('iFit').className = fits.length ? 'good' : '';
+    rmModes(f.maker); rmSeed(f);
+  }
+  // paint the connected-ECU identity rows + K-LINE badge from S.ecu + the current link
   function rmSetState() {
-    const part = $('rEcuPart'), meta = $('rEcuMeta');
-    if (S.link !== 'ok') { part.textContent = '--'; meta.innerHTML = '<span>สถานะ</span><b>ยังไม่ได้เชื่อมต่อ</b>'; rmVerdict(); return; }
+    const kl = $('rKline'), klb = kl.querySelector('b');
+    const box = (p, m, id, rom, fc) => { $('iEpart').textContent = p; $('iEmodel').innerHTML = m; $('iEid').textContent = id; $('iErom').textContent = rom; $('iEfc').textContent = fc; };
+    if (S.link !== 'ok') { kl.className = 'fl-link'; klb.textContent = 'ยังไม่เชื่อม'; box('—', '—', '—', '—', '—'); rmVerdict(); return; }
     const e = S.ecu;
-    if (!e || e.state === 0 || e.state === 1) { part.textContent = 'กำลังอ่าน…'; meta.innerHTML = '<span>สถานะ</span><b>' + (e && e.state === 1 ? 'กำลังอ่านรหัสกล่อง' : 'รอข้อมูลจากกล่อง') + '</b>'; rmVerdict(); return; }
-    if (e.state === 3) { part.textContent = 'กล่องไม่ตอบ'; meta.innerHTML = '<span>สถานะ</span><b>เปิดกุญแจ/ต่อสายกล่องหรือยัง?</b>'; rmVerdict(); return; }
+    if (!e || e.state === 0 || e.state === 1) { kl.className = 'fl-link wait'; klb.textContent = 'กำลังอ่านกล่อง'; box('รอข้อมูล…', '—', '—', '—', '—'); rmVerdict(); return; }
+    if (e.state === 3) { kl.className = 'fl-link wait'; klb.textContent = 'กล่องไม่ตอบ'; box('เปิดกุญแจ / ต่อสาย?', '—', '—', '—', '—'); rmVerdict(); return; }
+    kl.className = 'fl-link ok'; klb.textContent = 'K-LINE เชื่อมต่อ';
     const info = e.info, fc = e.flashCount;
-    part.textContent = info ? info.part : 'ไม่พบในฐานข้อมูล';
-    let rows = '';
-    if (info) { rows += '<span>รุ่น/ยี่ห้อ</span><b>' + (info.model ? info.model + ' · ' : '') + MK[info.maker] + '</b>';
-                rows += '<span>ขนาด ROM</span><b>' + info.romKb + ' KB</b>'; }
-    rows += '<span>ECM ID</span><b>' + e.idHex + '</b>';
-    rows += '<span>จำนวนครั้งที่อัด</span><b>' + (fc == null ? '—' : fc) + '</b>';
-    if (info && !info.exact) rows += '<span>หมายเหตุ</span><b style="color:var(--amber)">ตรง 4 ไบต์แรก (รุ่นใกล้เคียง)</b>';
-    meta.innerHTML = rows;
+    let model = info ? ((info.model ? info.model + ' · ' : '') + MK[info.maker]) : '—';
+    if (info && !info.exact) model += ' <span style="color:var(--amber);font-size:12px">(ใกล้เคียง)</span>';
+    box(info ? info.part : 'ไม่พบใน DB', model, e.idHex.replace(/(..)/g, '$1 ').trim(), info ? info.romKb + ' KB' : '—', fc == null ? '—' : fc);
     rmVerdict();
   }
 
@@ -1545,7 +1669,7 @@ function shDetectECU(bin) {
     if (!e.info) return set('warn', '⚠️ กล่องไม่อยู่ในฐานข้อมูล', 'ไฟล์: ' + fi + '<br>ECM ID <b>' + e.idHex + '</b> ยังไม่มีในฐานข้อมูล จึงยืนยันความตรงไม่ได้ — ยังไม่อนุญาตให้อัด', false);
     if (e.info.maker !== f.maker) return set('bad', '⛔ ไม่ตรงยี่ห้อ', 'กล่องที่ต่ออยู่เป็น <b>' + MK[e.info.maker] + '</b> (' + e.info.part + ') แต่ไฟล์เป็น <b>' + MK[f.maker] + '</b> — ห้ามอัด', false);
     if (f.sizeKb !== e.info.romKb) return set('bad', '⛔ ขนาดไม่ตรง', 'ไฟล์ <b>' + f.sizeKb + ' KB</b> · กล่อง <b>' + e.info.romKb + ' KB</b> (' + e.info.part + ') — ขนาดไม่ตรง ห้ามอัด', false);
-    if (f.maker === 'S' && !SHIN_KEY_READY) return set('warn', '⚠️ ตรงรุ่น แต่ยังไม่ได้ใส่สูตร KEY', 'กล่อง <b>' + e.info.part + '</b> ตรงรุ่น · ' + fi + '<br>Shindengen ต้องใส่ฟังก์ชัน <b>shWriteKey</b> (จาก v3) ก่อนถึงจะอัดได้ — ดูช่อง hook ด้านบนของสคริปต์', false);
+    if (f.maker === 'S' && !SHIN_KEY_READY) return set('warn', '⚠️ ตรงรุ่น แต่สูตร KEY ยังไม่พร้อม', 'กล่อง <b>' + e.info.part + '</b> ตรงรุ่น · ' + fi + '<br>Shindengen: สูตรคำนวณ KEY ยังไม่พร้อมใช้งาน', false);
     return set('ok', '✅ ตรงรุ่น พร้อมอัด', 'กล่อง <b>' + e.info.part + '</b> · ' + MK[e.info.maker] + ' ' + e.info.romKb + ' KB<br>ไฟล์: ' + fi + ' — ตรงยี่ห้อและขนาด', true);
   }
 
@@ -1555,7 +1679,13 @@ function shDetectECU(bin) {
     const total = p.file ? p.file.size : 0;
     let pct = (p.phase === 3 && total) ? Math.min(100, Math.round(p.done / total * 100)) : (p.phase >= 5 ? 100 : 0);
     $('rBar').style.width = pct + '%';
+    $('fPct').textContent = pct + '%';
     if (p.busy || p.phase) $('rFlashMsg').textContent = PH[p.phase] + (p.phase === 3 ? ' ' + pct + '%' : '');
+    if (p.t0) {
+      const sec = (Date.now() - p.t0) / 1000;
+      $('fElapsed').textContent = fmtTime(sec);
+      if (p.phase === 3 && sec > 0.5 && p.done) $('fSpeed').textContent = (p.done / 1024 / sec).toFixed(2) + ' KB/s';
+    }
   }
 
   function onFlash(u8) {
@@ -1586,7 +1716,8 @@ function shDetectECU(bin) {
   async function rmFlash() {
     const f = S.rm.file; if (!f || !chFlash) return;
     const RES = ['สำเร็จ', 'เริ่มต้นกล่องไม่ผ่าน', 'ลบไม่ผ่าน', 'เขียนไม่ผ่าน', 'ปิดงานไม่ผ่าน', 'ข้อมูลไฟล์ขาด', 'ยกเลิก'];
-    S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; $('bFlash').disabled = true; rmProgress();
+    S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; S.rm.t0 = Date.now(); $('fSpeed').textContent = '—'; $('bFlash').disabled = true; rmProgress();
+    const _tick = setInterval(() => { if (S.rm.busy) rmProgress(); else clearInterval(_tick); }, 500);
     try {
       const sz = f.size, cks = f.cks;
       const start = Uint8Array.of(0x01, f.ecuType, sz & 255, (sz >> 8) & 255, (sz >> 16) & 255, (sz >> 24) & 255, cks & 255, (cks >> 8) & 255);
@@ -1614,17 +1745,17 @@ function shDetectECU(bin) {
 
   $('rFile').addEventListener('change', async ev => {
     const file = ev.target.files && ev.target.files[0]; if (!file) return;
-    $('rFileName').textContent = file.name + ' · ' + Math.round(file.size / 1024) + ' KB';
     const buf = new Uint8Array(await file.arrayBuffer());
     S.rm.file = detectBin(buf); S.rm.file.name = file.name;
-    rmVerdict();
+    S.rm.file.fid = findBinId(buf); S.rm.file.fits = ecuFits(S.rm.file.fid);
+    rmSetFile(); rmVerdict();
   });
   $('bReadEcu').addEventListener('click', rmReadEcu);
   $('bFlash').addEventListener('click', () => {
     if (S.rm.busy || $('bFlash').disabled) return;
     const b = $('bFlash');
-    if (!S.rm.arm) { S.rm.arm = 1; b.classList.add('arm'); b.textContent = 'แตะอีกครั้งเพื่อยืนยันการอัด'; setTimeout(() => { S.rm.arm = 0; b.classList.remove('arm'); b.textContent = 'อัดเข้ากล่อง'; }, 4000); return; }
-    S.rm.arm = 0; b.classList.remove('arm'); b.textContent = 'อัดเข้ากล่อง';
+    if (!S.rm.arm) { S.rm.arm = 1; b.classList.add('arm'); $('flLbl').textContent = 'แตะอีกครั้งเพื่อยืนยัน'; setTimeout(() => { S.rm.arm = 0; b.classList.remove('arm'); $('flLbl').textContent = 'FLASH ECU'; }, 4000); return; }
+    S.rm.arm = 0; b.classList.remove('arm'); $('flLbl').textContent = 'FLASH ECU';
     rmFlash();
   });
 
