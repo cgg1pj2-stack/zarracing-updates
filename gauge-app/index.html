@@ -1779,7 +1779,7 @@ function shDetectECU(bin) {
       }
       // wait for the K-line flash to finish (phase DONE/FAILED). K-line is slow: allow a few minutes.
       const t0 = Date.now();
-      while (S.rm.phase !== 5 && S.rm.phase !== 6 && Date.now() - t0 < 360000) await sleep(150);
+      while (S.rm.phase !== 5 && S.rm.phase !== 6 && Date.now() - t0 < 1200000) await sleep(150);   // 256 KB at ~0.6 KB/s is ~7 min; allow 20
       if (S.rm.phase === 5) { $('rFlashMsg').textContent = 'อัดสำเร็จ ✓ ปิด-เปิดกุญแจ แล้วลองสตาร์ท'; rmReadEcu(); }
       else throw new Error(RES[S.rm.result] || 'ล้มเหลว / หมดเวลา');
     } catch (e) {
@@ -1993,7 +1993,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v12 · 11-05'; } catch (e) {}
+  try { $('appVer').textContent = 'app v13 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
