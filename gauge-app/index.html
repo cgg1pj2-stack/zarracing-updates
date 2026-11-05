@@ -189,6 +189,26 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .lgside .tile { padding: 10px 14px; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14px; }
 .kv span { color: var(--muted); } .kv b { font-family: var(--f-num); font-size: 19px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+.remap { display: grid; gap: 12px; max-width: 640px; margin: 0 auto; }
+.remap .rEcu .val { font-size: 26px; font-style: normal; }
+.remap .lgc { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+.remap #rFileName { color: var(--muted); font-size: 14px; word-break: break-all; }
+.verdict { margin-top: 10px; padding: 10px 12px; border-radius: 6px; font-size: 15px; line-height: 1.5; border: 1px solid #3a3f4a; }
+.verdict b { font-family: var(--f-num); }
+.verdict.ok { border-color: #2f7d4e; background: rgba(70,224,106,.10); }
+.verdict.ok .vhead { color: #46e06a; }
+.verdict.warn { border-color: #8a6a1e; background: rgba(255,176,32,.10); }
+.verdict.warn .vhead { color: var(--amber); }
+.verdict.bad { border-color: #8a2b2b; background: rgba(255,42,47,.10); }
+.verdict.bad .vhead { color: var(--red); }
+.verdict .vhead { font-weight: 800; letter-spacing: .5px; }
+.remap #bFlash { width: 100%; font-size: 17px; padding: 12px; }
+.remap #bFlash:disabled { opacity: .45; }
+.remap #bFlash.arm { background: var(--red); border-color: var(--red); color: #fff; }
+.remap .rbar { height: 12px; margin-top: 10px; }
+.remap .rbar i { background: var(--acc); }
+.remap .rmsg { display: block; margin-top: 8px; color: var(--muted); font-size: 14px; }
+.remap .rwarn { color: var(--amber); font-size: 13px; line-height: 1.6; background: rgba(255,176,32,.07); border: 1px solid #5a4a1e; border-radius: 6px; padding: 10px 12px; margin: 0; }
 .legend { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
 .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 2px; vertical-align: -2px; margin-right: 6px; }
 
@@ -217,68 +237,6 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   .tach canvas { max-height: calc(100dvh - 92px); }
 }
 @media (prefers-reduced-motion: reduce) { .meter i { transition: none; } }
-/* ---- REMAP page: ZAR RACING X-SERIES look (follows the gauge theme colour: --acc) ---- */
-.fx { --r: rgb(var(--acc-rgb)); --r2: rgba(var(--acc-rgb), .7); --r3: rgba(var(--acc-rgb), .85); --rd: rgba(var(--acc-rgb), .55); --on: var(--on-acc, #fff); --fxbg: #0b0c10; --fxp: #14161b; --fxl: #2a2e36; --fxt: #e9ecf2; --fxm: #9aa3b2;
-  flex-basis: 100%; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; margin: 6px 0 0;
-  font-family: var(--f-ui, inherit); color: var(--fxt); }
-.fxrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 12px; }
-.fxcard { position: relative; background: linear-gradient(180deg, #16181e, #0e1014); border: 1.5px solid var(--r2); border-radius: 8px; padding: 12px 14px 14px; overflow: hidden;
-  box-shadow: 0 0 0 1px #000 inset, 0 8px 24px -16px var(--r); }
-.fxcard::after { content: ""; position: absolute; right: -40px; top: -40px; width: 140px; height: 140px; background: repeating-linear-gradient(135deg, rgba(var(--acc-rgb),.18) 0 6px, transparent 6px 14px); transform: rotate(0deg); pointer-events: none; }
-.fxhead { display: inline-block; background: var(--r); color: var(--on); font-weight: 900; font-style: italic; letter-spacing: 1.5px; font-size: 13px; padding: 5px 26px 5px 12px; margin: -12px 0 12px -14px;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%); }
-.fxecu { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-.fxecu-img { width: 118px; height: 78px; flex: none; color: var(--r); filter: drop-shadow(0 0 10px rgba(var(--acc-rgb),.45)); }
-.fxecu-st { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.fxecu-st b { display: block; font-size: 20px; font-weight: 900; letter-spacing: 1px; color: #52d17a; line-height: 1.1; }
-.fxecu-st b.warn { color: #ffb020; } .fxecu-st b.bad { color: #ff5a5a; } .fxecu-st b.off { color: var(--fxm); }
-.fxecu-st small { color: var(--fxm); font-size: 12px; letter-spacing: 2px; }
-.fxdot { width: 34px; height: 34px; border-radius: 50%; flex: none; display: grid; place-items: center; font-weight: 900; font-size: 20px; background: #52d17a; color: #06120a; box-shadow: 0 0 14px #52d17a; }
-.fxdot.warn { background: #ffb020; box-shadow: 0 0 14px #ffb020; } .fxdot.bad { background: #ff5a5a; box-shadow: 0 0 14px #ff5a5a; } .fxdot.off { background: #3a3f4a; box-shadow: none; color: #aaa; }
-.fxrows { display: grid; grid-template-columns: auto 1fr; gap: 0 10px; margin: 0; font-size: 13.5px; }
-.fxrows dt { color: var(--fxm); padding: 5px 0; border-top: 1px solid var(--fxl); }
-.fxrows dd { margin: 0; text-align: right; font-weight: 800; padding: 5px 0; border-top: 1px solid var(--fxl); word-break: break-all; }
-.fxrows dd.fxid { color: #c28cff; font-family: var(--f-num); letter-spacing: 1px; } .fxrows dd.fxcks { color: #ffd23f; font-family: var(--f-num); }
-.fxnote { margin-top: 8px; font-size: 12px; color: #ffb020; border: 1px solid rgba(255,176,32,.5); border-radius: 5px; padding: 6px 8px; }
-.fxbrand { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--fxl); font-weight: 900; font-style: italic; letter-spacing: 2px; font-size: 16px; }
-.fxbrand b { color: var(--r); } .fxbrand small { display: block; font-weight: 500; font-style: normal; font-size: 10px; letter-spacing: 4px; color: var(--fxm); }
-.fxbtn2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.fxb { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 10px 8px; border-radius: 6px; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer; border: 1.5px solid var(--fxl); color: var(--fxt); background: #1b1e25; text-align: center; }
-.fxb small { font-weight: 500; font-size: 11px; color: var(--fxm); }
-.fxb-red { background: linear-gradient(180deg, var(--r), var(--rd)); border-color: var(--r3); color: var(--on); } .fxb-red small { color: var(--on); }
-.fxopts { list-style: none; margin: 10px 0 8px; padding: 0; display: grid; gap: 4px; font-size: 13px; }
-.fxopts li { display: flex; align-items: center; gap: 10px; padding: 5px 8px; border-radius: 4px; background: rgba(255,255,255,.03); color: var(--fxm); }
-.fxopts li.on { color: var(--fxt); background: rgba(var(--acc-rgb),.12); }
-.fxopts i { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--fxl); display: grid; place-items: center; font-style: normal; font-size: 12px; font-weight: 900; flex: none; }
-.fxopts li.on i { background: var(--r); border-color: var(--r); color: var(--on); }
-.fxtag { margin-left: auto; font-size: 10px; letter-spacing: 1px; padding: 2px 7px; border-radius: 3px; background: #262a33; color: var(--fxm); }
-.fxtag.on { background: var(--r); color: var(--on); }
-.fxoff { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 6px 8px; align-items: center; font-size: 12.5px; color: var(--fxm); margin-bottom: 10px; }
-.fxoff b { background: #0b0c10; border: 1px solid var(--fxl); border-radius: 4px; padding: 5px 8px; color: var(--fxt); font-family: var(--f-num); text-align: right; }
-.fxflash { width: 100%; padding: 13px 10px; border-radius: 8px; border: 2px solid var(--r3); background: linear-gradient(180deg, var(--r), var(--rd)); color: var(--on); font: inherit; font-weight: 900; font-style: italic; font-size: 22px; letter-spacing: 3px; cursor: pointer; box-shadow: 0 0 18px rgba(var(--acc-rgb),.45); }
-.fxflash[disabled] { opacity: .35; pointer-events: none; box-shadow: none; }
-.fxabort { width: 100%; margin-top: 8px; }
-.fxprow { display: grid; grid-template-columns: 110px minmax(0, 1.2fr) minmax(0, 1.4fr) 150px; gap: 12px; align-items: center; }
-.fxring { position: relative; width: 110px; height: 110px; }
-.fxring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.fxring circle { fill: none; stroke-width: 10; } .fxring .bg { stroke: #262a33; }
-.fxring .fg { stroke: var(--r); stroke-linecap: round; stroke-dasharray: 263.9; stroke-dashoffset: 263.9; transition: stroke-dashoffset .25s linear; filter: drop-shadow(0 0 4px var(--r)); }
-.fxring .fg.ok { stroke: #52d17a; } .fxring .fg.bad { stroke: #ff5a5a; }
-.fxring b { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--f-num); font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; }
-.fx .fwbar { height: 20px; border-radius: 6px; background: #0b0c10; border: 1px solid var(--fxl); overflow: hidden; }
-.fx .fwfill { height: 100%; width: 0; background: repeating-linear-gradient(135deg, var(--r) 0 10px, rgba(var(--acc-rgb), .6) 10px 20px); transition: width .2s linear; }
-.fx .fwfill.ok { background: repeating-linear-gradient(135deg, #52d17a 0 10px, #2f9a52 10px 20px); }
-.fxstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
-.fxstats div { border-right: 1px solid var(--fxl); padding-right: 6px; } .fxstats div:last-child { border: 0; }
-.fxstats small { display: block; color: var(--fxm); font-size: 11px; } .fxstats b { font-family: var(--f-num); font-size: 15px; font-variant-numeric: tabular-nums; }
-.fxlog { align-self: stretch; background: #0b0c10; border: 1px solid var(--fxl); border-radius: 6px; padding: 8px 10px; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace; min-height: 96px; max-height: 120px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; }
-.fxlog div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .fxlog .t { color: var(--fxm); } .fxlog .ok::before { content: "✔ "; color: #52d17a; } .fxlog .bad::before { content: "✖ "; color: #ff5a5a; } .fxlog .ok.hl { color: #52d17a; }
-.fxwarn { display: flex; gap: 10px; align-items: center; border: 1.5px solid var(--r); border-radius: 8px; padding: 10px; color: var(--r3); font-weight: 800; font-size: 13px; line-height: 1.25; background: rgba(var(--acc-rgb),.08); }
-.fxwarn > b { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--r3); display: grid; place-items: center; flex: none; }
-.fxwarn small { display: block; margin-top: 4px; font-weight: 500; color: var(--fxt); }
-.fxfoot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 11px; letter-spacing: 3px; color: var(--fxm); padding: 6px 4px; border-top: 1px solid var(--r2); }
-.fxfoot b { color: var(--r); }
-@media (max-width: 760px) { .fxrow { grid-template-columns: 1fr; } .fxprow { grid-template-columns: 100px 1fr; } .fxlog, .fxwarn { grid-column: 1 / -1; } .fxflash { font-size: 18px; } }
 </style>
 </head>
 <body>
@@ -333,7 +291,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       <button class="tab" role="tab" id="tGauge" aria-selected="true" type="button">GAUGE</button>
       <button class="tab" role="tab" id="tDrag" aria-selected="false" type="button">DRAG LOG</button>
       <button class="tab" role="tab" id="tLog" aria-selected="false" type="button">DATA LOG</button>
-      <button class="tab" role="tab" id="tFlash" aria-selected="false" type="button">รีแมพ</button>
+      <button class="tab" role="tab" id="tRemap" aria-selected="false" type="button">อัดรีแมพ</button>
     </div>
     <div class="shift" id="shift" aria-hidden="true"></div>
   </div>
@@ -408,81 +366,28 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     </div>
   </section>
 
-  <section id="vFlash" hidden>
-    <div class="fx">
-      <div class="fxrow">
-        <div class="fxcard">
-          <div class="fxhead">ECU INFORMATION</div>
-          <div class="fxecu">
-            <svg class="fxecu-img" viewBox="0 0 120 80" aria-hidden="true">
-              <rect x="10" y="14" width="100" height="52" rx="8" fill="#1b1d23" stroke="currentColor" stroke-width="2"/>
-              <rect x="22" y="24" width="76" height="22" rx="3" fill="#0b0c10" stroke="#3a3f4a"/>
-              <text x="60" y="40" text-anchor="middle" font-size="12" font-weight="800" fill="currentColor" font-family="Arial">ZAR</text>
-              <rect x="30" y="52" width="60" height="8" rx="2" fill="#2a2e36"/>
-              <g fill="#5a606c"><rect x="34" y="54" width="4" height="4"/><rect x="42" y="54" width="4" height="4"/><rect x="50" y="54" width="4" height="4"/><rect x="58" y="54" width="4" height="4"/><rect x="66" y="54" width="4" height="4"/><rect x="74" y="54" width="4" height="4"/><rect x="82" y="54" width="4" height="4"/></g>
-            </svg>
-            <div class="fxecu-st">
-              <span class="fxdot" id="fxDot">!</span>
-              <div><b id="fwEcuState">—</b><small>K-LINE</small></div>
-            </div>
-          </div>
-          <dl class="fxrows">
-            <dt>Model :</dt><dd id="fwRowModel">—</dd>
-            <dt>Part Code :</dt><dd id="fwRowPart">—</dd>
-            <dt>File :</dt><dd id="fwRowFile">—</dd>
-            <dt>File Size :</dt><dd id="fwRowSize">—</dd>
-            <dt>ECU Type :</dt><dd id="fwRowType">—</dd>
-            <dt>ECU ID :</dt><dd class="fxid" id="fwRowId">—</dd>
-            <dt>Checksum :</dt><dd class="fxcks" id="fwRowCks">—</dd>
-            <dt>Flash Count :</dt><dd id="fwFlashCnt">—</dd>
-          </dl>
-          <div class="fxnote" id="fwIdNote" hidden></div>
-          <div class="fxbrand"><b>ZAR</b> RACING <small>TUNE YOUR RIDE</small></div>
-        </div>
-
-        <div class="fxcard">
-          <div class="fxhead">FLASH OPTIONS</div>
-          <div class="fxbtn2">
-            <button type="button" class="fxb fxb-red" id="fwModeFull">⚡ Write Full Flash<small>(Recommended)</small></button>
-            <label class="fxb fxb-dark" for="fwFile">📁 Select File<small>(BIN)</small></label>
-            <input type="file" id="fwFile" accept=".bin,.BIN,application/octet-stream" hidden>
-          </div>
-          <ul class="fxopts">
-            <li class="on"><i>✓</i>Keihin Auto Detect<span class="fxtag on">ON</span></li>
-            <li><i></i>Fast Keihin<span class="fxtag">เร็วๆ นี้</span></li>
-            <li><i></i>Fast Shin<span class="fxtag">เร็วๆ นี้</span></li>
-            <li><i></i>Shindengen Auto Detect<span class="fxtag">เร็วๆ นี้</span></li>
-            <li><i></i>Seed-Key (กรณีกล่องโดนล็อค)<span class="fxtag">เร็วๆ นี้</span></li>
-          </ul>
-          <div class="fxoff">
-            <span>Start Offset :</span><b id="fwOffStart">0x000000</b>
-            <span>Checksum Offset :</span><b id="fwOffCks">0x000000</b>
-          </div>
-          <button type="button" class="fxflash" id="fwGo" disabled>⚡ FLASH ECU ⟫⟫</button>
-          <button type="button" class="btn danger fxabort" id="fwAbort" hidden>ยกเลิก</button>
-        </div>
+  <section id="vRemap" hidden>
+    <div class="remap">
+      <div class="tile rEcu">
+        <div class="lbl"><span>กล่อง ECU (อ่านตอนเชื่อมรถ)</span><button class="mini" id="bReadEcu" type="button">อ่านใหม่</button></div>
+        <div class="val" id="rEcuPart">--</div>
+        <div class="kv" id="rEcuMeta"><span>สถานะ</span><b id="rEcuState">ยังไม่ได้เชื่อมต่อ</b></div>
       </div>
-
-      <div class="fxcard">
-        <div class="fxhead">WRITE PROGRESS</div>
-        <div class="fxprow">
-          <div class="fxring">
-            <svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="42"/><circle class="fg" id="fwRing" cx="50" cy="50" r="42"/></svg>
-            <b id="fwPct">0%</b>
-          </div>
-          <div class="fxmid">
-            <div class="fwbar"><div class="fwfill" id="fwFill"></div></div>
-            <div class="fxstats">
-              <div><small>⏱ Elapsed</small><b id="fwElapsed">00:00:00</b></div>
-              <div><small>🚀 Speed</small><b id="fwSpeed">0.0 KB/s</b></div>
-              <div><small>📄 Total</small><b id="fwTotal">0 KB</b></div>
-            </div>
-          </div>
-          <div class="fxlog" id="fwLog"></div>
-          <div class="fxwarn"><b>!</b><div>Do not disconnect<br>the cable!<small id="fwStat">พร้อม</small></div></div>
+      <div class="tile">
+        <div class="lbl"><span>ไฟล์รีแมพ (.bin)</span></div>
+        <div class="lgc">
+          <label class="btn" for="rFile">เลือกไฟล์ .bin</label>
+          <input type="file" id="rFile" accept=".bin,application/octet-stream" hidden>
+          <span id="rFileName">ยังไม่ได้เลือกไฟล์</span>
         </div>
+        <div id="rVerdict" class="verdict" hidden></div>
       </div>
-      <div class="fxfoot"><span><b>ZAR</b> RACING</span><span>REMAP · TUNE · PERFORMANCE</span><span id="fwConn">—</span></div>
+      <div class="tile">
+        <button class="btn" id="bFlash" type="button" disabled>อัดเข้ากล่อง</button>
+        <div class="meter rbar"><i id="rBar"></i></div>
+        <span id="rFlashMsg" class="rmsg">เชื่อมต่อรถ → อ่านรหัสกล่อง → เลือกไฟล์ให้ตรงรุ่น → กดอัด</span>
+      </div>
+      <p class="rwarn">⚠️ การอัดกล่องมีความเสี่ยง — อัดเฉพาะไฟล์ที่ตรงรุ่น/ขนาดกับกล่อง · ห้ามดับเครื่องหรือตัดไฟระหว่างอัด · รองรับ Keihin และ Shindengen (256/384KB) · กล่อง Shindengen ต้องใส่สูตร KEY (shWriteKey) จาก v3 ก่อน</p>
     </div>
   </section>
 </div>
@@ -494,7 +399,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   const DRAG = '7a617200-6761-7567-6500-000000000002';
   const LOGO = '7a617200-6761-7567-6500-000000000003';
   const MAP  = '7a617200-6761-7567-6500-000000000005';   // DATA LOG table (src/data/ble_packet.h)
-  const FLASH= '7a617200-6761-7567-6500-000000000006';   // remap flashing (src/data/flash_buf.h)
+  const FLASH= '7a617200-6761-7567-6500-000000000006';   // remap flashing + ECU identity (src/data/ble_link.cpp)
   const SPLITS = ['60 FT', '100 M', '201 M', '402 M', '1000 M'];
   const STATE = ['NO GPS', 'STOP TO ARM', 'READY', 'RUN'];
   const RPM_MAX = 15000;
@@ -502,7 +407,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 
   // ---------- state ----------
   const S = { live: null, drag: null, link: 'off', demo: false, rpmShown: 0, top: 0, peak: 0, lastCounter: -1 };
-  let chLogo = null, logoWait = null;
+  let chLogo = null, logoWait = null, chFlash = null;
   let dev = null, chLive = null, chDrag = null, wake = null, reconnectTimer = 0;
 
   const store = {
@@ -570,19 +475,19 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       await chMap.startNotifications();
       await mapCmd(1);                               // send me the whole table
     } catch (e) { chMap = null; }
-    try {                                            // firmware with the remap flasher
+    try {                                            // firmware with remap flashing + ECU identity
       chFlash = await svc.getCharacteristic(FLASH);
-      chFlash.addEventListener('characteristicvaluechanged', e => onFlash(e.target.value));
+      chFlash.addEventListener('characteristicvaluechanged', e => onFlash(new Uint8Array(e.target.value.buffer)));
       await chFlash.startNotifications();
-      setTimeout(fwReqInfo, 600);                    // ask the gauge for the ECU identity
+      await chFlash.writeValueWithResponse(Uint8Array.of(0x04));   // ask the gauge for the ECU identity
     } catch (e) { chFlash = null; }
-    fwPaint();
     lgPaintNote();
     S.demo = false; $('bDemo').classList.remove('on');
     setLink('ok', 'CONNECTED');
     note('');
     readDrag();
     keepAwake();
+    rmSetState();
   }
   function onDisconnect() {
     setLink('wait', 'RECONNECT');
@@ -608,7 +513,8 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     S.link = cls;
     const c = $('cBle'); c.className = 'chip ' + cls; c.lastElementChild.textContent = txt;
     $('bConnect').textContent = cls === 'ok' ? 'เชื่อมต่อแล้ว' : 'เชื่อมต่อ';
-    if (typeof fwPaint === 'function') fwPaint();
+    if (cls !== 'ok') S.ecu = null;
+    if (typeof rmSetState === 'function') rmSetState();
   }
   async function keepAwake() {
     try { if ('wakeLock' in navigator && !wake) { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); } } catch (e) {}
@@ -618,7 +524,6 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   // ---------- data in ----------
   function onLive(d) {
     S.live = d;
-    if (typeof fwStateTick === 'function') fwStateTick();
     if (d.rpm != null && d.rpm > S.peak) S.peak = d.rpm;
     if (d.fix && d.kmh > S.top) S.top = d.kmh;
     if (d.counter !== S.lastCounter) { S.lastCounter = d.counter; if (!S.demo && !usePhone()) readDrag(); }
@@ -703,8 +608,6 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     const t = THEMES[i] || THEMES[0];
     accRgb = t[1];
     document.documentElement.style.setProperty('--acc-rgb', accRgb);
-    const [r, g, b] = accRgb.split(',').map(Number);
-    document.documentElement.style.setProperty('--on-acc', (r * 299 + g * 587 + b * 114) / 1000 > 170 ? '#000' : '#fff');   // text on accent fills (REMAP page)
     document.querySelectorAll('.sw').forEach((b, k) => b.setAttribute('aria-pressed', k === i));
     store.set('zar.theme', i);
     drawBg();
@@ -1178,6 +1081,553 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   });
 
 
+  // ---------- REMAP: ECU identity + .bin file check + Keihin flashing (src/data/ble_link.cpp FLASH char) ----------
+  // ECM-ID table ported from src/data/ecu_db.h (ZarRacing v3). [idHex, part, model, maker K/S, romKb]
+  const ECU_DB = [
+    ["0105550D01","K2J TH1 110I NEW","110 I","K",64],["01047B0D01","38770-K3F-T01","125 I NEW","K",64],
+    ["0101610D01","38770-K03-T61","110 I","K",48],["0101880D01","38770-K03-H01","110 I","K",64],
+    ["0103FA0D01","38770-K1M-T01","DREAM","K",64],["01040F0D01","38770-K2J-T01","110 I","K",64],
+    ["01052A0D01","K3MF-T01 GIORNO 125","","S",256],["0104780D01","K2TA-T02 LEAD125 4V","","S",256],
+    ["01030A0D01","K60S-T71 CLICK125","","S",384],["0103070D01","K59K-T11 CLICK150","","S",384],
+    ["0101990D01","K36F-T01 PCX150","","S",384],["01037C0D01","K0WF-T01 ADV150","","S",384],
+    ["0103D00D01","K1ZF-T01 PCX160","","S",384],["0103CF0D01","K1ZF-T11 PCX160","","S",384],
+    ["0101FF0D01","K20J-T21 ZOOMER-X","","S",256],["0102180D01","K36S-T31 PCX150","","S",384],
+    ["0101D00D01","K60F-T01 CLICK125","","S",384],["0102990D01","K97F-T01 PCX150","","S",384],
+    ["0103960D01","K12M-J61 LEAD125 2V","","S",384],["0105050D01","K1ZP-T51 PCX 160","","S",384],
+    ["0105040D01","K1ZP-T71 PCX 160 ABS","","S",384],["01046D0D01","K2SF-T01 CLICK 160","","S",384],
+    ["01048E0D01","K0WM-TA1","ADV 160","S",384],["01048D0D01","K0WL-T01","ADV 160","S",384],
+    ["0104F20D01","K2F T91 SCOOPY","","S",256],["01034C0D11","38770-K58M-TC1","","K",64],
+    ["01034C0D01","38770-K58-TC2","","K",64],["0102580D01","38770-K73-T32","","K",64],
+    ["01033E0D01","38770-K73-T61","","K",64],["01034F1801","38770-K73-TC2","","K",64],
+    ["0102B50D01","38770-K76-T62","","K",64],["0102A00D01","38770-K94-T02","","K",96],
+    ["0100C50D02","38770-KPP-T03","","K",56],["0101BA0D01","38770-KZV-A61","","K",64],
+    ["01010E0D01","38770-KYZ-T03","","K",48],["0100B20D01","38770-KWW-601","","K",56],
+    ["0100CE0D01","38770-KWW-642","","K",48],["0100CE0D02","38770-KWW-643","","K",48],
+    ["0101B30D01","KYZ T41 125I","","K",64],["0102B90D01","K58 T81 -.-","","K",64],
+    ["0100C31501","KZZ-J01","","K",96],["0101110F01","KPP-602","","K",56],
+    ["0102B70D02","K0A-T01","","K",96],["0102CA0501","K0F-A01","","K",96],
+    ["0102CA0D01","K0F-T01","","K",96],["01041F0D01","K0F-T61","","K",96],
+    ["01030E0D01","K0G-902","","K",96],["0103F90D01","K2E-T01","","K",96],
+    ["01015B0D01","KZZ-A22","","K",128],["01011A0D02","KZZ-903","","K",128],
+    ["01011A0D01","KZZ-902","","K",128],["0104070D01","K1T-T01","","K",96],
+    ["0102850111","MKFA-D72","","K",1024],["0101830401","MGP-A92","","K",256],
+    ["0102360D01","KZZ-J01","","K",96],["01031A0501","MKN-L32","","K",256],
+    ["01031A1801","MKN-U11","","K",256],["0101350101","K26-931","","K",48],
+    ["0101350501","K26-911","","K",48],["0104070501","K1T-A11","","K",96],
+    ["0102360F01","KZZ-L41","","K",96],["0100DF0D02","KVB-S53","","K",48],
+    ["0103250F01","K54-NA1","","K",64],["0101740D02","KZZ-914","","K",128],
+    ["01027D0D01","MJE-TB1","","K",512],["01031A0D01","MKN-T11","","K",512],
+    ["0101870000","38770-K16-B61","","K",64],["0103130F01","K15-601/K15M-888","","K",64],
+    ["0101180D01","K16-901","","K",48],["0101850D01","K16-B01","","K",48],
+    ["0101270D01","K20-901","","K",48],["0101350D01","K26-901","","K",48],
+    ["0102130D01","K26-B02","","K",64],["0102130501","K26-B13","","K",64],
+    ["0102570601","K26-C01","","K",96],["0103EB0D01","K26-G01","","K",96],
+    ["01019E0D01","K33-951","","K",128],["0103250D01","K45-NA1/K45-TA1","","K",64],
+    ["0100CE0B01","KWW-642","","K",48],["0100B80D01","KYJ-901","","K",56],
+    ["0100DB0D01","KYL-T01","","K",56],["0102360F11","KZZJ-L41","","K",96],
+    ["0104090D01","K2F-T01","","K",256],["0104140D01","K2F-T21","","K",256],
+    ["0104F30D01","K2F-T81","","K",256],["0104F50D01","K2F-TB1","","K",256],
+    ["0102E50D01","K0B-T01 FORZA300","","K",512],["0104080D01","K2F-N01 FILE VN","","K",256],
+    ["0104DC0D01","K2VH-T11","","S",256],["0105950D01","K2TG-T21","","S",256],
+    ["01047E0D01","K2E-T11","","K",96],["0101290D01","K04-701 FORZA300","","K",128],
+    ["0105B40D01","K1ZT-TF1","","S",384],["0105B30D01","K1ZT-TC1","","S",384],
+    ["0105AA0D02","K2F-TF1","","S",256],["0105AB0D02","K2F-TD1","","S",256],
+    ["01062C0D01","K2J-TQ1 WAVE110I2026","","S",64],["0106270D01","K3F-T41 WAVE125 26","","K",64],
+    ["0106280D01","WAVE125I 26 K3F-T61","","K",112],["0106A70D01","GIORNO 26 K3MH-T71","","S",256],
+    ["0106900D11","LEAD 26 K2TK-T51","","S",256],["0101C60D01","SCOOPYI K16-B61","","K",64],
+    ["0100880D02","KVB-T03 CLICK 110I","","K",56],["0105B40D02","PCX160 2026 TF2 ABS","","S",384],
+    ["0101050D02","KZV-T03 DREAM110","","K",48],["0106130D01","KOWX-TB1 ADV160 26","","S",384],
+    ["0105B30D02","K1ZT-TC2 PCX160 26","K1ZT-TC2 PCX160 26 ABS","S",384],
+    ["0100FE0D02","KZRF-702 CLICK2012","","S",384],["0100FD0D01","KZRF-701 CLICK2012","","S",384],
+    ["0101BD0D01","CLICK125 KZRN-C01","","S",384],["0105D20D00","CRF300 K1T-TM2","","K",96],
+  ];
+  const MK = { K: 'Keihin', S: 'Shindengen' };
+  const hex = a => Array.from(a, x => x.toString(16).padStart(2, '0').toUpperCase()).join('');
+  function ecuLookup(idHex) {                       // exact id, then same first 4 bytes (sister cal)
+    let r = ECU_DB.find(e => e[0] === idHex);
+    if (r) return { part: r[1], model: r[2], maker: r[3], romKb: r[4], exact: true };
+    r = ECU_DB.find(e => e[0].slice(0, 8) === idHex.slice(0, 8));
+    if (r) return { part: r[1], model: r[2], maker: r[3], romKb: r[4], exact: false };
+    return null;
+  }
+
+  S.ecu = null;                                     // {state, idHex, flashCount, info}
+  S.rm = { file: null, phase: 0, result: 0, done: 0, free: 0, busy: false, arm: 0 };
+
+  // ======================================================================
+  //  Shindengen KEY hook — วางสูตรจาก v3 GetShindengenWriteKey ที่นี่เอง
+  //  กล่อง Shindengen มี seed/key challenge; มือถือ (ที่มีไฟล์ทั้งก้อน) เป็นคนคำนวณ key
+  //    seed : [s0, s1]  (2 ไบต์จากกล่อง)
+  //    bin  : Uint8Array ของไฟล์ .bin ทั้งไฟล์
+  //    คืน  : [k0, k1]  (2 ไบต์ key)  หรือ null ถ้าหา key material ไม่เจอ
+  //  พอวางสูตรเสร็จ ให้เปลี่ยน SHIN_KEY_READY = true;  (Keihin ไม่ต้องใช้)
+  // ======================================================================
+const SHIN_KEY_READY = true;
+
+// ==========================================
+// SHINDENGEN SIGNATURES FROM FormMain.cs
+// ==========================================
+
+const SH_WKEY_SIG = new Uint8Array([
+    0x11, 0x12, 0x13, 0x14, 0x15, 0x15, 0x17
+]);
+
+const SH_RKEY_SIG = new Uint8Array([
+    0x91, 0x91, 0x0D, 0x00, 0x9E, 0x8D
+]);
+
+const SH_BIN_SIG = new Uint8Array([
+    0x5A, 0x5A, 0x5A, 0x5A
+]);
+
+const SH_START0 = new Uint8Array([
+    0xA5, 0xA5, 0xA5, 0xA5, 0x00
+]);
+
+const SH_V850_SIG = new Uint8Array([
+    0x53, 0x56, 0x38, 0x35, 0x30
+]);
+
+const SH_RH850_SIG = new Uint8Array([
+    0x53, 0x48, 0x38, 0x35, 0x30
+]);
+
+
+// ==========================================
+// HELPER FUNCTIONS
+// ==========================================
+
+function shCompareMemory(data, offset, signature) {
+    if (!data || !signature ||
+        offset < 0 ||
+        offset + signature.length > data.length) {
+        return false;
+    }
+
+    for (let i = 0; i < signature.length; i++) {
+        if (data[offset + i] !== signature[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function shSum32Bit(data, dataSize, startPos = 0) {
+    let sum = 0;
+
+    const end = startPos + dataSize;
+
+    while (startPos + 4 <= end) {
+        const value =
+            data[startPos] +
+            data[startPos + 1] * 0x100 +
+            data[startPos + 2] * 0x10000 +
+            data[startPos + 3] * 0x1000000;
+
+        sum = (sum + value) >>> 0;
+        startPos += 4;
+    }
+
+    return sum >>> 0;
+}
+
+function shChecksum8BitHonda(data, dataSize, startPos = 0) {
+    let sum = 0;
+
+    for (let i = startPos; i < startPos + dataSize; i++) {
+        sum += data[i];
+    }
+
+    return ((sum ^ 0xFF) + 1) & 0xFF;
+}
+
+
+// ==========================================
+// SHINDENGEN WRITE KEY
+// Converted from GetShindengenWriteKey()
+// ==========================================
+
+function shWriteKey(seed, bin) {
+
+    if (!seed || seed.length < 2 || !bin) {
+        return null;
+    }
+
+    const binSize = bin.length;
+
+    for (
+        let i = 0;
+        i < binSize - SH_WKEY_SIG.length;
+        i++
+    ) {
+
+        if (!shCompareMemory(bin, i, SH_WKEY_SIG)) {
+            continue;
+        }
+
+        let j = i + SH_WKEY_SIG.length;
+
+        while (j < binSize - 10) {
+
+            if (
+                bin[j + 8] === 0xEE &&
+                (bin[j + 9] === 0x00 ||
+                 bin[j + 9] === 0xFF)
+            ) {
+
+                const num =
+                    (seed[0] * 256 + seed[1]) & 0xFFFF;
+
+                const num2 =
+                    (bin[j + 1] * 256 + bin[j]) & 0xFFFF;
+
+                const num3 =
+                    (bin[j + 3] * 256 + bin[j + 2]) & 0xFFFF;
+
+                const num4 =
+                    (bin[j + 5] * 256 + bin[j + 4]) & 0xFFFF;
+
+                const num5 =
+                    (num3 * (num + num2)) & 0xFFFF;
+
+                let result;
+
+                if (num4 > 0) {
+                    result =
+                        (num5 + (num % num4)) & 0xFFFF;
+                } else {
+                    result =
+                        (num5 + num) & 0xFFFF;
+                }
+
+                return [
+                    (result >> 8) & 0xFF,
+                    result & 0xFF
+                ];
+            }
+
+            j++;
+        }
+    }
+
+    return null;
+}
+
+
+// ==========================================
+// SHINDENGEN RECOVERY KEY
+// Converted from GetShindengenRecoveryKey()
+// ==========================================
+
+function shRecoveryKey(seed, bin) {
+
+    if (!seed || seed.length < 2 || !bin) {
+        return null;
+    }
+
+    const binSize = bin.length;
+
+    for (
+        let i = 0;
+        i < binSize - SH_RKEY_SIG.length;
+        i++
+    ) {
+
+        if (!shCompareMemory(bin, i + 6, SH_RKEY_SIG)) {
+            continue;
+        }
+
+        const num =
+            (seed[0] * 256 + seed[1]) & 0xFFFF;
+
+        const num2 =
+            (bin[i + 1] * 256 + bin[i]) & 0xFFFF;
+
+        const num3 =
+            (bin[i + 3] * 256 + bin[i + 2]) & 0xFFFF;
+
+        const num4 =
+            (bin[i + 5] * 256 + bin[i + 4]) & 0xFFFF;
+
+        const num5 =
+            (num3 * (num + num2)) & 0xFFFF;
+
+        let result;
+
+        if (num4 > 0) {
+            result =
+                (num5 + (num % num4)) & 0xFFFF;
+        } else {
+            result =
+                (num5 + num) & 0xFFFF;
+        }
+
+        return [
+            (result >> 8) & 0xFF,
+            result & 0xFF
+        ];
+    }
+
+    return null;
+}
+
+
+// ==========================================
+// SHINDENGEN AUTO CHECKSUM
+// Converted from ShindengenAutoChecksum()
+// ==========================================
+
+function shAutoChecksum(bin) {
+
+    if (!bin || bin.length < 16) {
+        return false;
+    }
+
+    const binSize = bin.length;
+
+    for (
+        let i = 0;
+        i < binSize - SH_WKEY_SIG.length;
+        i++
+    ) {
+
+        if (!shCompareMemory(bin, i, SH_WKEY_SIG)) {
+            continue;
+        }
+
+        for (
+            let j = i + SH_WKEY_SIG.length;
+            j < binSize - 6;
+            j++
+        ) {
+
+            if (
+                bin[j] === 0xD0 &&
+                bin[j + 1] === 0x07
+            ) {
+
+                let num = j;
+
+                // Original C# alignment condition
+                if (j >= 4 && ((j - 4) % 4) === 2) {
+                    num = j - 6;
+                }
+
+                if (num < 4 || num > binSize) {
+                    return false;
+                }
+
+                const sum1 =
+                    shSum32Bit(bin, num - 4, 0);
+
+                const sum2 =
+                    shSum32Bit(bin, binSize - num, num);
+
+                const checksum =
+                    (0 - ((sum1 + sum2) >>> 0)) >>> 0;
+
+                bin[num - 4] = checksum & 0xFF;
+                bin[num - 3] = (checksum >>> 8) & 0xFF;
+                bin[num - 2] = (checksum >>> 16) & 0xFF;
+                bin[num - 1] = (checksum >>> 24) & 0xFF;
+
+                return {
+                    success: true,
+                    offset: num - 4,
+                    checksum: [
+                        bin[num - 4],
+                        bin[num - 3],
+                        bin[num - 2],
+                        bin[num - 1]
+                    ]
+                };
+            }
+        }
+    }
+
+    return false;
+}
+
+
+// ==========================================
+// SHINDENGEN ECU IDENTIFICATION
+// ==========================================
+
+function shDetectECU(bin) {
+
+    if (!bin || bin.length < 5) {
+        return null;
+    }
+
+    if (!shCompareMemory(
+        bin,
+        bin.length - 4,
+        SH_BIN_SIG
+    )) {
+        return null;
+    }
+
+    for (let i = 0; i < bin.length - 5; i++) {
+
+        if (shCompareMemory(bin, i, SH_V850_SIG)) {
+            return "SHINDENGEN V850";
+        }
+
+        if (shCompareMemory(bin, i, SH_RH850_SIG)) {
+
+            if (shCompareMemory(bin, 40960, SH_START0)) {
+                return "SHINDENGEN RH850B";
+            }
+
+            return "SHINDENGEN RH850";
+        }
+    }
+
+    return null;
+}
+
+  // detect maker / chip / rom size straight from the .bin (same signatures as the v3 tool)
+  function detectBin(b) {
+    const n = b.length, sizeKb = Math.round(n / 1024);
+    const endEq = sig => { if (n < sig.length) return false; for (let i = 0; i < sig.length; i++) if (b[n - sig.length + i] !== sig[i]) return false; return true; };
+    const asc = s => Array.from(s, c => c.charCodeAt(0));
+    const find = sig => { for (let i = 0; i + sig.length <= n; i++) { let ok = true; for (let j = 0; j < sig.length; j++) if (b[i + j] !== sig[j]) { ok = false; break; } if (ok) return i; } return -1; };
+    let maker, chip = '', blockType = 0;
+    if (endEq([0x5A, 0x5A, 0x5A, 0x5A])) {          // Shindengen "ZZZZ"
+      maker = 'S';
+      if (find(asc('SV850')) >= 0) chip = 'V850';
+      else if (find(asc('SH850')) >= 0) { chip = 'RH850'; if (n > 0xA005 && b[0xA000] === 0xA5 && b[0xA001] === 0xA5 && b[0xA002] === 0xA5 && b[0xA003] === 0xA5 && b[0xA004] === 0x00) chip = 'RH850B'; }
+      else chip = '?';
+    } else {                                        // Keihin
+      maker = 'K';
+      if ((n === 57344 || n === 32768) && endEq([0xFF, 0xFF, 0xAA, 0xAA])) { chip = 'H8C'; blockType = 1; }
+      else if (endEq([0xFF, 0xFF, 0xFF, 0xAA, 0xAA, 0xAA, 0xAA])) chip = 'M32R';
+      else if (endEq([0xFF, 0xFF, 0xFF, 0, 0, 0, 0])) chip = 'RH850';
+      else chip = '';
+    }
+    let cks = 0; for (let i = 0; i < n; i++) cks = (cks + b[i]) & 0xFFFF;
+    // kflash::EcuType: 0 KEIHIN_128, 1 KEIHIN_64, 2 SHIN_V850, 3 SHIN_RH850, 4 SHIN_RH850B
+    const ecuType = maker === 'S' ? (chip === 'V850' ? 2 : chip === 'RH850B' ? 4 : 3) : blockType;
+    return { size: n, sizeKb, maker, chip, blockType, ecuType, cks, bytes: b };
+  }
+
+  // paint the ECU identity panel from S.ecu + the current link
+  function rmSetState() {
+    const part = $('rEcuPart'), meta = $('rEcuMeta');
+    if (S.link !== 'ok') { part.textContent = '--'; meta.innerHTML = '<span>สถานะ</span><b>ยังไม่ได้เชื่อมต่อ</b>'; rmVerdict(); return; }
+    const e = S.ecu;
+    if (!e || e.state === 0 || e.state === 1) { part.textContent = 'กำลังอ่าน…'; meta.innerHTML = '<span>สถานะ</span><b>' + (e && e.state === 1 ? 'กำลังอ่านรหัสกล่อง' : 'รอข้อมูลจากกล่อง') + '</b>'; rmVerdict(); return; }
+    if (e.state === 3) { part.textContent = 'กล่องไม่ตอบ'; meta.innerHTML = '<span>สถานะ</span><b>เปิดกุญแจ/ต่อสายกล่องหรือยัง?</b>'; rmVerdict(); return; }
+    const info = e.info, fc = e.flashCount;
+    part.textContent = info ? info.part : 'ไม่พบในฐานข้อมูล';
+    let rows = '';
+    if (info) { rows += '<span>รุ่น/ยี่ห้อ</span><b>' + (info.model ? info.model + ' · ' : '') + MK[info.maker] + '</b>';
+                rows += '<span>ขนาด ROM</span><b>' + info.romKb + ' KB</b>'; }
+    rows += '<span>ECM ID</span><b>' + e.idHex + '</b>';
+    rows += '<span>จำนวนครั้งที่อัด</span><b>' + (fc == null ? '—' : fc) + '</b>';
+    if (info && !info.exact) rows += '<span>หมายเหตุ</span><b style="color:var(--amber)">ตรง 4 ไบต์แรก (รุ่นใกล้เคียง)</b>';
+    meta.innerHTML = rows;
+    rmVerdict();
+  }
+
+  // compare the picked file against the connected ECU; set the verdict + enable/disable flashing
+  function rmVerdict() {
+    const v = $('rVerdict'), btn = $('bFlash'), f = S.rm.file, e = S.ecu;
+    const set = (cls, head, body, canFlash) => {
+      v.hidden = false; v.className = 'verdict ' + cls;
+      v.innerHTML = '<div class="vhead">' + head + '</div><div>' + body + '</div>';
+      btn.disabled = !canFlash || S.rm.busy;
+    };
+    if (!f) { v.hidden = true; btn.disabled = true; return; }
+    const fi = f.sizeKb + ' KB · ' + MK[f.maker] + (f.chip ? ' ' + f.chip : '');
+    if (!e || e.state !== 2) return set('warn', '⚠️ ยังตรวจไม่ได้', 'ไฟล์: ' + fi + '<br>ยังไม่ได้อ่านรหัสกล่องจากรถ — เชื่อมต่อรถแล้วกด “อ่านใหม่” เพื่อตรวจว่าไฟล์ตรงรุ่นก่อนอัด', false);
+    if (!e.info) return set('warn', '⚠️ กล่องไม่อยู่ในฐานข้อมูล', 'ไฟล์: ' + fi + '<br>ECM ID <b>' + e.idHex + '</b> ยังไม่มีในฐานข้อมูล จึงยืนยันความตรงไม่ได้ — ยังไม่อนุญาตให้อัด', false);
+    if (e.info.maker !== f.maker) return set('bad', '⛔ ไม่ตรงยี่ห้อ', 'กล่องที่ต่ออยู่เป็น <b>' + MK[e.info.maker] + '</b> (' + e.info.part + ') แต่ไฟล์เป็น <b>' + MK[f.maker] + '</b> — ห้ามอัด', false);
+    if (f.sizeKb !== e.info.romKb) return set('bad', '⛔ ขนาดไม่ตรง', 'ไฟล์ <b>' + f.sizeKb + ' KB</b> · กล่อง <b>' + e.info.romKb + ' KB</b> (' + e.info.part + ') — ขนาดไม่ตรง ห้ามอัด', false);
+    if (f.maker === 'S' && !SHIN_KEY_READY) return set('warn', '⚠️ ตรงรุ่น แต่ยังไม่ได้ใส่สูตร KEY', 'กล่อง <b>' + e.info.part + '</b> ตรงรุ่น · ' + fi + '<br>Shindengen ต้องใส่ฟังก์ชัน <b>shWriteKey</b> (จาก v3) ก่อนถึงจะอัดได้ — ดูช่อง hook ด้านบนของสคริปต์', false);
+    return set('ok', '✅ ตรงรุ่น พร้อมอัด', 'กล่อง <b>' + e.info.part + '</b> · ' + MK[e.info.maker] + ' ' + e.info.romKb + ' KB<br>ไฟล์: ' + fi + ' — ตรงยี่ห้อและขนาด', true);
+  }
+
+  function rmProgress() {
+    const PH = ['พร้อม', 'กำลังเตรียมกล่อง…', 'กำลังลบ…', 'กำลังเขียน', 'กำลังปิดงาน…', 'สำเร็จ ✓', 'ล้มเหลว'];
+    const p = S.rm;
+    const total = p.file ? p.file.size : 0;
+    let pct = (p.phase === 3 && total) ? Math.min(100, Math.round(p.done / total * 100)) : (p.phase >= 5 ? 100 : 0);
+    $('rBar').style.width = pct + '%';
+    if (p.busy || p.phase) $('rFlashMsg').textContent = PH[p.phase] + (p.phase === 3 ? ' ' + pct + '%' : '');
+  }
+
+  function onFlash(u8) {
+    if (!u8 || u8.length < 1) return;
+    if (u8[0] === 0xE0) {                             // ECU identity
+      const idHex = hex(u8.subarray(2, 7));
+      let fc = u8[7] | u8[8] << 8; if (fc === 0xFFFF) fc = null;
+      S.ecu = { state: u8[1], idHex, flashCount: fc, info: ecuLookup(idHex) };
+      rmSetState();
+    } else if (u8[0] === 0xF0) {                      // flash progress
+      S.rm.phase = u8[1]; S.rm.result = u8[2];
+      S.rm.done = u8[3] | u8[4] << 8 | u8[5] << 16 | u8[6] << 24;
+      S.rm.free = u8[7] | u8[8] << 8;
+      rmProgress();
+    } else if (u8[0] === 0xE1) {                      // Shindengen: ECU seed -> compute key -> send back
+      const seed = [u8[1], u8[2]];
+      let key = null;
+      try { if (S.rm.file) key = shWriteKey(seed, S.rm.file.bytes); } catch (e) { key = null; }
+      if (key && chFlash) { try { chFlash.writeValueWithResponse(Uint8Array.of(0x05, key[0] & 255, key[1] & 255)); } catch (e) {} }
+      else { S.rm.keyErr = true; $('rFlashMsg').textContent = 'คำนวณ key ไม่ได้ (ยังไม่ใส่สูตร shWriteKey หรือหา key material ไม่เจอ)'; }
+    }
+  }
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  async function rmReadEcu() { if (chFlash) { try { await chFlash.writeValueWithResponse(Uint8Array.of(0x04)); } catch (e) {} } }
+
+  // stream the image to the gauge: START, then DATA chunks paced by the gauge's free space (0xF0)
+  async function rmFlash() {
+    const f = S.rm.file; if (!f || !chFlash) return;
+    const RES = ['สำเร็จ', 'เริ่มต้นกล่องไม่ผ่าน', 'ลบไม่ผ่าน', 'เขียนไม่ผ่าน', 'ปิดงานไม่ผ่าน', 'ข้อมูลไฟล์ขาด', 'ยกเลิก'];
+    S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; $('bFlash').disabled = true; rmProgress();
+    try {
+      const sz = f.size, cks = f.cks;
+      const start = Uint8Array.of(0x01, f.ecuType, sz & 255, (sz >> 8) & 255, (sz >> 16) & 255, (sz >> 24) & 255, cks & 255, (cks >> 8) & 255);
+      await chFlash.writeValueWithResponse(start);
+      const CH = 180;                                // data bytes per DATA packet
+      let off = 0;
+      while (off < sz) {
+        if (S.rm.phase === 6) throw new Error(RES[S.rm.result] || 'ล้มเหลว');
+        if (S.rm.free < CH) { await sleep(40); continue; }   // wait for the gauge to drain into the ECU
+        const end = Math.min(sz, off + CH);
+        const pkt = new Uint8Array(end - off + 1); pkt[0] = 0x02; pkt.set(f.bytes.subarray(off, end), 1);
+        await chFlash.writeValueWithResponse(pkt);
+        S.rm.free -= (end - off); off = end;
+      }
+      // wait for the K-line flash to finish (phase DONE/FAILED). K-line is slow: allow a few minutes.
+      const t0 = Date.now();
+      while (S.rm.phase !== 5 && S.rm.phase !== 6 && Date.now() - t0 < 360000) await sleep(150);
+      if (S.rm.phase === 5) { $('rFlashMsg').textContent = 'อัดสำเร็จ ✓ ปิด-เปิดกุญแจ แล้วลองสตาร์ท'; rmReadEcu(); }
+      else throw new Error(RES[S.rm.result] || 'ล้มเหลว / หมดเวลา');
+    } catch (e) {
+      $('rFlashMsg').textContent = 'อัดไม่สำเร็จ: ' + (e.message || e) + ' — กล่องยังอยู่ในโหมดอัด อัดไฟล์เดิมซ้ำได้';
+    }
+    S.rm.busy = false; rmVerdict();
+  }
+
+  $('rFile').addEventListener('change', async ev => {
+    const file = ev.target.files && ev.target.files[0]; if (!file) return;
+    $('rFileName').textContent = file.name + ' · ' + Math.round(file.size / 1024) + ' KB';
+    const buf = new Uint8Array(await file.arrayBuffer());
+    S.rm.file = detectBin(buf); S.rm.file.name = file.name;
+    rmVerdict();
+  });
+  $('bReadEcu').addEventListener('click', rmReadEcu);
+  $('bFlash').addEventListener('click', () => {
+    if (S.rm.busy || $('bFlash').disabled) return;
+    const b = $('bFlash');
+    if (!S.rm.arm) { S.rm.arm = 1; b.classList.add('arm'); b.textContent = 'แตะอีกครั้งเพื่อยืนยันการอัด'; setTimeout(() => { S.rm.arm = 0; b.classList.remove('arm'); b.textContent = 'อัดเข้ากล่อง'; }, 4000); return; }
+    S.rm.arm = 0; b.classList.remove('arm'); b.textContent = 'อัดเข้ากล่อง';
+    rmFlash();
+  });
+
   // ---------- data log (axes = src/data/datalog.h, packets = MAP in src/data/ble_packet.h) ----------
   const LOG_RPM = [1000, 1200, 1400, 1500, 1600, 1700, 1800, 2000, 2250, 2500, 3000, 3500, 3750, 4000, 4250, 4500, 4750,
     5000, 5250, 5500, 5750, 6000, 6250, 6500, 6750, 7000, 7250, 7500, 8000, 8250, 8500, 8750, 9000, 9500, 9850,
@@ -1189,7 +1639,6 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
                ch: store.get('zar.lgch', 'afr') };
   { const sv = store.get('zar.log', null); if (sv && sv.nr === NR && sv.nc === NC && Array.isArray(sv.cells)) { LG.cells = sv.cells; LG.pts = sv.pts || 0; } }
   let chMap = null, lgSaveTimer = 0, tds = [], rowTh = [], colTh = [], lgCurTd = -1;
-  let chFlash = null, fwBytes = null, fwSize = 0, fwCks = 0, fwFree = 0, fwRun = false;
   const nearestIdx = (axis, v) => { let b = 0, d = Infinity; axis.forEach((a, i) => { const e = Math.abs(v - a); if (e < d) { d = e; b = i; } }); return b; };
   const mix = (a, b, t) => { t = Math.max(0, Math.min(1, t)); const p = x => [x >> 16 & 255, x >> 8 & 255, x & 255];
     const A = p(a), B = p(b); return 'rgb(' + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',') + ')'; };
@@ -1286,284 +1735,6 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   }
   async function mapCmd(b) { if (chMap) { try { await chMap.writeValue(new Uint8Array([b])); return true; } catch (e) {} } return false; }
 
-  // ---------- remap flashing (FLASH characteristic, src/data/flash_buf.h) ----------
-  const ECUDB=[
-["0105550D01","K2J TH1 110I NEW","110 I","K",64],
-["01047B0D01","38770-K3F-T01","125 I NEW","K",64],
-["0101610D01","38770-K03-T61","110 I","K",48],
-["0101880D01","38770-K03-H01","110 I","K",64],
-["0103FA0D01","38770-K1M-T01","DREAM","K",64],
-["01040F0D01","38770-K2J-T01","110 I","K",64],
-["01052A0D01","K3MF-T01 GIORNO 125","","S",256],
-["0104780D01","K2TA-T02 LEAD125 4V","","S",256],
-["01030A0D01","K60S-T71 CLICK125","","S",384],
-["0103070D01","K59K-T11 CLICK150","","S",384],
-["0101990D01","K36F-T01 PCX150","","S",384],
-["01037C0D01","K0WF-T01 ADV150","","S",384],
-["0103D00D01","K1ZF-T01 PCX160","","S",384],
-["0103CF0D01","K1ZF-T11 PCX160","","S",384],
-["0101FF0D01","K20J-T21 ZOOMER-X","","S",256],
-["0102180D01","K36S-T31 PCX150","","S",384],
-["0101D00D01","K60F-T01 CLICK125","","S",384],
-["0102990D01","K97F-T01 PCX150","","S",384],
-["0103960D01","K12M-J61 LEAD125 2V","","S",384],
-["0105050D01","K1ZP-T51 PCX 160","","S",384],
-["0105040D01","K1ZP-T71 PCX 160 ABS","","S",384],
-["01046D0D01","K2SF-T01 CLICK 160","","S",384],
-["01048E0D01","K0WM-TA1","ADV 160","S",384],
-["01048D0D01","K0WL-T01","ADV 160","S",384],
-["0104F20D01","K2F T91 SCOOPY","","S",256],
-["01034C0D11","38770-K58M-TC1","","K",64],
-["01034C0D01","38770-K58-TC2","","K",64],
-["0102580D01","38770-K73-T32","","K",64],
-["01033E0D01","38770-K73-T61","","K",64],
-["01034F1801","38770-K73-TC2","","K",64],
-["0102B50D01","38770-K76-T62","","K",64],
-["0102A00D01","38770-K94-T02","","K",96],
-["0100C50D02","38770-KPP-T03","","K",56],
-["0101BA0D01","38770-KZV-A61","","K",64],
-["01010E0D01","38770-KYZ-T03","","K",48],
-["0100B20D01","38770-KWW-601","","K",56],
-["0100CE0D01","38770-KWW-642","","K",48],
-["0100CE0D02","38770-KWW-643","","K",48],
-["0101B30D01","KYZ T41 125I","","K",64],
-["0102B90D01","K58 T81 -.-","","K",64],
-["0100C31501","KZZ-J01","","K",96],
-["0101110F01","KPP-602","","K",56],
-["0102B70D02","K0A-T01","","K",96],
-["0102CA0501","K0F-A01","","K",96],
-["0102CA0D01","K0F-T01","","K",96],
-["01041F0D01","K0F-T61","","K",96],
-["01030E0D01","K0G-902","","K",96],
-["0103F90D01","K2E-T01","","K",96],
-["01015B0D01","KZZ-A22","","K",128],
-["01011A0D02","KZZ-903","","K",128],
-["01011A0D01","KZZ-902","","K",128],
-["0104070D01","K1T-T01","","K",96],
-["0102850111","MKFA-D72","","K",1024],
-["0101830401","MGP-A92","","K",256],
-["0102360D01","KZZ-J01","","K",96],
-["01031A0501","MKN-L32","","K",256],
-["01031A1801","MKN-U11","","K",256],
-["0101350101","K26-931","","K",48],
-["0101350501","K26-911","","K",48],
-["0104070501","K1T-A11","","K",96],
-["0102360F01","KZZ-L41","","K",96],
-["0100DF0D02","KVB-S53","","K",48],
-["0103250F01","K54-NA1","","K",64],
-["0101740D02","KZZ-914","","K",128],
-["01027D0D01","MJE-TB1","","K",512],
-["01031A0D01","MKN-T11","","K",512],
-["0101870000","38770-K16-B61","","K",64],
-["0103130F01","K15-601/K15M-888","","K",64],
-["0101180D01","K16-901","","K",48],
-["0101850D01","K16-B01","","K",48],
-["0101270D01","K20-901","","K",48],
-["0101350D01","K26-901","","K",48],
-["0102130D01","K26-B02","","K",64],
-["0102130501","K26-B13","","K",64],
-["0102570601","K26-C01","","K",96],
-["0103EB0D01","K26-G01","","K",96],
-["01019E0D01","K33-951","","K",128],
-["0103250D01","K45-NA1/K45-TA1","","K",64],
-["0100CE0B01","KWW-642","","K",48],
-["0100B80D01","KYJ-901","","K",56],
-["0100DB0D01","KYL-T01","","K",56],
-["0102360F11","KZZJ-L41","","K",96],
-["0104090D01","K2F-T01","","K",256],
-["0104140D01","K2F-T21","","K",256],
-["0104F30D01","K2F-T81","","K",256],
-["0104F50D01","K2F-TB1","","K",256],
-["0102E50D01","K0B-T01 FORZA300","","K",512],
-["0104080D01","K2F-N01 FILE VN","","K",256],
-["0104DC0D01","K2VH-T11","","S",256],
-["0105950D01","K2TG-T21","","S",256],
-["01047E0D01","K2E-T11","","K",96],
-["0101290D01","K04-701 FORZA300","","K",128],
-["0105B40D01","K1ZT-TF1","","S",384],
-["0105B30D01","K1ZT-TC1","","S",384],
-["0105AA0D02","K2F-TF1","","S",256],
-["0105AB0D02","K2F-TD1","","S",256],
-["01062C0D01","K2J-TQ1 WAVE110I2026","","S",64],
-["0106270D01","K3F-T41 WAVE125 26","","K",64],
-["0106280D01","WAVE125I 26 K3F-T61","","K",112],
-["0106A70D01","GIORNO 26 K3MH-T71","","S",256],
-["0106900D11","LEAD 26 K2TK-T51","","S",256],
-["0101C60D01","SCOOPYI K16-B61","","K",64],
-["0100880D02","KVB-T03 CLICK 110I","","K",56],
-["0105B40D02","PCX160 2026 TF2 ABS","","S",384],
-["0101050D02","KZV-T03 DREAM110","","K",48],
-["0106130D01","KOWX-TB1 ADV160 26","","S",384],
-["0105B30D02","K1ZT-TC2 PCX160 26","K1ZT-TC2 PCX160 26 ABS","S",384],
-["0100FE0D02","KZRF-702 CLICK2012","","S",384],
-["0100FD0D01","KZRF-701 CLICK2012","","S",384],
-["0101BD0D01","CLICK125 KZRN-C01","","S",384],
-["0105D20D00","CRF300 K1T-TM2","","K",96]
-];
-  function ecuHex(b){ let s=''; for(let i=0;i<5;i++) s+=('0'+b.getUint8(i+1).toString(16)).slice(-2).toUpperCase(); return s; }
-  function ecuLookup(hex){
-    for(const r of ECUDB) if(r[0]===hex) return {part:r[1],model:r[2],maker:r[3],rom:r[4],exact:true};
-    for(const r of ECUDB) if(r[0].slice(0,8)===hex.slice(0,8)) return {part:r[1],model:r[2],maker:r[3],rom:r[4],exact:false};
-    return null;
-  }
-  const MAKER = { K:'Keihin', S:'Shindengen' };
-  const FW_PHASE = ['พร้อม', 'Connecting to ECU (K-LINE)...', 'Erasing flash...', 'Writing Flash...', 'Finalizing...', 'Flash complete', 'Flash failed'];
-  const FW_ERR   = ['', 'เข้าโหมดอัดไม่ได้ (เช็กสาย/กุญแจ ON)', 'ลบข้อมูลไม่สำเร็จ', 'อัดบล็อกไม่ผ่าน', 'ปิดงานไม่สำเร็จ', 'การสตรีมไฟล์ขาด', 'ถูกยกเลิก'];
-  let fwT0 = 0, ecuRom = 0, ecuMaker = '', fwLastFail = false, ecuSeen = false, fwPhase = 0, fwName = '';
-  // write to the DOM only when the value changed (no flicker from the 10-20 Hz notifies)
-  function setT(id, v) { const e = $(id); if (e && e.textContent !== v) e.textContent = v; }
-  function setC(id, v) { const e = $(id); if (e && e.className !== v) e.className = v; }
-  function fmtHMS(s){ s=Math.max(0,Math.floor(s)); return ('0'+Math.floor(s/3600)).slice(-2)+':'+('0'+Math.floor(s/60%60)).slice(-2)+':'+('0'+(s%60)).slice(-2); }
-  function hex6(n){ return '0x' + ('000000' + n.toString(16).toUpperCase()).slice(-6); }
-  function fwLog(msg, cls) {
-    const l = $('fwLog'); if (!l) return;
-    const t = fwT0 ? (Date.now() - fwT0) / 1000 : 0;
-    const d = document.createElement('div'); d.className = cls || 'ok';
-    d.innerHTML = '<span class="t">[' + fmtHMS(t) + ']</span> ' + msg;
-    l.appendChild(d); while (l.children.length > 6) l.removeChild(l.firstChild);
-  }
-  // v3 GetOffsetsFromBinType: Keihin image size -> start address + checksum byte offset
-  function keihinOffsets(size) {
-    if (size === 49152) return { start: 0x4000, cks: 0x7600 };
-    if (size === 57344) return { start: 0, cks: 0xDFEF };
-    if (size === 65536 || size === 98304) return { start: 0x8000, cks: 0 };
-    if (size === 131072) return { start: 0xE0000, cks: 0xB000 };
-    return { start: 0, cks: 0 };
-  }
-  // v3 KeihinAutoChecksum: buf[off] = -(sum of every other byte), so the whole image sums to 0
-  function keihinAutoChecksum(buf, off) {
-    let s = 0; for (let i = 0; i < buf.length; i++) if (i !== off) s = (s + buf[i]) & 0xFF;
-    buf[off] = (-s) & 0xFF;
-  }
-  function fwConnPaint() {
-    const ok = S.link === 'ok' && !!chFlash;
-    setT('fwConn', ok ? '● CONNECTED' : (S.link === 'ok' ? 'เกจรุ่นนี้ยังไม่รองรับ' : 'ไม่ได้ต่อเกจ'));
-  }
-  function fwPaint() {
-    const ok = S.link === 'ok' && !!chFlash;
-    $('fwGo').disabled = !(fwBytes && ok && !fwRun);
-    fwConnPaint(); fwStatePaint();
-    if (!fwRun) setT('fwStat', !ok ? (S.link === 'ok' ? 'เกจรุ่นนี้ยังไม่รองรับ' : 'ต่อเกจก่อน') : (fwBytes ? 'พร้อมอัด — กด FLASH ECU' : 'เลือกไฟล์ BIN'));
-  }
-  // ECU status like the v3 tool: CONNECTED (answers polls) / RECOVERY (program mode) / no answer
-  function fwStatePaint() {
-    if (fwRun) return;
-    if (!(S.link === 'ok' && chFlash)) { setT('fwEcuState', 'NO GAUGE'); setC('fwEcuState', 'off'); setC('fxDot', 'fxdot off'); setT('fxDot', '!'); return; }
-    if (S.live && S.live.ecu) { setT('fwEcuState', 'CONNECTED'); setC('fwEcuState', ''); setC('fxDot', 'fxdot'); setT('fxDot', '✓'); fwLastFail = false; return; }
-    if (fwLastFail) { setT('fwEcuState', 'RECOVERY'); setC('fwEcuState', 'warn'); setC('fxDot', 'fxdot warn'); setT('fxDot', '!'); return; }
-    setT('fwEcuState', ecuSeen ? 'NO ANSWER' : 'NO ECU'); setC('fwEcuState', 'warn'); setC('fxDot', 'fxdot warn'); setT('fxDot', '!');
-  }
-  let fwStateAt = 0;
-  function fwStateTick() { const n = Date.now(); if (n - fwStateAt > 1000) { fwStateAt = n; fwStatePaint(); } }
-  async function fwReqInfo() { if (chFlash && S.link === 'ok') { try { await chFlash.writeValue(new Uint8Array([0x04])); } catch (e) {} } }
-  function decodeEcuInfo(dv) {
-    const st = dv.getUint8(1);                       // 2 = read ok, else the ECU did not answer
-    if (st !== 2) { fwStatePaint(); return; }        // keep the last known identity on the card
-    ecuSeen = true;
-    const hex = ecuHex(dv), fc = dv.getUint16(7, true);
-    setT('fwRowId', hex.slice(0,4) + ':' + hex.slice(4));
-    setT('fwFlashCnt', fc === 0xFFFF ? '—' : String(fc));
-    const info = ecuLookup(hex);
-    if (info) {
-      setT('fwRowPart', info.part || '—');
-      setT('fwRowModel', info.model || info.part || '—');
-      setT('fwRowType', MAKER[info.maker] || '—');
-      ecuRom = info.rom; ecuMaker = info.maker;
-      const n = $('fwIdNote'); n.hidden = info.exact;
-      if (!info.exact) setT('fwIdNote', 'ECM ID ไม่ตรงเป๊ะในฐานข้อมูล — ใกล้เคียง: ' + (info.part||'') + ' เช็กรุ่นให้ชัวร์ก่อนอัด');
-    } else {
-      setT('fwRowPart', 'ไม่รู้จัก'); setT('fwRowModel', '—'); ecuRom = 0; ecuMaker = '';
-      const n = $('fwIdNote'); n.hidden = false; setT('fwIdNote', 'ไม่พบ ECM ID นี้ในฐานข้อมูล — ตรวจสอบรุ่น/ไฟล์ให้ชัวร์ก่อนอัด');
-    }
-    fwStatePaint();
-    if (ecuMaker === 'S') { setT('fwEcuState', 'SHINDENGEN'); setC('fwEcuState', 'bad'); setC('fxDot', 'fxdot bad'); }
-    fwCheckMatch();
-  }
-  function fwCheckMatch() {
-    if (!fwBytes || !ecuRom) return;
-    if (Math.abs(fwSize/1024 - ecuRom) > 0.5) { const n = $('fwIdNote'); n.hidden = false; setT('fwIdNote', '⚠ ขนาดไฟล์ไม่ตรงรุ่น (กล่องนี้ ~' + ecuRom + ' KB)'); }
-  }
-  function fwRing(p, cls) {
-    const r = $('fwRing'); if (!r) return;
-    const off = (263.9 * (1 - p / 100)).toFixed(1);
-    if (r.style.strokeDashoffset !== off) r.style.strokeDashoffset = off;
-    setC('fwRing', 'fg' + (cls ? ' ' + cls : ''));
-  }
-  function onFlash(dv) {
-    const tag = dv.getUint8(0);
-    if (tag === 0xE0) { decodeEcuInfo(dv); return; }
-    if (tag !== 0xF0 || dv.byteLength < 9) return;
-    const phase = dv.getUint8(1), result = dv.getUint8(2);
-    const done = dv.getUint32(3, true); fwFree = dv.getUint16(7, true);
-    if (!fwRun && phase !== 5 && phase !== 6) return;            // idle: nothing to paint
-    const pct = fwSize ? Math.min(100, done / fwSize * 100) : 0;
-    const el = (Date.now() - fwT0) / 1000;
-    if (phase !== fwPhase) {                                      // log each phase once
-      fwPhase = phase;
-      if (phase >= 1 && phase <= 4) fwLog(FW_PHASE[phase]);
-    }
-    const w = (phase === 5 ? 100 : pct).toFixed(1) + '%';
-    if ($('fwFill').style.width !== w) $('fwFill').style.width = w;
-    setT('fwPct', (phase === 5 ? 100 : pct).toFixed(0) + '%');
-    fwRing(phase === 5 ? 100 : pct, phase === 5 ? 'ok' : phase === 6 ? 'bad' : '');
-    setC('fwFill', 'fwfill' + (phase === 5 ? ' ok' : ''));
-    setT('fwElapsed', fmtHMS(el));
-    if (phase === 3 && el > 0.5 && done > 0) setT('fwSpeed', (done / el / 1024).toFixed(1) + ' KB/s');
-    if (phase === 3) setT('fwStat', 'Writing Flash... ' + pct.toFixed(0) + '%');
-    else setT('fwStat', FW_PHASE[phase] || '...');
-    if (phase === 5) { fwLog('Flash complete — ปิด-เปิดกุญแจใหม่', 'ok hl'); setT('fwStat', 'อัดเสร็จแล้ว — ปิด-เปิดกุญแจใหม่'); fwLastFail = false; }
-    else if (phase === 6) { fwLog('Failed: ' + (FW_ERR[result] || ('code ' + result)), 'bad'); setT('fwStat', 'ล้มเหลว: ' + (FW_ERR[result] || ('รหัส ' + result))); fwLastFail = true; }
-    if (phase === 5 || phase === 6) { fwRun = false; $('fwAbort').hidden = true; fwPaint(); }
-  }
-  async function fwStart() {
-    if (!fwBytes || !chFlash || fwRun) return;
-    if (ecuMaker === 'S') { alert('กล่องนี้เป็น Shindengen ซึ่งยังไม่รองรับการอัด (รองรับเฉพาะ Keihin)'); return; }
-    if (!confirm('ยืนยันอัดไฟล์ ' + fwName + ' เข้ากล่อง?\n\nห้ามดับกุญแจ / ถอดสาย / ปิดบลูทูธ จนกว่าจะขึ้น "Flash complete"')) return;
-    fwRun = true; fwPhase = 0; $('fwAbort').hidden = false; fwPaint();
-    fwT0 = Date.now(); fwFree = 0;
-    $('fwLog').innerHTML = ''; fwLog('Ready to flash ECU...'); fwLog('File: ' + fwName + ' (' + (fwSize/1024).toFixed(1) + ' KB)');
-    $('fwFill').style.width = '0%'; setT('fwPct', '0%'); fwRing(0, ''); setT('fwSpeed', '0.0 KB/s'); setT('fwElapsed', '00:00:00');
-    setT('fwStat', 'กำลังเริ่ม...'); setT('fwEcuState', 'FLASHING'); setC('fwEcuState', 'warn'); setC('fxDot', 'fxdot warn'); setT('fxDot', '⚡');
-    try {
-      const hdr = new Uint8Array(8);
-      hdr[0] = 0x01; hdr[1] = 0;                                     // START, ecu 0 = KEIHIN_128
-      hdr[2] = fwSize & 255; hdr[3] = (fwSize >> 8) & 255; hdr[4] = (fwSize >> 16) & 255; hdr[5] = (fwSize >> 24) & 255;
-      hdr[6] = fwCks & 255; hdr[7] = (fwCks >> 8) & 255;
-      await chFlash.writeValue(hdr);
-      const CH = 128; let off = 0;                                   // stream, paced by freeSpace credit
-      while (off < fwSize && fwRun && S.link === 'ok') {
-        if (fwFree < CH + 64) { await new Promise(r => setTimeout(r, 15)); continue; }
-        const end = Math.min(off + CH, fwSize);
-        const pkt = new Uint8Array(1 + (end - off)); pkt[0] = 0x02; pkt.set(fwBytes.subarray(off, end), 1);
-        try { await chFlash.writeValue(pkt); } catch (e) { await new Promise(r => setTimeout(r, 25)); continue; }
-        fwFree -= (end - off); off = end;
-      }
-      if (off < fwSize && S.link !== 'ok') { fwLog('Bluetooth lost — reconnect and flash the same file', 'bad'); setT('fwStat', 'บลูทูธหลุด — ต่อใหม่แล้วอัดไฟล์เดิมซ้ำ'); fwRun = false; fwLastFail = true; $('fwAbort').hidden = true; fwPaint(); }
-    } catch (e) {
-      fwLog('Send failed: ' + (e.message || e), 'bad'); setT('fwStat', 'ส่งไฟล์ไม่สำเร็จ'); fwRun = false; $('fwAbort').hidden = true; fwPaint();
-    }
-  }
-  function fwLoadFile(f) {
-    if (!f) { fwBytes = null; fwName = ''; setT('fwRowFile', '—'); setT('fwRowSize', '—'); setT('fwRowCks', '—'); setT('fwTotal', '0 KB'); fwPaint(); return; }
-    f.arrayBuffer().then(ab => {
-      const buf = new Uint8Array(ab);
-      if (buf.length < 128 || buf.length % 128 !== 0) {
-        fwBytes = null; setT('fwRowFile', f.name); setT('fwRowSize', buf.length + ' B');
-        fwLog('ไฟล์ไม่ถูกต้อง — ขนาดต้องหารด้วย 128 ลงตัว', 'bad'); fwPaint(); return;
-      }
-      fwBytes = buf; fwSize = buf.length; fwName = f.name;
-      const ko = keihinOffsets(fwSize);
-      keihinAutoChecksum(buf, ko.cks);                              // v3: patch the checksum byte before writing
-      let s = 0; for (let i = 0; i < buf.length; i++) s = (s + buf[i]) & 0xFFFF; fwCks = s;
-      setT('fwRowFile', f.name); setT('fwRowSize', (fwSize/1024).toFixed(1) + ' KB'); setT('fwTotal', (fwSize/1024).toFixed(1) + ' KB');
-      setT('fwRowCks', ('0' + buf[ko.cks].toString(16).toUpperCase()).slice(-2) + ' @' + hex6(ko.cks));
-      setT('fwOffStart', hex6(ko.start)); setT('fwOffCks', hex6(ko.cks));
-      if ($('fwRowType').textContent === '—') setT('fwRowType', 'Keihin');
-      $('fwLog').innerHTML = ''; fwT0 = 0; fwLog('Loaded ' + f.name + ' · ' + (fwSize/128) + ' blocks · start ' + hex6(ko.start));
-      fwCheckMatch(); fwPaint();
-    });
-  }
-
   // DEMO (no gauge): the page logs the demo ride itself, like the gauge would
   let lgLast = 0;
   function lgLocalAdd(d) {
@@ -1626,24 +1797,17 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     try { if (!document.fullscreenElement) { await document.documentElement.requestFullscreen(); try { await screen.orientation.lock('landscape'); } catch (e) {} } else await document.exitFullscreen(); } catch (e) {}
   });
   function show(tab) {
-    const v = { gauge: 'vGauge', drag: 'vDrag', log: 'vLog', flash: 'vFlash' }, t = { gauge: 'tGauge', drag: 'tDrag', log: 'tLog', flash: 'tFlash' };
+    const v = { gauge: 'vGauge', drag: 'vDrag', log: 'vLog', remap: 'vRemap' }, t = { gauge: 'tGauge', drag: 'tDrag', log: 'tLog', remap: 'tRemap' };
     if (!v[tab]) tab = 'gauge';
     for (const k in v) { $(v[k]).hidden = k !== tab; $(t[k]).setAttribute('aria-selected', k === tab); }
     store.set('zar.tab', tab);
     if (tab === 'log') lgPaintCursor(true);
+    if (tab === 'remap') rmSetState();
   }
   $('tGauge').addEventListener('click', () => show('gauge'));
   $('tDrag').addEventListener('click', () => show('drag'));
   $('tLog').addEventListener('click', () => show('log'));
-  $('tFlash').addEventListener('click', () => { show('flash'); fwPaint(); fwReqInfo(); });
-  $('fwFile').addEventListener('change', e => fwLoadFile(e.target.files[0]));
-  $('fwGo').addEventListener('click', fwStart);
-  $('fwModeFull').addEventListener('click', () => {});
-  $('fwAbort').addEventListener('click', async () => {
-    if (chFlash) { try { await chFlash.writeValue(new Uint8Array([0x03])); } catch (e) {} }
-    fwRun = false; $('fwAbort').hidden = true;
-    fwLog('Aborted by user', 'bad'); setT('fwStat', 'ยกเลิกแล้ว'); fwLastFail = true; fwPaint();
-  });
+  $('tRemap').addEventListener('click', () => show('remap'));
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
