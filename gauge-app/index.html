@@ -541,7 +541,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     await chDrag.startNotifications();
     try {                                            // firmware with the custom-logo upload
       chLogo = await svc.getCharacteristic(LOGO);
-      chLogo.addEventListener('characteristicvaluechanged', e => { const w = logoWait; logoWait = null; if (w) w(new Uint8Array(e.target.value.buffer)); });
+      chLogo.addEventListener('characteristicvaluechanged', e => { const w = logoWait; logoWait = null; if (w) { const v = e.target.value; w(new Uint8Array(v.buffer, v.byteOffset, v.byteLength)); } });
       await chLogo.startNotifications();
     } catch (e) { chLogo = null; }
     try {                                            // firmware with the DATA LOG table
@@ -552,7 +552,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     } catch (e) { chMap = null; }
     try {                                            // firmware with remap flashing + ECU identity
       chFlash = await svc.getCharacteristic(FLASH);
-      chFlash.addEventListener('characteristicvaluechanged', e => onFlash(new Uint8Array(e.target.value.buffer)));
+      chFlash.addEventListener('characteristicvaluechanged', e => { const v = e.target.value; onFlash(new Uint8Array(v.buffer, v.byteOffset, v.byteLength)); });
       await chFlash.startNotifications();
       await chFlash.writeValueWithResponse(Uint8Array.of(0x04));   // ask the gauge for the ECU identity
     } catch (e) { chFlash = null; }
@@ -1593,6 +1593,19 @@ function shDetectECU(bin) {
 }
 
   // detect maker / chip / rom size straight from the .bin (same signatures as the v3 tool)
+  // v3 GetOffsetsFromBinType: where a Keihin image is written + which byte carries its checksum
+  function keihinOffsets(size) {
+    if (size === 49152) return { start: 0x4000, cks: 0x7600 };
+    if (size === 57344) return { start: 0, cks: 0xDFEF };
+    if (size === 65536 || size === 98304) return { start: 0x8000, cks: 0 };
+    if (size === 131072) return { start: 0xE0000, cks: 0xB000 };
+    return { start: 0, cks: 0 };
+  }
+  // v3 KeihinAutoChecksum: buf[off] = -(sum of every other byte), so the whole image sums to 0
+  function keihinAutoChecksum(buf, off) {
+    let s = 0; for (let i = 0; i < buf.length; i++) if (i !== off) s = (s + buf[i]) & 0xFF;
+    buf[off] = (-s) & 0xFF;
+  }
   function detectBin(b) {
     const n = b.length, sizeKb = Math.round(n / 1024);
     const endEq = sig => { if (n < sig.length) return false; for (let i = 0; i < sig.length; i++) if (b[n - sig.length + i] !== sig[i]) return false; return true; };
@@ -1611,10 +1624,12 @@ function shDetectECU(bin) {
       else if (endEq([0xFF, 0xFF, 0xFF, 0, 0, 0, 0])) chip = 'RH850';
       else chip = '';
     }
+    let koff = null;
+    if (maker === 'K') { koff = keihinOffsets(n); keihinAutoChecksum(b, koff.cks); }   // patch the checksum byte like the v3 tool does before every write
     let cks = 0; for (let i = 0; i < n; i++) cks = (cks + b[i]) & 0xFFFF;
     // kflash::EcuType: 0 KEIHIN_128, 1 KEIHIN_64, 2 SHIN_V850, 3 SHIN_RH850, 4 SHIN_RH850B
     const ecuType = maker === 'S' ? (chip === 'V850' ? 2 : chip === 'RH850B' ? 4 : 3) : blockType;
-    return { size: n, sizeKb, maker, chip, blockType, ecuType, cks, bytes: b };
+    return { size: n, sizeKb, maker, chip, blockType, ecuType, cks, bytes: b, koff };
   }
 
   const fmtTime = s => { s = Math.floor(s); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
@@ -1626,7 +1641,7 @@ function shDetectECU(bin) {
       seed.textContent = SHIN_KEY_READY ? 'อัตโนมัติ ✓' : 'ไม่พร้อม';
       seed.className = SHIN_KEY_READY ? 'acc' : 'amber';
       st.textContent = '0x' + (f.ecuType === 4 ? 0xA000 : 0x10000).toString(16).toUpperCase();
-    } else { seed.textContent = 'ไม่ต้องใช้'; seed.className = ''; st.textContent = '0x0'; }
+    } else { seed.textContent = 'ไม่ต้องใช้'; seed.className = ''; st.textContent = '0x' + (f.koff ? f.koff.start : 0).toString(16).toUpperCase(); }
     ck.textContent = '0x' + (f.cks >>> 0).toString(16).toUpperCase().padStart(4, '0');
   }
   // paint the file panel (name / size / type / checksum / file-ECM-ID / fitment) + mode + seed
@@ -1673,10 +1688,10 @@ function shDetectECU(bin) {
     };
     if (!f) { v.hidden = true; btn.disabled = true; return; }
     const fi = f.sizeKb + ' KB · ' + MK[f.maker] + (f.chip ? ' ' + f.chip : '');
-    if (!e || e.state !== 2) return set('warn', '⚠️ ยังตรวจไม่ได้', 'ไฟล์: ' + fi + '<br>ยังไม่ได้อ่านรหัสกล่องจากรถ — เชื่อมต่อรถแล้วกด “อ่านใหม่” เพื่อตรวจว่าไฟล์ตรงรุ่นก่อนอัด', false);
-    if (!e.info) return set('warn', '⚠️ กล่องไม่อยู่ในฐานข้อมูล', 'ไฟล์: ' + fi + '<br>ECM ID <b>' + e.idHex + '</b> ยังไม่มีในฐานข้อมูล จึงยืนยันความตรงไม่ได้ — ยังไม่อนุญาตให้อัด', false);
+    if (!e || e.state !== 2) return set('warn', '⚠️ ยังตรวจรุ่นไม่ได้ — อัดได้ (ตรวจไฟล์เอง)', 'ไฟล์: ' + fi + '<br>ยังไม่ได้อ่านรหัสกล่องจากรถ (กล่องอยู่ในโหมด Recovery หรือยังไม่ตอบ) — ตรวจเองว่าไฟล์ตรงรุ่น แล้วกดอัดได้', true);
+    if (!e.info) return set('warn', '⚠️ กล่องไม่อยู่ในฐานข้อมูล — อัดได้ (ตรวจไฟล์เอง)', 'ไฟล์: ' + fi + '<br>ECM ID <b>' + e.idHex + '</b> ยังไม่มีในฐานข้อมูล จึงยืนยันความตรงให้ไม่ได้ — ตรวจเองว่าไฟล์ตรงรุ่น แล้วกดอัดได้', true);
     if (e.info.maker !== f.maker) return set('bad', '⛔ ไม่ตรงยี่ห้อ', 'กล่องที่ต่ออยู่เป็น <b>' + MK[e.info.maker] + '</b> (' + e.info.part + ') แต่ไฟล์เป็น <b>' + MK[f.maker] + '</b> — ห้ามอัด', false);
-    if (f.sizeKb !== e.info.romKb) return set('bad', '⛔ ขนาดไม่ตรง', 'ไฟล์ <b>' + f.sizeKb + ' KB</b> · กล่อง <b>' + e.info.romKb + ' KB</b> (' + e.info.part + ') — ขนาดไม่ตรง ห้ามอัด', false);
+    if (f.sizeKb !== e.info.romKb) return set(e.info.exact ? 'bad' : 'warn', e.info.exact ? '⛔ ขนาดไม่ตรง' : '⚠️ ขนาดไม่ตรงกับรุ่นใกล้เคียง — อัดได้ถ้าแน่ใจ', 'ไฟล์ <b>' + f.sizeKb + ' KB</b> · กล่อง <b>' + e.info.romKb + ' KB</b> (' + e.info.part + ')' + (e.info.exact ? ' — ขนาดไม่ตรง ห้ามอัด' : ' — รุ่นเดาจาก ID ใกล้เคียง ตรวจเองก่อนอัด'), !e.info.exact);
     if (f.maker === 'S' && !SHIN_KEY_READY) return set('warn', '⚠️ ตรงรุ่น แต่สูตร KEY ยังไม่พร้อม', 'กล่อง <b>' + e.info.part + '</b> ตรงรุ่น · ' + fi + '<br>Shindengen: สูตรคำนวณ KEY ยังไม่พร้อมใช้งาน', false);
     return set('ok', '✅ ตรงรุ่น พร้อมอัด', 'กล่อง <b>' + e.info.part + '</b> · ' + MK[e.info.maker] + ' ' + e.info.romKb + ' KB<br>ไฟล์: ' + fi + ' — ตรงยี่ห้อและขนาด', true);
   }
@@ -1956,7 +1971,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v4 · 11-05'; } catch (e) {}
+  try { $('appVer').textContent = 'app v5 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
