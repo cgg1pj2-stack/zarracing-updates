@@ -56,6 +56,7 @@ button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 .bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .logo { font-family: var(--f-num); font-style: italic; font-weight: 900; font-size: 34px; letter-spacing: .5px; line-height: 1; white-space: nowrap; }
 .logo b { color: var(--acc); text-shadow: 0 0 14px var(--glow); }
+.ver { align-self: center; font-family: var(--f-ui); font-size: 11px; letter-spacing: 1px; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; padding: 2px 8px; white-space: nowrap; }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
 .chip { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--line); background: rgba(10, 12, 16, .85);
   font-size: 13px; letter-spacing: .8px; text-transform: uppercase; border-radius: 4px; white-space: nowrap; }
@@ -288,6 +289,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
+    <span class="ver" id="appVer"></span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -393,7 +395,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       <button type="button" class="btn danger" id="lgClear">ล้างค่า</button>
       <button type="button" class="btn" id="lgPull" title="ดึงตารางทั้งหมดจากเกจอีกครั้ง">ดึงจากเกจ</button>
       <button type="button" class="btn" id="lgCsv">CSV</button>
-      <div class="lgstat"><span class="rec" id="lgRecTag">REC</span><span>RPM <b id="lgRpm">--</b></span><span>TPS <b id="lgTps">--</b></span><span>A/F <b id="lgAfr">--</b></span><span>PTS <b id="lgPts">0</b></span></div>
+      <div class="lgstat"><span class="rec" id="lgRecTag">REC</span><span>RPM <b id="lgRpm">--</b></span><span>ความเร็ว <b id="lgKmh">--</b></span><span>A/F <b id="lgAfr">--</b></span><span>TPS <b id="lgTps">--</b></span><span>IGN <b id="lgIgn">--</b></span><span>น้ำ <b id="lgEct">--</b></span><span>ไอดี <b id="lgIat">--</b></span><span>แบต <b id="lgBat">--</b></span><span>MODE <b id="lgMode">--</b></span><span>PTS <b id="lgPts">0</b></span></div>
     </div>
     <div class="lg">
       <div class="tblwrap" id="lgWrap"><table class="cells" id="lgTbl"></table></div>
@@ -1839,8 +1841,14 @@ function shDetectECU(bin) {
   function lgPaintStatus() {
     const d = S.live || {};
     $('lgRpm').textContent = d.rpm != null ? d.rpm : '--';
-    $('lgTps').textContent = d.tps != null ? d.tps : '--';
+    $('lgKmh').textContent = d.kmh != null ? Math.round(d.kmh) : '--';
     $('lgAfr').textContent = d.afr != null ? d.afr.toFixed(1) : '--';
+    $('lgTps').textContent = d.tps != null ? d.tps : '--';
+    $('lgIgn').textContent = d.ign != null ? d.ign.toFixed(1) : '--';
+    $('lgEct').textContent = d.ect != null ? d.ect : '--';
+    $('lgIat').textContent = d.iat != null ? d.iat : '--';
+    $('lgBat').textContent = d.bat != null ? d.bat.toFixed(1) : '--';
+    $('lgMode').textContent = d.mode != null ? d.mode : '--';
     $('lgPts').textContent = LG.pts;
     const t = $('lgRecTag'); t.textContent = LG.rec ? 'REC' : 'STOP'; t.classList.toggle('off', !LG.rec);
     $('lgRec').textContent = LG.rec ? 'หยุดเก็บ' : 'เริ่มเก็บ';
@@ -1948,6 +1956,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
+  try { $('appVer').textContent = 'app v4 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
