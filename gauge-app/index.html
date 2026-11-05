@@ -1703,7 +1703,7 @@ function shDetectECU(bin) {
     let pct = (p.phase === 3 && total) ? Math.min(100, Math.round(p.done / total * 100)) : (p.phase >= 5 ? 100 : 0);
     $('rBar').style.width = pct + '%';
     $('fPct').textContent = pct + '%';
-    if (p.busy || p.phase) $('rFlashMsg').textContent = PH[p.phase] + (p.phase === 3 ? ' ' + pct + '%' : '');
+    if (p.busy && p.phase !== 6) $('rFlashMsg').textContent = PH[p.phase] + (p.phase === 3 ? ' ' + pct + '%' : '');   // 6 = FAILED: rmFlash writes the reason
     if (p.t0) {
       const sec = (Date.now() - p.t0) / 1000;
       $('fElapsed').textContent = fmtTime(sec);
@@ -1749,7 +1749,7 @@ function shDetectECU(bin) {
       let off = 0;
       while (off < sz) {
         if (S.rm.phase === 6) throw new Error(RES[S.rm.result] || 'ล้มเหลว');
-        if (S.rm.free < CH) { await sleep(40); continue; }   // wait for the gauge to drain into the ECU
+        if (S.rm.free < CH * 2) { await sleep(40); continue; }   // keep one packet of margin: the gauge's free-space report is up to one notify late
         const end = Math.min(sz, off + CH);
         const pkt = new Uint8Array(end - off + 1); pkt[0] = 0x02; pkt.set(f.bytes.subarray(off, end), 1);
         await chFlash.writeValueWithResponse(pkt);
@@ -1761,7 +1761,7 @@ function shDetectECU(bin) {
       if (S.rm.phase === 5) { $('rFlashMsg').textContent = 'อัดสำเร็จ ✓ ปิด-เปิดกุญแจ แล้วลองสตาร์ท'; rmReadEcu(); }
       else throw new Error(RES[S.rm.result] || 'ล้มเหลว / หมดเวลา');
     } catch (e) {
-      $('rFlashMsg').textContent = 'อัดไม่สำเร็จ: ' + (e.message || e) + ' — กล่องยังอยู่ในโหมดอัด อัดไฟล์เดิมซ้ำได้';
+      $('rFlashMsg').textContent = 'อัดไม่สำเร็จ: ' + (e.message || e) + ' (code ' + S.rm.result + ' @ ' + Math.round(S.rm.done / 1024) + ' KB) — กล่องยังอยู่ในโหมดอัด อัดไฟล์เดิมซ้ำได้';
     }
     S.rm.busy = false; rmVerdict();
   }
@@ -1971,7 +1971,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v5 · 11-05'; } catch (e) {}
+  try { $('appVer').textContent = 'app v6 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
