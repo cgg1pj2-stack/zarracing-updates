@@ -1774,9 +1774,11 @@ function shDetectECU(bin) {
       await gattWrite(chFlash, start);
       const CH = 180;                                // data bytes per DATA packet
       let off = 0;
-      // Keep the link quiet while the gauge talks the ECU into program mode (Shindengen seed/key
-      // rides on notifies): start streaming the image once the ECU is erasing (phase 2).
-      while (S.rm.phase < 2) { if (S.rm.phase === 6) throw new Error(RES[S.rm.result] || 'ล้มเหลว'); await sleep(50); }
+      // Start streaming only when the gauge actually begins pulling image bytes (PH_WRITE = 3),
+      // not during erase (2): during erase the gauge isn't draining, so filling the buffer then
+      // would overflow it and abort as "data lost". The seed/key also rides on notifies before this,
+      // so a quiet link through init/erase matters.
+      while (S.rm.phase < 3) { if (S.rm.phase === 6) throw new Error(RES[S.rm.result] || 'ล้มเหลว'); await sleep(40); }
       while (off < sz) {
         if (S.rm.phase === 6) throw new Error(RES[S.rm.result] || 'ล้มเหลว');
         // credit = free space the gauge last reported minus everything sent since that report, with one
@@ -2009,7 +2011,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v15 · 11-05'; } catch (e) {}
+  try { $('appVer').textContent = 'app v16 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
