@@ -1626,10 +1626,12 @@ function shDetectECU(bin) {
     }
     let koff = null;
     if (maker === 'K') { koff = keihinOffsets(n); keihinAutoChecksum(b, koff.cks); }   // patch the checksum byte like the v3 tool does before every write
+    let shck = null;
+    if (maker === 'S') { try { shck = shAutoChecksum(b); } catch (e) { shck = false; } }   // v3 runs ShindengenAutoChecksum before every Shindengen write
     let cks = 0; for (let i = 0; i < n; i++) cks = (cks + b[i]) & 0xFFFF;
     // kflash::EcuType: 0 KEIHIN_128, 1 KEIHIN_64, 2 SHIN_V850, 3 SHIN_RH850, 4 SHIN_RH850B
     const ecuType = maker === 'S' ? (chip === 'V850' ? 2 : chip === 'RH850B' ? 4 : 3) : blockType;
-    return { size: n, sizeKb, maker, chip, blockType, ecuType, cks, bytes: b, koff };
+    return { size: n, sizeKb, maker, chip, blockType, ecuType, cks, bytes: b, koff, shck };
   }
 
   const fmtTime = s => { s = Math.floor(s); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
@@ -1642,7 +1644,7 @@ function shDetectECU(bin) {
       seed.className = SHIN_KEY_READY ? 'acc' : 'amber';
       st.textContent = '0x' + (f.ecuType === 4 ? 0xA000 : 0x10000).toString(16).toUpperCase();
     } else { seed.textContent = 'ไม่ต้องใช้'; seed.className = ''; st.textContent = '0x' + (f.koff ? f.koff.start : 0).toString(16).toUpperCase(); }
-    ck.textContent = '0x' + (f.cks >>> 0).toString(16).toUpperCase().padStart(4, '0');
+    ck.textContent = '0x' + (f.cks >>> 0).toString(16).toUpperCase().padStart(4, '0') + (f.maker === 'S' ? (f.shck && f.shck.success ? ' · auto @0x' + f.shck.offset.toString(16).toUpperCase() : ' · ไม่พบจุด checksum') : '');
   }
   // paint the file panel (name / size / type / checksum / file-ECM-ID / fitment) + mode + seed
   function rmSetFile() {
@@ -1979,7 +1981,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v7 · 11-05'; } catch (e) {}
+  try { $('appVer').textContent = 'app v8 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
