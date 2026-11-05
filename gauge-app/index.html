@@ -1355,131 +1355,36 @@ function shChecksum8BitHonda(data, dataSize, startPos = 0) {
 
 
 // ==========================================
-// SHINDENGEN WRITE KEY
-// Converted from GetShindengenWriteKey()
+// SHINDENGEN KEY MATERIAL
+// The seed->key formula lives in the gauge firmware (data/sh_key.h), NOT here, so a copied web page
+// can't turn a seed into a valid key. This only locates the 6 material bytes in the image (two LE
+// words each for num2/num3/num4) and hands them to the gauge, which computes the key with the seed.
+// kind: 0 = write key material, 1 = recovery key material. Returns 6 bytes, or null if absent.
 // ==========================================
 
-function shWriteKey(seed, bin) {
+function shKeyMaterial(kind, bin) {
 
-    if (!seed || seed.length < 2 || !bin) {
+    if (!bin) return null;
+    const binSize = bin.length;
+
+    if (kind) {                                          // recovery
+        for (let i = 0; i < binSize - SH_RKEY_SIG.length; i++) {
+            if (!shCompareMemory(bin, i + 6, SH_RKEY_SIG)) continue;
+            return [bin[i], bin[i + 1], bin[i + 2], bin[i + 3], bin[i + 4], bin[i + 5]];
+        }
         return null;
     }
 
-    const binSize = bin.length;
-
-    for (
-        let i = 0;
-        i < binSize - SH_WKEY_SIG.length;
-        i++
-    ) {
-
-        if (!shCompareMemory(bin, i, SH_WKEY_SIG)) {
-            continue;
-        }
-
+    for (let i = 0; i < binSize - SH_WKEY_SIG.length; i++) {    // write
+        if (!shCompareMemory(bin, i, SH_WKEY_SIG)) continue;
         let j = i + SH_WKEY_SIG.length;
-
         while (j < binSize - 10) {
-
-            if (
-                bin[j + 8] === 0xEE &&
-                (bin[j + 9] === 0x00 ||
-                 bin[j + 9] === 0xFF)
-            ) {
-
-                const num =
-                    (seed[0] * 256 + seed[1]) & 0xFFFF;
-
-                const num2 =
-                    (bin[j + 1] * 256 + bin[j]) & 0xFFFF;
-
-                const num3 =
-                    (bin[j + 3] * 256 + bin[j + 2]) & 0xFFFF;
-
-                const num4 =
-                    (bin[j + 5] * 256 + bin[j + 4]) & 0xFFFF;
-
-                const num5 =
-                    (num3 * (num + num2)) & 0xFFFF;
-
-                let result;
-
-                if (num4 > 0) {
-                    result =
-                        (num5 + (num % num4)) & 0xFFFF;
-                } else {
-                    result =
-                        (num5 + num) & 0xFFFF;
-                }
-
-                return [
-                    (result >> 8) & 0xFF,
-                    result & 0xFF
-                ];
+            if (bin[j + 8] === 0xEE && (bin[j + 9] === 0x00 || bin[j + 9] === 0xFF)) {
+                return [bin[j], bin[j + 1], bin[j + 2], bin[j + 3], bin[j + 4], bin[j + 5]];
             }
-
             j++;
         }
     }
-
-    return null;
-}
-
-
-// ==========================================
-// SHINDENGEN RECOVERY KEY
-// Converted from GetShindengenRecoveryKey()
-// ==========================================
-
-function shRecoveryKey(seed, bin) {
-
-    if (!seed || seed.length < 2 || !bin) {
-        return null;
-    }
-
-    const binSize = bin.length;
-
-    for (
-        let i = 0;
-        i < binSize - SH_RKEY_SIG.length;
-        i++
-    ) {
-
-        if (!shCompareMemory(bin, i + 6, SH_RKEY_SIG)) {
-            continue;
-        }
-
-        const num =
-            (seed[0] * 256 + seed[1]) & 0xFFFF;
-
-        const num2 =
-            (bin[i + 1] * 256 + bin[i]) & 0xFFFF;
-
-        const num3 =
-            (bin[i + 3] * 256 + bin[i + 2]) & 0xFFFF;
-
-        const num4 =
-            (bin[i + 5] * 256 + bin[i + 4]) & 0xFFFF;
-
-        const num5 =
-            (num3 * (num + num2)) & 0xFFFF;
-
-        let result;
-
-        if (num4 > 0) {
-            result =
-                (num5 + (num % num4)) & 0xFFFF;
-        } else {
-            result =
-                (num5 + num) & 0xFFFF;
-        }
-
-        return [
-            (result >> 8) & 0xFF,
-            result & 0xFF
-        ];
-    }
-
     return null;
 }
 
@@ -1749,19 +1654,20 @@ function shDetectECU(bin) {
       el.textContent += new TextDecoder().decode(u8.subarray(1));
       if (el.textContent.length > 6000) el.textContent = el.textContent.slice(-5000);
       el.scrollTop = el.scrollHeight;
-    } else if (u8[0] === 0xE1) {                      // Shindengen: ECU seed -> compute key -> send back
-      const seed = [u8[1], u8[2]], kind = u8[3] || 0;  // kind: 0 write key, 1 recovery key
+    } else if (u8[0] === 0xE1) {                      // Shindengen: ECU asks for the key -> send the key MATERIAL
+      const seed = [u8[1], u8[2]], kind = u8[3] || 0;  // kind: 0 write key, 1 recovery key (the gauge computes the key)
       S.rm.seedHex = hex(seed);
-      let key = null;
-      try { if (S.rm.file) key = kind ? shRecoveryKey(seed, S.rm.file.bytes) : shWriteKey(seed, S.rm.file.bytes); } catch (e) { key = null; }
-      if (key && chFlash) {
-        S.rm.keyErr = false; S.rm.keyHex = hex(key);
-        gattWrite(chFlash, Uint8Array.of(0x05, key[0] & 255, key[1] & 255)).catch(() => gattWrite(chFlash, Uint8Array.of(0x05, key[0] & 255, key[1] & 255)).catch(() => {}));
-        typeof rmLog === 'function' && rmLog('seed ' + hex(seed) + ' -> ' + (kind ? 'recovery' : 'write') + ' key ' + hex(key));
+      let mat = null;
+      try { if (S.rm.file) mat = shKeyMaterial(kind, S.rm.file.bytes); } catch (e) { mat = null; }
+      if (mat && chFlash) {
+        S.rm.keyErr = false; S.rm.keyHex = 'บนเกจ';     // the key is computed on the gauge, not here
+        const pkt = Uint8Array.of(0x05, mat[0] & 255, mat[1] & 255, mat[2] & 255, mat[3] & 255, mat[4] & 255, mat[5] & 255);
+        gattWrite(chFlash, pkt).catch(() => gattWrite(chFlash, pkt).catch(() => {}));
+        typeof rmLog === 'function' && rmLog('seed ' + hex(seed) + ' -> ' + (kind ? 'recovery' : 'write') + ' material ' + hex(mat));
       } else {
-        // no key material of that kind in this file — tell the gauge so it stops waiting and moves on
+        // no key material of that kind in this file — tell the gauge (1-byte 0x05) so it stops waiting
         S.rm.keyHex = null;
-        if (chFlash) gattWrite(chFlash, Uint8Array.of(0x05, 0, 0)).catch(() => {});
+        if (chFlash) gattWrite(chFlash, Uint8Array.of(0x05)).catch(() => {});
         typeof rmLog === 'function' && rmLog('seed ' + hex(seed) + ' -> no ' + (kind ? 'recovery' : 'write') + ' key in file');
       }
     }
