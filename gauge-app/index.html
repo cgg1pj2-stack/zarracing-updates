@@ -241,6 +241,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .rbar { height: 12px; margin: 12px 16px 0; }
 .rbar i { background: var(--acc); }
 .rmsg { display: block; margin: 8px 16px 0; color: var(--muted); font-size: 13px; }
+.rtrace { margin: 6px 16px 0; padding: 6px 8px; max-height: 150px; overflow: auto; font: 11px/1.35 ui-monospace, Menlo, Consolas, monospace; color: var(--muted); background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.08); border-radius: 5px; white-space: pre-wrap; word-break: break-all; }
 .verdict { margin: 10px 16px 0; padding: 10px 12px; border-radius: 8px; font-size: 14px; line-height: 1.5; border: 1px solid #3a3f4a; }
 .verdict b { font-family: var(--f-num); }
 .verdict.ok { border-color: #2f7d4e; background: rgba(70,224,106,.10); } .verdict.ok .vhead { color: #46e06a; }
@@ -455,6 +456,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
           <button class="btn fl-flash" id="bFlash" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><span id="flLbl">FLASH ECU</span></button>
           <div class="meter rbar"><i id="rBar"></i></div>
           <span id="rFlashMsg" class="rmsg">เชื่อมต่อรถ → อ่านรหัสกล่อง → เลือกไฟล์ให้ตรงรุ่น → กดอัด</span>
+          <pre id="rTrace" class="rtrace" hidden></pre>
         </div>
       </div>
       <div class="fl-foot">
@@ -1726,6 +1728,11 @@ function shDetectECU(bin) {
       S.rm.done = u8[3] | u8[4] << 8 | u8[5] << 16 | u8[6] << 24;
       S.rm.free = u8[7] | u8[8] << 8;
       rmProgress();
+    } else if (u8[0] === 0xD0) {                      // K-line trace line(s) from the gauge (what it sent / what the ECU answered)
+      const el = $('rTrace'); el.hidden = false;
+      el.textContent += new TextDecoder().decode(u8.subarray(1));
+      if (el.textContent.length > 6000) el.textContent = el.textContent.slice(-5000);
+      el.scrollTop = el.scrollHeight;
     } else if (u8[0] === 0xE1) {                      // Shindengen: ECU seed -> compute key -> send back
       const seed = [u8[1], u8[2]]; S.rm.seedHex = hex(seed);
       let key = null;
@@ -1749,7 +1756,7 @@ function shDetectECU(bin) {
   async function rmFlash() {
     const f = S.rm.file; if (!f || !chFlash) return;
     const RES = ['สำเร็จ', 'เริ่มต้นกล่องไม่ผ่าน', 'ลบไม่ผ่าน', 'เขียนไม่ผ่าน', 'ปิดงานไม่ผ่าน', 'ข้อมูลไฟล์ขาด', 'ยกเลิก'];
-    S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; S.rm.t0 = Date.now(); S.rm.keyErr = false; S.rm.keyHex = null; S.rm.seedHex = null; $('fSpeed').textContent = '—'; $('bFlash').disabled = true; rmProgress();
+    S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; S.rm.t0 = Date.now(); S.rm.keyErr = false; S.rm.keyHex = null; S.rm.seedHex = null; $('rTrace').textContent = ''; $('rTrace').hidden = true; $('fSpeed').textContent = '—'; $('bFlash').disabled = true; rmProgress();
     const _tick = setInterval(() => { if (S.rm.busy) rmProgress(); else clearInterval(_tick); }, 500);
     try {
       const sz = f.size, cks = f.cks;
@@ -1981,7 +1988,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v9 · 11-05'; } catch (e) {}
+  try { $('appVer').textContent = 'app v10 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
