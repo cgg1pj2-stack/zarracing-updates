@@ -554,7 +554,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       chFlash = await svc.getCharacteristic(FLASH);
       chFlash.addEventListener('characteristicvaluechanged', e => { const v = e.target.value; onFlash(new Uint8Array(v.buffer, v.byteOffset, v.byteLength)); });
       await chFlash.startNotifications();
-      await chFlash.writeValueWithResponse(Uint8Array.of(0x04));   // ask the gauge for the ECU identity
+      await gattWrite(chFlash, Uint8Array.of(0x04));   // ask the gauge for the ECU identity
     } catch (e) { chFlash = null; }
     lgPaintNote();
     S.demo = false; $('bDemo').classList.remove('on');
@@ -1703,7 +1703,8 @@ function shDetectECU(bin) {
     let pct = (p.phase === 3 && total) ? Math.min(100, Math.round(p.done / total * 100)) : (p.phase >= 5 ? 100 : 0);
     $('rBar').style.width = pct + '%';
     $('fPct').textContent = pct + '%';
-    if (p.busy && p.phase !== 6) $('rFlashMsg').textContent = PH[p.phase] + (p.phase === 3 ? ' ' + pct + '%' : '');   // 6 = FAILED: rmFlash writes the reason
+    if (p.busy && p.phase !== 6) $('rFlashMsg').textContent = p.keyErr ? 'คำนวณ KEY ไม่ได้ — ไม่พบ key material ในไฟล์นี้ (ไฟล์ไม่ใช่ Shindengen เต็มก้อน?)'
+      : PH[p.phase] + (p.phase === 3 ? ' ' + pct + '%' : '') + (p.phase === 1 && p.keyHex ? ' · KEY ' + p.keyHex + ' ส่งแล้ว' : '');   // 6 = FAILED: rmFlash writes the reason
     if (p.t0) {
       const sec = (Date.now() - p.t0) / 1000;
       $('fElapsed').textContent = fmtTime(sec);
@@ -1727,24 +1728,31 @@ function shDetectECU(bin) {
       const seed = [u8[1], u8[2]];
       let key = null;
       try { if (S.rm.file) key = shWriteKey(seed, S.rm.file.bytes); } catch (e) { key = null; }
-      if (key && chFlash) { try { chFlash.writeValueWithResponse(Uint8Array.of(0x05, key[0] & 255, key[1] & 255)); } catch (e) {} }
-      else { S.rm.keyErr = true; $('rFlashMsg').textContent = 'คำนวณ key ไม่ได้ (ยังไม่ใส่สูตร shWriteKey หรือหา key material ไม่เจอ)'; }
+      if (key && chFlash) {
+        S.rm.keyErr = false; S.rm.keyHex = hex(key);
+        gattWrite(chFlash, Uint8Array.of(0x05, key[0] & 255, key[1] & 255)).catch(() => gattWrite(chFlash, Uint8Array.of(0x05, key[0] & 255, key[1] & 255)).catch(() => {}));
+        typeof rmLog === 'function' && rmLog('seed ' + hex(seed) + ' -> key ' + hex(key));
+      } else { S.rm.keyErr = true; S.rm.keyHex = null; }
     }
   }
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
-  async function rmReadEcu() { if (chFlash) { try { await chFlash.writeValueWithResponse(Uint8Array.of(0x04)); } catch (e) {} } }
+  // Web Bluetooth allows one GATT operation at a time: every FLASH write goes through this queue, so the
+  // Shindengen KEY reply (sent from the notify handler) can never collide with a DATA packet in flight.
+  let _gq = Promise.resolve();
+  function gattWrite(ch, data) { const p = _gq.then(() => ch.writeValueWithResponse(data)); _gq = p.catch(() => {}); return p; }
+  async function rmReadEcu() { if (chFlash) { try { await gattWrite(chFlash, Uint8Array.of(0x04)); } catch (e) {} } }
 
   // stream the image to the gauge: START, then DATA chunks paced by the gauge's free space (0xF0)
   async function rmFlash() {
     const f = S.rm.file; if (!f || !chFlash) return;
     const RES = ['สำเร็จ', 'เริ่มต้นกล่องไม่ผ่าน', 'ลบไม่ผ่าน', 'เขียนไม่ผ่าน', 'ปิดงานไม่ผ่าน', 'ข้อมูลไฟล์ขาด', 'ยกเลิก'];
-    S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; S.rm.t0 = Date.now(); $('fSpeed').textContent = '—'; $('bFlash').disabled = true; rmProgress();
+    S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; S.rm.t0 = Date.now(); S.rm.keyErr = false; S.rm.keyHex = null; $('fSpeed').textContent = '—'; $('bFlash').disabled = true; rmProgress();
     const _tick = setInterval(() => { if (S.rm.busy) rmProgress(); else clearInterval(_tick); }, 500);
     try {
       const sz = f.size, cks = f.cks;
       const start = Uint8Array.of(0x01, f.ecuType, sz & 255, (sz >> 8) & 255, (sz >> 16) & 255, (sz >> 24) & 255, cks & 255, (cks >> 8) & 255);
-      await chFlash.writeValueWithResponse(start);
+      await gattWrite(chFlash, start);
       const CH = 180;                                // data bytes per DATA packet
       let off = 0;
       while (off < sz) {
@@ -1752,7 +1760,7 @@ function shDetectECU(bin) {
         if (S.rm.free < CH * 2) { await sleep(40); continue; }   // keep one packet of margin: the gauge's free-space report is up to one notify late
         const end = Math.min(sz, off + CH);
         const pkt = new Uint8Array(end - off + 1); pkt[0] = 0x02; pkt.set(f.bytes.subarray(off, end), 1);
-        await chFlash.writeValueWithResponse(pkt);
+        await gattWrite(chFlash, pkt);
         S.rm.free -= (end - off); off = end;
       }
       // wait for the K-line flash to finish (phase DONE/FAILED). K-line is slow: allow a few minutes.
@@ -1971,7 +1979,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v6 · 11-05'; } catch (e) {}
+  try { $('appVer').textContent = 'app v7 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
