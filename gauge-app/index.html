@@ -1726,7 +1726,7 @@ function shDetectECU(bin) {
     } else if (u8[0] === 0xF0) {                      // flash progress
       S.rm.phase = u8[1]; S.rm.result = u8[2];
       S.rm.done = u8[3] | u8[4] << 8 | u8[5] << 16 | u8[6] << 24;
-      S.rm.free = u8[7] | u8[8] << 8;
+      S.rm.free = u8[7] | u8[8] << 8; S.rm.sentSince = 0;   // fresh snapshot of the gauge buffer; bytes sent after it count against it
       rmProgress();
     } else if (u8[0] === 0xD0) {                      // K-line trace line(s) from the gauge (what it sent / what the ECU answered)
       const el = $('rTrace'); el.hidden = false;
@@ -1756,7 +1756,7 @@ function shDetectECU(bin) {
   async function rmFlash() {
     const f = S.rm.file; if (!f || !chFlash) return;
     const RES = ['สำเร็จ', 'เริ่มต้นกล่องไม่ผ่าน', 'ลบไม่ผ่าน', 'เขียนไม่ผ่าน', 'ปิดงานไม่ผ่าน', 'ข้อมูลไฟล์ขาด', 'ยกเลิก'];
-    S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; S.rm.t0 = Date.now(); S.rm.keyErr = false; S.rm.keyHex = null; S.rm.seedHex = null; $('rTrace').textContent = ''; $('rTrace').hidden = true; $('fSpeed').textContent = '—'; $('bFlash').disabled = true; rmProgress();
+    S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; S.rm.t0 = Date.now(); S.rm.keyErr = false; S.rm.keyHex = null; S.rm.seedHex = null; S.rm.free = 0; S.rm.sentSince = 0; $('rTrace').textContent = ''; $('rTrace').hidden = true; $('fSpeed').textContent = '—'; $('bFlash').disabled = true; rmProgress();
     const _tick = setInterval(() => { if (S.rm.busy) rmProgress(); else clearInterval(_tick); }, 500);
     try {
       const sz = f.size, cks = f.cks;
@@ -1766,11 +1766,13 @@ function shDetectECU(bin) {
       let off = 0;
       while (off < sz) {
         if (S.rm.phase === 6) throw new Error(RES[S.rm.result] || 'ล้มเหลว');
-        if (S.rm.free < CH * 2) { await sleep(40); continue; }   // keep one packet of margin: the gauge's free-space report is up to one notify late
+        // credit = free space the gauge last reported minus everything sent since that report, with one
+        // packet of margin. The gauge never waits for us (it must not block Bluetooth), so we never over-send.
+        if (S.rm.free - S.rm.sentSince < CH * 2) { await sleep(30); continue; }
         const end = Math.min(sz, off + CH);
         const pkt = new Uint8Array(end - off + 1); pkt[0] = 0x02; pkt.set(f.bytes.subarray(off, end), 1);
         await gattWrite(chFlash, pkt);
-        S.rm.free -= (end - off); off = end;
+        S.rm.sentSince += (end - off); off = end;
       }
       // wait for the K-line flash to finish (phase DONE/FAILED). K-line is slow: allow a few minutes.
       const t0 = Date.now();
@@ -1988,7 +1990,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v10 · 11-05'; } catch (e) {}
+  try { $('appVer').textContent = 'app v11 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
