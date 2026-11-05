@@ -199,6 +199,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .fl-link i.d { width: 9px; height: 9px; border-radius: 50%; background: #555b66; flex: none; }
 .fl-link.ok i.d { background: var(--green); box-shadow: 0 0 8px var(--green); } .fl-link.ok b { color: var(--green); }
 .fl-link.wait i.d { background: var(--amber); box-shadow: 0 0 6px var(--amber); } .fl-link.wait b { color: var(--amber); }
+.fl-link.bad i.d { background: var(--red); box-shadow: 0 0 8px var(--red); } .fl-link.bad b { color: var(--red); }
 .fl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
 @media (max-width: 760px) { .fl-grid { grid-template-columns: 1fr; } }
 .fl-panel { position: relative; background: var(--tile); border: 1.5px solid rgba(var(--acc-rgb), .85); border-radius: 10px; padding-bottom: 14px;
@@ -1226,7 +1227,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   // ---- read the ECM ID straight from a .bin (offsets ported from v3 FindID; [guardOff, guardBytes|null, idOff, idLen]) ----
   const FIND_CAND = {
     32768:  [[31952, [255,0,0,0], 31956, 5]],
-    49152:  [[38809, null, 38813, 5]],
+    49152:  [[38809, null, 38813, 5], [38857, null, 38861, 5]],
     57344:  [[50120, [0,0,0,0], 50124, 5], [31870, [255,0,0,0], 31874, 5], [49564, [0,0,0,0], 49568, 5]],
     65536:  [[9140, [0,0,0,0], 9144, 5], [11127, [0,0,0,255], 11122, 5], [9736, [0,0,0,0], 9740, 5], [11150, [0,0,0,0], 11154, 5], [10298, [0,0,0,0], 10302, 5], [9106, [0,0,0,0], 9110, 5]],
     98304:  [[15947, null, 15951, 5]],
@@ -1644,6 +1645,11 @@ function shDetectECU(bin) {
     const kl = $('rKline'), klb = kl.querySelector('b');
     const box = (p, m, id, rom, fc) => { $('iEpart').textContent = p; $('iEmodel').innerHTML = m; $('iEid').textContent = id; $('iErom').textContent = rom; $('iEfc').textContent = fc; };
     if (S.link !== 'ok') { kl.className = 'fl-link'; klb.textContent = 'ยังไม่เชื่อม'; box('—', '—', '—', '—', '—'); rmVerdict(); return; }
+    if (!chFlash) {                                   // connected, but the FLASH characteristic wasn't found (stale GATT cache / old firmware)
+      kl.className = 'fl-link bad'; klb.textContent = 'ไม่พบช่อง FLASH';
+      box('ต้องล้างแคชบลูทูธ', 'ปิด-เปิด Bluetooth แล้วต่อใหม่ · (ถ้าเพิ่งแฟลชเฟิร์มแวร์ ให้ลืมอุปกรณ์แล้วจับคู่ใหม่)', '—', '—', '—');
+      rmVerdict(); return;
+    }
     const e = S.ecu;
     if (!e || e.state === 0 || e.state === 1) { kl.className = 'fl-link wait'; klb.textContent = 'กำลังอ่านกล่อง'; box('รอข้อมูล…', '—', '—', '—', '—'); rmVerdict(); return; }
     if (e.state === 3) { kl.className = 'fl-link wait'; klb.textContent = 'กล่องไม่ตอบ'; box('เปิดกุญแจ / ต่อสาย?', '—', '—', '—', '—'); rmVerdict(); return; }
