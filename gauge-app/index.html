@@ -1773,7 +1773,11 @@ function shDetectECU(bin) {
       const start = Uint8Array.of(0x01, f.ecuType, sz & 255, (sz >> 8) & 255, (sz >> 16) & 255, (sz >> 24) & 255, cks & 255, (cks >> 8) & 255);
       await gattWrite(chFlash, start);
       const CH = 180;                                // data bytes per DATA packet
-      let off = 0;
+      // Shindengen: the first 64 KB (boot) isn't written, so don't send it — streaming+discarding it
+      // over BLE after the erase was slow enough that the ECU dropped out of program mode. Start at
+      // the write offset; the gauge writes what it receives. Keihin sends the whole file (no skip).
+      const shStart = (f.maker === 'S') ? (f.ecuType === 4 ? 0xA000 : 0x10000) : 0;
+      let off = shStart;
       // Start streaming only when the gauge actually begins pulling image bytes (PH_WRITE = 3),
       // not during erase (2): during erase the gauge isn't draining, so filling the buffer then
       // would overflow it and abort as "data lost". The seed/key also rides on notifies before this,
@@ -2011,7 +2015,7 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v16 · 11-05'; } catch (e) {}
+  try { $('appVer').textContent = 'app v17 · 11-05'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
