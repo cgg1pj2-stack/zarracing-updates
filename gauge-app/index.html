@@ -435,13 +435,15 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
         <div class="fl-panel">
           <div class="fl-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="7" width="10" height="10" rx="1"/><path d="M4 10h3M4 14h3M17 10h3M17 14h3M10 4v3M14 4v3M10 17v3M14 17v3"/></svg>ECU INFORMATION</div>
           <div class="fl-rows">
-            <div class="fl-row"><span>ไฟล์รีแมพ</span><b id="iFile">— ยังไม่ได้เลือก</b></div>
-            <div class="fl-row"><span>ขนาดไฟล์</span><b id="iSize">—</b></div>
-            <div class="fl-row"><span>ชนิดกล่อง</span><b id="iType">—</b></div>
-            <div class="fl-row"><span>Checksum (ไฟล์)</span><b id="iCks">—</b></div>
-            <div class="fl-row"><span>ECM ID (ไฟล์)</span><b id="iFid">—</b></div>
-            <div class="fl-row"><span>รุ่นที่ใช้ไฟล์นี้</span><b id="iFit">—</b></div>
-            <div class="fl-div">กล่องที่ต่ออยู่ (อ่านจากรถ)</div>
+            <div id="fFileBox" hidden>
+              <div class="fl-row"><span>ไฟล์รีแมพ</span><b id="iFile">— ยังไม่ได้เลือก</b></div>
+              <div class="fl-row"><span>ขนาดไฟล์</span><b id="iSize">—</b></div>
+              <div class="fl-row"><span>ชนิดกล่อง</span><b id="iType">—</b></div>
+              <div class="fl-row"><span>Checksum (ไฟล์)</span><b id="iCks">—</b></div>
+              <div class="fl-row"><span>ECM ID (ไฟล์)</span><b id="iFid">—</b></div>
+              <div class="fl-row"><span>รุ่นที่ใช้ไฟล์นี้</span><b id="iFit">—</b></div>
+            </div>
+            <div class="fl-div" id="fVehHead">กล่องที่ต่ออยู่ (อ่านจากรถ)</div>
             <div class="fl-row"><span>พาร์ท</span><b id="iEpart">—</b></div>
             <div class="fl-row"><span>รุ่น / ยี่ห้อ</span><b id="iEmodel">—</b></div>
             <div class="fl-row"><span>ECM ID</span><b id="iEid">—</b></div>
@@ -1582,6 +1584,9 @@ function shDetectECU(bin) {
   // paint the file panel (name / size / type / checksum / file-ECM-ID / fitment) + mode + seed
   function rmSetFile() {
     const f = S.rm.file, T = (id, v, c) => { const el = $(id); el.textContent = v; el.className = c || ''; };
+    const fb = $('fFileBox'), vh = $('fVehHead');        // show the file rows only after a file is picked;
+    if (fb) fb.hidden = !f;                              // otherwise the panel leads with the vehicle data
+    if (vh) vh.style.borderTop = f ? '' : 'none';
     if (!f) { $('rFileName').textContent = 'เลือกไฟล์ .bin'; ['iFile','iSize','iType','iCks','iFid','iFit'].forEach(i => T(i, '—')); rmModes(null); rmSeed(null); return; }
     $('rFileName').textContent = f.name;
     T('iFile', f.name); T('iSize', f.sizeKb + ' KB'); T('iType', MK[f.maker] + (f.chip ? ' · ' + f.chip : ''), 'acc');
@@ -2018,7 +2023,8 @@ function shDetectECU(bin) {
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
-  try { $('appVer').textContent = 'app v19 · 11-07'; } catch (e) {}
+  rmSetFile();                                            // hide the file rows until a .bin is picked
+  try { $('appVer').textContent = 'app v20 · 11-07'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
