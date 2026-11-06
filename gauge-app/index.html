@@ -219,6 +219,15 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .fl-div { margin: 11px 0 1px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--acc); opacity: .9; border-top: 1px solid rgba(var(--acc-rgb), .2); padding-top: 9px; }
 .fl-readbtn { margin: 10px 16px 0; border: 1px solid rgba(var(--acc-rgb), .6); background: rgba(var(--acc-rgb), .08); padding: 7px; width: calc(100% - 32px);
   font-size: 13px; letter-spacing: 1px; border-radius: 6px; color: var(--fg); }
+.fl-readbtn:disabled { opacity: .4; }
+.dtc-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px; }
+.dtc-btns .fl-readbtn { margin: 10px 0 0; width: 100%; }
+.dtc-btns .dtc-clear { border-color: rgba(255,42,47,.6); background: rgba(255,42,47,.08); }
+.dtc-list { padding: 4px 16px 0; display: grid; gap: 6px; }
+.dtc-item { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,176,32,.45); background: rgba(255,176,32,.08); font-size: 13px; line-height: 1.4; }
+.dtc-item b { font-family: var(--f-num); font-size: 22px; color: var(--amber); flex: none; min-width: 44px; text-align: center; }
+.dtc-none { padding: 10px; border-radius: 8px; border: 1px solid #2f7d4e; background: rgba(70,224,106,.10); color: #46e06a; font-size: 13px; text-align: center; }
+.dtc-msg-ok { color: var(--green); } .dtc-msg-bad { color: var(--red); }
 .fl-brand { position: absolute; right: 12px; bottom: 5px; font-family: var(--f-num); font-style: italic; font-weight: 900; font-size: 28px;
   letter-spacing: 1px; color: rgba(var(--acc-rgb), .12); pointer-events: none; }
 .fl-file { display: flex; align-items: center; gap: 10px; margin: 0 16px 12px; padding: 12px 14px; cursor: pointer;
@@ -462,6 +471,18 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
           <span id="rFlashMsg" class="rmsg">เชื่อมต่อรถ → อ่านรหัสกล่อง → เลือกไฟล์ให้ตรงรุ่น → กดอัด</span>
           <pre id="rTrace" class="rtrace" hidden></pre>
         </div>
+        <div class="fl-panel" style="grid-column:1/-1">
+          <div class="fl-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.5 17.5A2 2 0 0 0 4.2 20.5h15.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>FAULT CODES (DTC)</div>
+          <div class="fl-rows">
+            <div class="fl-row"><span>สถานะ</span><b id="dtcStat">—</b></div>
+          </div>
+          <div id="dtcList" class="dtc-list"></div>
+          <div class="dtc-btns">
+            <button class="fl-readbtn" id="bDtcRead" type="button" disabled>อ่านโค้ดปัญหา</button>
+            <button class="fl-readbtn dtc-clear" id="bDtcClear" type="button" disabled>ลบโค้ด + รีเซ็ต ECM</button>
+          </div>
+          <span class="rmsg" id="dtcMsg">เปิดกุญแจ → เชื่อมต่อรถ → กดอ่านโค้ด · ลบโค้ดแล้วต้องปิด-เปิดกุญแจใหม่</span>
+        </div>
       </div>
       <div class="fl-foot">
         <span>⇄ ความเร็ว <b id="fSpeed">—</b></span>
@@ -594,8 +615,9 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     S.link = cls;
     const c = $('cBle'); c.className = 'chip ' + cls; c.lastElementChild.textContent = txt;
     $('bConnect').textContent = cls === 'ok' ? 'เชื่อมต่อแล้ว' : 'เชื่อมต่อ';
-    if (cls !== 'ok') S.ecu = null;
+    if (cls !== 'ok') { S.ecu = null; S.dtc = null; }
     if (typeof rmSetState === 'function') rmSetState();
+    if (typeof dtcRender === 'function') dtcRender();
   }
   async function keepAwake() {
     try { if ('wakeLock' in navigator && !wake) { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); } } catch (e) {}
@@ -1581,8 +1603,12 @@ function shDetectECU(bin) {
       rmVerdict(); return;
     }
     const e = S.ecu;
-    if (!e || e.state === 0 || e.state === 1) { kl.className = 'fl-link wait'; klb.textContent = 'กำลังอ่านกล่อง'; box('รอข้อมูล…', '—', '—', '—', '—'); rmVerdict(); return; }
-    if (e.state === 3) { kl.className = 'fl-link wait'; klb.textContent = 'กล่องไม่ตอบ'; box('เปิดกุญแจ / ต่อสาย?', '—', '—', '—', '—'); rmVerdict(); return; }
+    // The gauge reports every 2 s: byte 9 = the ECU is answering live data (key on, K-line up).
+    // Not live yet -> the key is off / cable unplugged. Live but no ID yet -> the gauge is still
+    // reading it (it retries by itself every 3 s) - say "vehicle connected" straight away.
+    if (!e) { kl.className = 'fl-link wait'; klb.textContent = 'รอข้อมูลจากเกจ'; box('รอข้อมูล…', '—', '—', '—', '—'); rmVerdict(); return; }
+    if (!e.live && e.state !== 2) { kl.className = 'fl-link wait'; klb.textContent = 'รอเปิดกุญแจ'; box('เปิดกุญแจ / ต่อสาย K-line', '—', '—', '—', '—'); rmVerdict(); return; }
+    if (e.state !== 2) { kl.className = 'fl-link ok'; klb.textContent = 'เชื่อมต่อรถแล้ว'; box('กำลังอ่านรหัสกล่อง…', '—', '—', '—', '—'); rmVerdict(); return; }
     const fc = e.flashCount;
     // Recovery: the ECU answers its ID but the program marker is cleared (ID ends in 00 00) -> the box
     // is erased and waiting to be re-flashed. Show it like the v3 tool: raw ID, flash count, RECOVERY.
@@ -1593,7 +1619,7 @@ function shDetectECU(bin) {
           e.idHex.replace(/(..)/g, '$1 ').trim(), '—', fc == null ? '—' : fc);
       rmVerdict(); return;
     }
-    kl.className = 'fl-link ok'; klb.textContent = 'K-LINE เชื่อมต่อ';
+    kl.className = e.live ? 'fl-link ok' : 'fl-link wait'; klb.textContent = e.live ? 'เชื่อมต่อรถแล้ว' : 'กุญแจปิด · รหัสล่าสุด';
     const info = e.info;
     let model = info ? ((info.model ? info.model + ' · ' : '') + MK[info.maker]) : '—';
     if (info && !info.exact) model += ' <span style="color:var(--amber);font-size:12px">(ใกล้เคียง)</span>';
@@ -1639,11 +1665,17 @@ function shDetectECU(bin) {
 
   function onFlash(u8) {
     if (!u8 || u8.length < 1) return;
-    if (u8[0] === 0xE0) {                             // ECU identity
+    if (u8[0] === 0xE0) {                             // ECU identity + link state (every 2 s)
       const idHex = hex(u8.subarray(2, 7));
       let fc = u8[7] | u8[8] << 8; if (fc === 0xFFFF) fc = null;
-      S.ecu = { state: u8[1], idHex, flashCount: fc, info: ecuLookup(idHex) };
+      S.ecu = { state: u8[1], idHex, flashCount: fc, info: ecuLookup(idHex), live: u8.length > 9 && u8[9] === 1 };
       rmSetState();
+      dtcRender();
+    } else if (u8[0] === 0xE2) {                      // fault codes: [state, count, codes...]
+      if (Date.now() - dtcSentAt < 1500 && (u8[1] === 0 || u8[1] === 2)) return;   // old result still in flight right after a button press
+      const n = Math.min(u8[2] | 0, u8.length - 3);
+      S.dtc = { state: u8[1], codes: Array.from(u8.subarray(3, 3 + n)) };
+      dtcRender();
     } else if (u8[0] === 0xF0) {                      // flash progress
       S.rm.phase = u8[1]; S.rm.result = u8[2];
       S.rm.done = u8[3] | u8[4] << 8 | u8[5] << 16 | u8[6] << 24;
@@ -1679,6 +1711,59 @@ function shDetectECU(bin) {
   let _gq = Promise.resolve();
   function gattWrite(ch, data) { const p = _gq.then(() => ch.writeValueWithResponse(data)); _gq = p.catch(() => {}); return p; }
   async function rmReadEcu() { if (chFlash) { try { await gattWrite(chFlash, Uint8Array.of(0x04)); } catch (e) {} } }
+
+  // ---------- fault codes (DTC) ----------
+  // Descriptions ported from src/data/honda_kline.h hkDtcDesc() (same table as the gauge's DTC page).
+  const DTC_DESC = {
+    1: 'MAP: วงจรเซ็นเซอร์ความดันท่อร่วมผิดปกติ', 10: 'MAP: วงจรเซ็นเซอร์ความดันท่อร่วมผิดปกติ',
+    2: 'MAP: ประสิทธิภาพเซ็นเซอร์ความดันท่อร่วม',
+    7: 'ECT/EOT: วงจรเซ็นเซอร์อุณหภูมิน้ำหล่อเย็นผิดปกติ',
+    8: 'TPS: วงจรเซ็นเซอร์ตำแหน่งลิ้นเร่งผิดปกติ/ประสิทธิภาพต่ำ',
+    9: 'IAT: วงจรเซ็นเซอร์อุณหภูมิอากาศเข้าผิดปกติ',
+    11: 'VSS: วงจรเซ็นเซอร์ความเร็วรถผิดปกติ',
+    12: 'วงจรหัวฉีด/หัวฉีดหลัก #1 ผิดปกติ', 14: 'หัวฉีดหลัก #3 ผิดปกติ', 15: 'หัวฉีดหลัก #4 ผิดปกติ',
+    16: 'หัวฉีดรอง #1 ผิดปกติ', 17: 'หัวฉีดรอง #2 ผิดปกติ',
+    18: 'CAM pulse generator ไม่มีสัญญาณ', 19: 'Ignition pulse generator ไม่มีสัญญาณ',
+    20: 'EEPROM ล้มเหลว', 33: 'EEPROM ล้มเหลว',
+    21: 'วงจรเซ็นเซอร์ออกซิเจน (O2) ผิดปกติ', 22: 'วงจรเซ็นเซอร์ออกซิเจน #2 ผิดปกติ',
+    23: 'วงจรฮีตเตอร์ออกซิเจนเซ็นเซอร์ผิดปกติ', 24: 'วงจรฮีตเตอร์ออกซิเจนเซ็นเซอร์ #2 ผิดปกติ',
+    29: 'IACV: วงจรควบคุมอากาศเดินเบาผิดปกติ',
+    52: 'CKP: วงจรเซ็นเซอร์ตำแหน่งเพลาข้อเหวี่ยงผิดปกติ', 54: 'วงจรเซ็นเซอร์มุมเอียง (bank angle) ผิดปกติ',
+    57: 'ECT: วงจรเซ็นเซอร์อุณหภูมิน้ำหล่อเย็นผิดปกติ',
+    71: 'TP: เซ็นเซอร์ตำแหน่งลิ้นเร่ง #1 สัญญาณผิดปกติ', 72: 'TP: เซ็นเซอร์ตำแหน่งลิ้นเร่ง #2 สัญญาณผิดปกติ',
+    73: 'sync เซ็นเซอร์ลิ้นเร่ง #1/#2 ผิดพลาด',
+    82: 'FISV: วงจรโซลินอยด์วาล์วเดินเบาเร็วผิดปกติ', 88: 'EVAP: ระบบควบคุมไอระเหยผิดปกติ',
+    89: 'การฉีดอากาศทุติยภูมิ (AISV) ผิดปกติ', 91: 'วงจรคอยล์จุดระเบิดหลักผิดปกติ',
+    103: 'CAN bus ECM -> แดชบอร์ด ผิดพลาด',
+  };
+  S.dtc = null;                                     // {state 0 idle/1 busy/2 read done/3 clear done/4 failed, codes[]}
+  let dtcSent = 0, dtcSentAt = 0;                   // 1 = read asked, 2 = clear asked, and when (so a stale "done" isn't shown as the new result)
+  function dtcRender() {
+    const st = $('dtcStat'), list = $('dtcList'), msg = $('dtcMsg'), bR = $('bDtcRead'), bC = $('bDtcClear');
+    const live = S.link === 'ok' && chFlash && S.ecu && S.ecu.live;
+    const d = S.dtc, busy = d && d.state === 1;
+    bR.disabled = bC.disabled = !live || busy;
+    msg.className = 'rmsg'; st.className = '';
+    if (!live) { st.textContent = '—'; list.innerHTML = ''; msg.textContent = 'เปิดกุญแจ → เชื่อมต่อรถ → กดอ่านโค้ด · ลบโค้ดแล้วต้องปิด-เปิดกุญแจใหม่'; return; }
+    if (!d || d.state === 0) { st.textContent = 'พร้อม'; list.innerHTML = ''; msg.textContent = 'กดอ่านโค้ดปัญหาเพื่อตรวจกล่อง'; return; }
+    if (busy) { st.textContent = dtcSent === 2 ? 'กำลังลบ…' : 'กำลังอ่าน…'; msg.textContent = 'กำลังคุยกับกล่อง รอสักครู่'; return; }
+    if (d.state === 4) { st.textContent = 'ล้มเหลว'; st.className = 'amber'; msg.textContent = 'กล่องไม่ตอบ — เช็คกุญแจ/สาย แล้วลองใหม่'; msg.className = 'rmsg dtc-msg-bad'; return; }
+    if (d.state === 3) { st.textContent = 'ลบแล้ว'; list.innerHTML = '<div class="dtc-none">ลบโค้ด + รีเซ็ต ECM แล้ว ✓</div>'; msg.textContent = 'ปิดกุญแจ แล้วเปิดใหม่ เพื่อให้ ECM เริ่มทำงานปกติ'; msg.className = 'rmsg dtc-msg-ok'; return; }
+    // state 2: read done
+    if (!d.codes.length) { st.textContent = 'ไม่พบโค้ด'; list.innerHTML = '<div class="dtc-none">✅ ไม่มีโค้ดปัญหาค้างในกล่อง</div>'; msg.textContent = 'กล่องปกติ'; msg.className = 'rmsg dtc-msg-ok'; return; }
+    st.textContent = 'พบ ' + d.codes.length + ' โค้ด'; st.className = 'amber';
+    list.innerHTML = d.codes.map(c => '<div class="dtc-item"><b>' + c + '</b><span>' + (DTC_DESC[c] || 'ไม่มีในฐานข้อมูล (โค้ด ' + c + ')') + '</span></div>').join('');
+    msg.textContent = 'แก้สาเหตุแล้วกด "ลบโค้ด + รีเซ็ต ECM" · ปิด-เปิดกุญแจหลังลบ';
+  }
+  async function dtcCmd(which) {                    // 1 read (0x06), 2 clear + reset (0x07)
+    if (!chFlash) return;
+    if (which === 2 && !confirm('ลบโค้ดปัญหาทั้งหมด + รีเซ็ต ECM?\n\nค่าเรียนรู้ของกล่องจะถูกรีเซ็ตด้วย · หลังลบต้องปิด-เปิดกุญแจใหม่')) return;
+    dtcSent = which; dtcSentAt = Date.now();
+    S.dtc = { state: 1, codes: [] }; dtcRender();  // show busy at once; the gauge's 0xE2 takes over
+    try { await gattWrite(chFlash, Uint8Array.of(which === 2 ? 0x07 : 0x06)); } catch (e) { S.dtc = { state: 4, codes: [] }; dtcRender(); }
+  }
+  $('bDtcRead').addEventListener('click', () => dtcCmd(1));
+  $('bDtcClear').addEventListener('click', () => dtcCmd(2));
 
   // stream the image to the gauge: START, then DATA chunks paced by the gauge's free space (0xF0)
   async function rmFlash() {
