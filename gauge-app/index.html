@@ -251,17 +251,25 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .fl-flash.aborting { background: #3a0d12; border-color: var(--red); box-shadow: none; }
 .fl-flash.aborting svg { display: none; }
 .fl-flash.arm { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 0 18px rgba(255,42,47,.6); }
-.rbar { height: 14px; margin: 12px 16px 0; }
-.rbar i { background: var(--acc); }
-/* FLASHING = running lightning: electric stripes race along the bar + a bright bolt sweeps the button */
 @keyframes zaprun { to { background-position: -200% 0; } }
+/* the bar always shows a faint lightning running in its track, even at rest */
+.rbar { height: 14px; margin: 12px 16px 0;
+  background-image: repeating-linear-gradient(110deg, #171b22 0 10px, #2c3644 10px 15px, #171b22 15px 30px);
+  background-size: 200% 100%; animation: zaprun 1.3s linear infinite; }
+.rbar i { background: var(--acc); }
+/* while flashing the fill races with bright lightning */
 .rbar.zap i { background-image: repeating-linear-gradient(110deg, var(--acc) 0 10px, #eaf7ff 10px 15px, var(--acc) 15px 30px);
   background-size: 200% 100%; animation: zaprun .55s linear infinite; box-shadow: 0 0 16px var(--acc), 0 0 6px #fff; }
-.fl-flash.zap { position: relative; overflow: hidden; }
-.fl-flash.zap::after { content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(110deg, transparent 34%, rgba(234,247,255,.7) 50%, transparent 66%);
-  background-size: 240% 100%; animation: zaprun .8s linear infinite; }
-@media (prefers-reduced-motion: reduce) { .rbar.zap i, .fl-flash.zap::after { animation: none; } }
+/* the FLASH button ALWAYS has a lightning bolt sweeping across (brighter + faster while flashing) */
+.fl-flash { position: relative; overflow: hidden; }
+.fl-flash > svg, .fl-flash > span { position: relative; z-index: 1; }
+.fl-flash::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 40%, rgba(234,247,255,.42) 50%, transparent 60%);
+  background-size: 260% 100%; animation: zaprun 1.5s linear infinite; }
+.fl-flash.zap::after { background: linear-gradient(110deg, transparent 34%, rgba(234,247,255,.78) 50%, transparent 66%);
+  background-size: 240% 100%; animation-duration: .75s; }
+.fl-flash:disabled { opacity: 1; color: var(--muted); border-color: #3a3f4a; background: rgba(var(--acc-rgb), .06); cursor: default; }
+@media (prefers-reduced-motion: reduce) { .rbar, .rbar.zap i, .fl-flash::after { animation: none; } }
 /* flash history */
 .hist-list { padding: 4px 16px 2px; display: grid; gap: 7px; max-height: 320px; overflow-y: auto; }
 .hist-item { border-radius: 8px; padding: 9px 11px; border: 1px solid #333842; background: rgba(255,255,255,.02); font-size: 13px; }
@@ -2092,7 +2100,7 @@ function shDetectECU(bin) {
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'app v21 · 11-07'; } catch (e) {}
+  try { $('appVer').textContent = 'app v22 · 11-07'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
