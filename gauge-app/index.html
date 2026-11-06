@@ -281,6 +281,8 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .hist-top span { color: var(--muted); font-size: 12px; flex: none; }
 .hist-mid { margin-top: 3px; word-break: break-all; }
 .hist-sub { margin-top: 2px; color: var(--muted); font-size: 12px; }
+.hist-box { margin-top: 2px; color: #c9d2e0; font-size: 12px; font-family: var(--f-num); word-break: break-all; }
+.hist-warn { margin-top: 3px; color: #ffcf33; font-size: 12px; font-weight: 700; }
 .hist-err { margin-top: 3px; color: #ff9aa0; font-size: 12px; }
 .hist-empty { padding: 12px; text-align: center; color: var(--muted); font-size: 13px; }
 .hist-clear { margin: 8px 16px 0; border: 1px solid #3a3f4a; background: transparent; color: var(--muted); padding: 6px; width: calc(100% - 32px); border-radius: 6px; font-size: 12px; }
@@ -342,7 +344,6 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     </div>
     <div class="actions">
       <button class="btn" id="bConnect" type="button">เชื่อมต่อ</button>
-      <button class="btn" id="bDemo" type="button">DEMO</button>
       <button class="btn icon" id="bColor" type="button" aria-label="สีและตั้งค่า" aria-expanded="false"><span class="swatch-dot"></span></button>
       <button class="btn icon" id="bFull" type="button" aria-label="Fullscreen">⛶</button>
     </div>
@@ -546,7 +547,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   const $ = id => document.getElementById(id);
 
   // ---------- state ----------
-  const S = { live: null, drag: null, link: 'off', demo: false, rpmShown: 0, top: 0, peak: 0, lastCounter: -1 };
+  const S = { live: null, drag: null, link: 'off', rpmShown: 0, top: 0, peak: 0, lastCounter: -1 };
   let chLogo = null, logoWait = null, chFlash = null;
   let dev = null, chLive = null, chDrag = null, wake = null, reconnectTimer = 0;
 
@@ -622,7 +623,6 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       await gattWrite(chFlash, Uint8Array.of(0x04));   // ask the gauge for the ECU identity
     } catch (e) { chFlash = null; }
     lgPaintNote();
-    S.demo = false; $('bDemo').classList.remove('on');
     setLink('ok', 'CONNECTED');
     note('');
     readDrag();
@@ -633,7 +633,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     setLink('wait', 'RECONNECT');
     clearTimeout(reconnectTimer);
     const retry = async n => {
-      if (!dev || S.demo) return;
+      if (!dev) return;
       try { await openGatt(); } catch (e) { if (n < 20) reconnectTimer = setTimeout(() => retry(n + 1), 1500); else setLink('bad', 'LOST'); }
     };
     reconnectTimer = setTimeout(() => retry(0), 800);
@@ -660,18 +660,17 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   async function keepAwake() {
     try { if ('wakeLock' in navigator && !wake) { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); } } catch (e) {}
   }
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && (S.link === 'ok' || S.demo)) keepAwake(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.link === 'ok') keepAwake(); });
 
   // ---------- data in ----------
   function onLive(d) {
     S.live = d;
     if (d.rpm != null && d.rpm > S.peak) S.peak = d.rpm;
     if (d.fix && d.kmh > S.top) S.top = d.kmh;
-    if (d.counter !== S.lastCounter) { S.lastCounter = d.counter; if (!S.demo && !usePhone()) readDrag(); }
+    if (d.counter !== S.lastCounter) { S.lastCounter = d.counter; if (!usePhone()) readDrag(); }
     if (S.wasPhone !== usePhone()) { S.wasPhone = usePhone(); syncGpsSource(); }
     paintTiles();
     paintDragLive();
-    if (S.demo) lgLocalAdd(d);
     lgPaintStatus();
   }
   function onDrag(j) {
@@ -710,7 +709,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     return { rpm: false, ok: q.fix, kmh: q.kmh, phone: q.src === 'phone' };
   }
   function gpsNow() {                              // what the speed / GPS chip shows
-    if (!S.demo && usePhone()) return { src: 'phone', on: S.phone.on, gps: S.phone.on, fix: S.phone.fix, kmh: S.phone.kmh, sats: null, hz: S.phone.hz, acc: S.phone.acc, err: S.phone.err };
+    if (usePhone()) return { src: 'phone', on: S.phone.on, gps: S.phone.on, fix: S.phone.fix, kmh: S.phone.kmh, sats: null, hz: S.phone.hz, acc: S.phone.acc, err: S.phone.err };
     const d = S.live || {};
     return { src: 'gauge', on: !!S.live, gps: d.gps, fix: d.fix, kmh: d.kmh, sats: d.sats, hz: d.hz };
   }
@@ -875,7 +874,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   const fmt = t => t == null || t < 0 ? '--.---' : t.toFixed(3);
   function paintDragLive() {
     let d = S.live;
-    if (!S.demo && usePhone()) {
+    if (usePhone()) {
       const p = S.phone;
       d = { dst: !p.on || !p.fix ? 0 : pdrag.state, gps: p.on, el: pdrag.state === 3 ? (pdrag.t - pdrag.t0) / 1000 : 0, dist: Math.round(pdrag.d || 0), kmh: p.kmh };
       if (!p.on) { $('dState').textContent = 'กดเลือก GPS มือถือ'; $('dState').style.color = 'var(--muted)'; $('dLive').textContent = ''; return; }
@@ -889,7 +888,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   }
   function paintDrag() {
     const j = S.drag, box = $('dRows');
-    if (!j) { box.innerHTML = '<div class="empty">ยังไม่มีข้อมูลจับเวลา — เชื่อมต่อเกจที่ต่อ GPS แล้ว หรือกด DEMO</div>'; return; }
+    if (!j) { box.innerHTML = '<div class="empty">ยังไม่มีข้อมูลจับเวลา — เชื่อมต่อเกจที่ต่อ GPS หรือเลือก GPS มือถือ</div>'; return; }
     const tgtIdx = SPLITS.indexOf(j.name);
     const r = j.run || {}, b = j.best || {};
     const rt = r.seq ? r.t[tgtIdx] : -1, bt = b.seq ? b.t[tgtIdx] : -1;
@@ -922,54 +921,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     armClear = false; e.target.textContent = 'ล้าง'; hist = []; store.set('zar.hist', hist); paintHist();
   });
 
-  // ---------- demo (no gauge needed) ----------
-  let demoT = 0, demoTimer = 0, demoRun = { seq: 0 }, demoBest = null, demoCounter = 0;
-  function demoTick() {
-    demoT += 0.1;
-    const cyc = demoT % 30;                         // 0-6 s stopped, 6-24 run, 24-30 coast
-    let kmh = 0, rpm = 1500, dst = 2, el = 0, dist = 0;
-    if (cyc >= 6 && cyc < 24) {
-      const t = cyc - 6;
-      kmh = 165 * (1 - Math.exp(-t / 7.5));
-      rpm = 4500 + ((t * 2.9) % 3) / 3 * 7000;
-      dst = 3; el = t; dist = 165 / 3.6 * (t - 7.5 * (1 - Math.exp(-t / 7.5)));
-      if (dist >= 402.3 && demoRun.seq && !demoRun.done) finishDemo();
-      if (demoRun.done) { dst = 1; el = 0; }
-    } else if (cyc >= 24) { kmh = 165 * (1 - (cyc - 24) / 6); rpm = 3000 + kmh * 30; dst = 1; }
-    if (cyc >= 6 && cyc < 6.15 && (!demoRun.seq || demoRun.done)) { demoRun = { seq: (demoRun.seq || 0) + 1, done: 0 }; }
-    rpm += Math.sin(demoT * 9) * 120;
-    const live = { rpm: Math.round(rpm), ect: 86, iat: 38, bat: 13.8, tps: dst === 3 ? 100 : 4, ign: 12 + rpm / 1200, afr: dst === 3 ? 12.9 : 14.6, mode: 1,
-      shift: rpm > 12000, gps: true, fix: true, ecu: true, kmh, sats: 11, hz: 10, dst, el, dist: Math.round(dist), counter: demoCounter };
-    onLive(live);
-  }
-  function finishDemo() {
-    const k = 0.94 + Math.random() * 0.1;                          // each run a bit different
-    const vt = t => 165 * k * (1 - Math.exp(-t / 7.5));
-    const dt = t => 165 * k / 3.6 * (t - 7.5 * (1 - Math.exp(-t / 7.5)));
-    const tAt = D => { let a = 0, b = 60; for (let i = 0; i < 50; i++) { const m = (a + b) / 2; dt(m) < D ? a = m : b = m; } return a; };
-    const t = [18.288, 100, 201.168, 402.336, -1].map(D => D < 0 ? -1 : +(tAt(D) + 0.3).toFixed(3));
-    const v = t.map(x => x < 0 ? 0 : +vt(x - 0.3).toFixed(1));
-    const run = { seq: demoRun.seq, done: 1, t, v, vmax: v[3] };
-    const prev = demoBest;
-    run.delta = prev ? +(t[3] - prev.t[3]).toFixed(3) : 0;
-    if (!prev || t[3] < prev.t[3]) demoBest = run;
-    demoRun = run;
-    demoCounter++;
-    onDrag({ tgt: 402.3, name: '402 M', st: 1, run, best: demoBest });
-  }
-  $('bDemo').addEventListener('click', () => {
-    S.demo = !S.demo;
-    $('bDemo').classList.toggle('on', S.demo);
-    clearInterval(demoTimer);
-    if (S.demo) {
-      if (dev && dev.gatt.connected) dev.gatt.disconnect();
-      setLink('wait', 'DEMO');
-      stopPhoneGps();
-      demoTimer = setInterval(demoTick, 100);
-      if (!S.drag) onDrag({ tgt: 402.3, name: '402 M', st: 2, run: { seq: 0, done: 0, t: [-1, -1, -1, -1, -1], v: [0, 0, 0, 0, 0], vmax: 0 }, best: { seq: 0, done: 0, t: [-1, -1, -1, -1, -1], v: [0, 0, 0, 0, 0], vmax: 0 } });
-      keepAwake();
-    } else { setLink('off', 'BT OFF'); S.live = null; S.drag = null; syncGpsSource(); paintTiles(); paintDragLive(); }
-  });
+  // (demo mode removed — the app runs on the real gauge / phone GPS only)
 
   // ---------- phone GPS + drag timer in the page (for gauges without a GPS module) ----------
   // Same method as the gauge (src/ui/gps_drag.cpp): distance = integral of the Doppler speed with
@@ -1102,10 +1054,10 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   function syncGpsSource() {
     document.querySelectorAll('.sbtn[data-src]').forEach(b => b.setAttribute('aria-pressed', b.dataset.src === S.gpsSrc));
     const phone = usePhone();
-    if (phone && !S.demo) startPhoneGps(); else if (!phone) stopPhoneGps();
+    if (phone) startPhoneGps(); else stopPhoneGps();
     $('bDist').disabled = !phone;
     $('bDist').textContent = 'ระยะ ' + SPLITS[TGT[pdrag.target]];
-    if (phone && !S.demo) onDrag(pdrag.view());
+    if (phone) onDrag(pdrag.view());
     paintTiles(); paintDragLive();
   }
   document.querySelectorAll('.sbtn[data-src]').forEach(b => b.addEventListener('click', () => {
@@ -1809,7 +1761,23 @@ function shDetectECU(bin) {
 
   // ---------- flash history (detailed, kept per-browser in localStorage) ----------
   const HIST_KEY = 'zar.flashHist';
-  function histEcm(f) { const id = (S.ecu && S.ecu.idHex) || (f && f.fid) || ''; return id ? id.replace(/(..)/g, '$1 ').trim() : ''; }
+  function hexSp(s) { return s ? String(s).replace(/(..)/g, '$1 ').trim() : ''; }
+  // build one history row: record the box ACTUALLY CONNECTED and the file ACTUALLY FLASHED, kept
+  // apart (+ a mismatch flag) so if a wrong file gets flashed there's proof on record (กันโดนว่าอัดผิด)
+  function histRec(ok, reason) {
+    const f = S.rm.file, e = S.ecu;
+    const box = (e && e.state === 2 && e.idHex) ? e.idHex : '';   // the box on the K-line at flash time
+    const boxPart = (e && e.info && e.info.part) || '';
+    let warn = '';
+    if (box && e.info && f) {
+      if (e.info.maker !== f.maker) warn = 'ไฟล์คนละยี่ห้อกับกล่อง';
+      else if (e.info.exact && e.info.romKb && f.sizeKb !== e.info.romKb) warn = 'ขนาดไฟล์ไม่ตรงกับกล่อง';
+    }
+    return { t: Date.now(), ok, file: (f && f.name) || '—', sizeKb: f && f.sizeKb,
+      maker: f ? MK[f.maker] + (f.chip ? ' ' + f.chip : '') : '',
+      box, boxPart, fileId: (f && f.fid) || '', warn,
+      sec: Math.round((Date.now() - S.rm.t0) / 1000), reason };
+  }
   function histLoad() { try { return JSON.parse(localStorage.getItem(HIST_KEY)) || []; } catch (e) { return []; } }
   function histAdd(rec) {
     const h = histLoad(); h.unshift(rec); if (h.length > 100) h.length = 100;
@@ -1824,11 +1792,17 @@ function shDetectECU(bin) {
     el.innerHTML = h.map(r => {
       const d = new Date(r.t);
       const dt = isNaN(d) ? '—' : d.toLocaleString('th-TH', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
-      const sub = [r.sizeKb ? r.sizeKb + ' KB' : '', r.maker || '', r.ecu ? 'ECM ' + r.ecu : '', r.sec ? r.sec + ' วิ' : ''].filter(Boolean).join(' · ');
+      const sub = [r.sizeKb ? r.sizeKb + ' KB' : '', r.maker || '', r.sec ? r.sec + ' วิ' : ''].filter(Boolean).join(' · ');
+      const box = r.box ? ('กล่องที่เชื่อม: ' + hexSp(r.box) + (r.boxPart ? ' · ' + r.boxPart : ''))
+                : (r.ecu ? 'กล่องที่เชื่อม: ' + r.ecu : 'กล่องที่เชื่อม: ไม่ได้อ่านรหัส');
+      const fid = r.fileId ? ('รหัสในไฟล์ที่อัด: ' + hexSp(r.fileId)) : '';
       return '<div class="hist-item ' + (r.ok ? 'ok' : 'bad') + '">' +
         '<div class="hist-top"><b>' + (r.ok ? '✓ สำเร็จ' : '✗ ไม่สำเร็จ') + '</b><span>' + dt + '</span></div>' +
         '<div class="hist-mid">' + (r.file || '—') + '</div>' +
+        '<div class="hist-box">' + box + '</div>' +
+        (fid ? '<div class="hist-box">' + fid + '</div>' : '') +
         (sub ? '<div class="hist-sub">' + sub + '</div>' : '') +
+        (r.warn ? '<div class="hist-warn">⚠ ' + r.warn + '</div>' : '') +
         (!r.ok && r.reason ? '<div class="hist-err">' + r.reason + '</div>' : '') +
         '</div>';
     }).join('');
@@ -1875,14 +1849,14 @@ function shDetectECU(bin) {
       while (S.rm.phase !== 5 && S.rm.phase !== 6 && Date.now() - t0 < 1200000) await sleep(150);   // 256 KB at ~0.6 KB/s is ~7 min; allow 20
       if (S.rm.phase === 5) {
         $('rFlashMsg').textContent = 'อัดสำเร็จ ✓ ปิด-เปิดกุญแจ แล้วลองสตาร์ท';
-        histAdd({ t: Date.now(), ok: true, file: f.name, sizeKb: f.sizeKb, maker: MK[f.maker] + (f.chip ? ' ' + f.chip : ''), ecu: histEcm(f), sec: Math.round((Date.now() - S.rm.t0) / 1000) });
+        histAdd(histRec(true));
         rmReadEcu();
       }
       else throw new Error(RES[S.rm.result] || 'ล้มเหลว / หมดเวลา');
     } catch (e) {
       const reason = (e.message || e) + ' (code ' + S.rm.result + ' @ ' + Math.round(S.rm.done / 1024) + ' KB' + (f.maker === 'S' ? ' · seed ' + (S.rm.seedHex || 'ไม่ได้รับ') + ' · key ' + (S.rm.keyHex || (S.rm.keyErr ? 'คำนวณไม่ได้' : '-')) : '') + ')';
       $('rFlashMsg').textContent = 'อัดไม่สำเร็จ: ' + reason + ' — กล่องยังอยู่ในโหมดอัด อัดไฟล์เดิมซ้ำได้';
-      histAdd({ t: Date.now(), ok: false, file: f.name, sizeKb: f.sizeKb, maker: MK[f.maker] + (f.chip ? ' ' + f.chip : ''), ecu: histEcm(f), sec: Math.round((Date.now() - S.rm.t0) / 1000), reason });
+      histAdd(histRec(false, reason));
     }
     S.rm.busy = false; rmVerdict();
   }
@@ -2022,26 +1996,6 @@ function shDetectECU(bin) {
   }
   async function mapCmd(b) { if (chMap) { try { await chMap.writeValue(new Uint8Array([b])); return true; } catch (e) {} } return false; }
 
-  // DEMO (no gauge): the page logs the demo ride itself, like the gauge would
-  let lgLast = 0;
-  function lgLocalAdd(d) {
-    if (d.rpm == null || d.tps == null) { LG.cur = null; lgPaintCursor(); return; }
-    const r = nearestIdx(LOG_RPM, d.rpm), c = nearestIdx(LOG_TPS, d.tps);
-    LG.cur = { r, c };
-    const inj = 1.8 + d.tps / 100 * 4.2 + d.rpm / 6000;
-    if (LG.rec && d.rpm >= 500) {
-      const i = r * NC + c, k = LG.cells[i] || { n: 0, afr: null, ign: null, inj: null, amin: null, amax: null };
-      k.n++; const w = Math.min(k.n, 400), avg = (o, v) => o == null ? v : o + (v - o) / w;
-      if (d.afr != null) { k.afr = avg(k.afr, d.afr); k.amin = k.amin == null ? d.afr : Math.min(k.amin, d.afr); k.amax = k.amax == null ? d.afr : Math.max(k.amax, d.afr); }
-      if (d.ign != null) k.ign = avg(k.ign, d.ign);
-      k.inj = avg(k.inj, inj);
-      LG.cells[i] = k; LG.pts++;
-      lgPaintCell(i); if (LG.sel === i) lgDetail();
-      if (Date.now() - lgLast > 2000) { lgLast = Date.now(); lgSave(); }
-    }
-    lgPaintCursor();
-  }
-
   lgBuild(); lgPaintAll(); lgPaintStatus();
   document.querySelectorAll('.lgbar [data-ch]').forEach(b => b.addEventListener('click', () => {
     LG.ch = b.dataset.ch; store.set('zar.lgch', LG.ch);
@@ -2079,7 +2033,7 @@ function shDetectECU(bin) {
   });
 
   // ---------- ui ----------
-  $('bConnect').addEventListener('click', () => { if (S.link !== 'ok') { if (S.demo) $('bDemo').click(); connect(); } });
+  $('bConnect').addEventListener('click', () => { if (S.link !== 'ok') connect(); });
   $('bFull').addEventListener('click', async () => {
     try { if (!document.fullscreenElement) { await document.documentElement.requestFullscreen(); try { await screen.orientation.lock('landscape'); } catch (e) {} } else await document.exitFullscreen(); } catch (e) {}
   });
@@ -2100,12 +2054,10 @@ function shDetectECU(bin) {
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'app v22 · 11-07'; } catch (e) {}
+  try { $('appVer').textContent = 'app v23 · 11-07'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
-  // first view: run the demo so the page shows what it does; Connect switches to the real gauge
-  if (window.self !== window.top) $('bDemo').click();      // preview inside another page (no Bluetooth / GPS there)
 })();
 
 // offline / installable app (sw.js)
