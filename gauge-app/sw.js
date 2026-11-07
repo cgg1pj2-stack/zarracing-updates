@@ -1,6 +1,6 @@
 // สมาร์ทเกจ ZAR Racing — offline support. Network first (so updates arrive right away),
 // falls back to the cached copy when there is no internet. Bump VER to drop old caches.
-const VER = 'zar-gauge-v26';
+const VER = 'zar-gauge-v27';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VER).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
