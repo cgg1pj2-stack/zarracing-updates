@@ -1291,7 +1291,7 @@ const SHIN_KEY_READY = true;
 // the app once with #zt384-k1zf at the end of the URL (stays unlocked on that phone; #zt384-lock
 // locks it again). When a size passes testing, add it to TESTED_KB. LOCK_SIZES = false opens all.
 const LOCK_SIZES = true;
-const TESTED_KB = [48, 56, 64, 256, 384];   // 384: K1ZF Shindengen RH850B verified end-to-end through the gauge
+const TESTED_KB = [48, 56, 64, 96, 128, 256, 384];   // 384: K1ZF Shindengen RH850B verified; 96/128: Keihin KEIHIN_128, echo-tolerant write path
 const UNLOCK_SIZES = (() => { try {
   if (location.hash === '#zt384-k1zf') localStorage.setItem('zarDev384', '1');
   if (location.hash === '#zt384-lock') localStorage.removeItem('zarDev384');
