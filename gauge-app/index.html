@@ -1832,6 +1832,10 @@ function shDetectECU(bin) {
     const RES = ['สำเร็จ', 'เริ่มต้นกล่องไม่ผ่าน', 'ลบไม่ผ่าน', 'เขียนไม่ผ่าน', 'ปิดงานไม่ผ่าน', 'ข้อมูลไฟล์ขาด', 'ยกเลิก'];
     S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; S.rm.t0 = Date.now(); S.rm.keyErr = false; S.rm.keyHex = null; S.rm.seedHex = null; S.rm.free = 0; S.rm.sentSince = 0; $('rTrace').textContent = ''; $('rTrace').hidden = true; $('fSpeed').textContent = '—'; { const b = $('bFlash'); b.disabled = false; b.classList.add('aborting'); $('flLbl').textContent = 'ยกเลิกการอัด'; } rmProgress();
     const _tick = setInterval(() => { if (S.rm.busy) rmProgress(); else clearInterval(_tick); }, 500);
+    // Keep the screen on while the image streams: a locked phone suspends this page, the gauge then
+    // runs out of image bytes and aborts the flash as "data lost". Released when the flash ends.
+    let _wake = null;
+    try { if (navigator.wakeLock) _wake = await navigator.wakeLock.request('screen'); } catch (e) { _wake = null; }
     try {
       const sz = f.size, cks = f.cks;
       const start = Uint8Array.of(0x01, f.ecuType, sz & 255, (sz >> 8) & 255, (sz >> 16) & 255, (sz >> 24) & 255, cks & 255, (cks >> 8) & 255);
@@ -1871,6 +1875,7 @@ function shDetectECU(bin) {
       $('rFlashMsg').textContent = 'อัดไม่สำเร็จ: ' + reason + ' — กล่องยังอยู่ในโหมดอัด อัดไฟล์เดิมซ้ำได้';
       histAdd(histRec(false, reason));
     }
+    if (_wake) { try { await _wake.release(); } catch (e) {} _wake = null; }
     S.rm.busy = false; rmVerdict();
   }
 
