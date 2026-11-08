@@ -503,6 +503,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
           <button class="btn fl-flash" id="bFlash" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg><span id="flLbl">FLASH ECU</span></button>
           <div class="meter rbar"><i id="rBar"></i></div>
           <span id="rFlashMsg" class="rmsg">เชื่อมต่อรถ → อ่านรหัสกล่อง → เลือกไฟล์ให้ตรงรุ่น → กดอัด</span>
+          <span id="fAwake" class="rmsg" hidden></span>
           <pre id="rTrace" class="rtrace" hidden></pre>
         </div>
         <div class="fl-panel" style="grid-column:1/-1">
@@ -1827,15 +1828,45 @@ function shDetectECU(bin) {
   });
 
   // stream the image to the gauge: START, then DATA chunks paced by the gauge's free space (0xF0)
+  // ---- keep the phone awake during a flash (see rmFlash) ----
+  const NOSLEEP_MP4 = 'data:video/mp4;base64,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';
+  let _wakeLock = null, _wakeVid = null;
+  async function keepAwake(on) {
+    const el = $('fAwake');
+    if (on) {
+      try { if (navigator.wakeLock) _wakeLock = await navigator.wakeLock.request('screen'); } catch (e) { _wakeLock = null; }
+      if (!_wakeLock && _wakeVid) { try { await _wakeVid.play(); } catch (e) {} }
+      else if (!_wakeLock) {
+        try {
+          const v = document.createElement('video');
+          v.setAttribute('playsinline', ''); v.setAttribute('muted', ''); v.muted = true; v.loop = true;
+          v.style.cssText = 'position:fixed;width:2px;height:2px;opacity:0.01;pointer-events:none;bottom:0;right:0';
+          v.src = NOSLEEP_MP4; document.body.appendChild(v);
+          await v.play(); _wakeVid = v;
+        } catch (e) { if (_wakeVid) { _wakeVid.remove(); } _wakeVid = null; }
+      }
+      const how = _wakeLock ? 'เปิด (wake lock)' : _wakeVid ? 'เปิด' : 'ไม่รองรับ — อย่าให้จอดับ/สลับแอป';
+      if (el) { el.textContent = 'กันจอดับ: ' + how; el.hidden = false; }
+    } else {
+      if (_wakeLock) { try { await _wakeLock.release(); } catch (e) {} _wakeLock = null; }
+      if (_wakeVid) { try { _wakeVid.pause(); _wakeVid.remove(); } catch (e) {} _wakeVid = null; }
+      if (el) el.hidden = true;
+    }
+    return _wakeLock || _wakeVid || null;
+  }
+  // iOS drops a wake lock when the page is hidden; take it again when the user comes back mid-flash
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.rm.busy) keepAwake(true); });
+
   async function rmFlash() {
     const f = S.rm.file; if (!f || !chFlash || isSizeLocked(f)) return;
     const RES = ['สำเร็จ', 'เริ่มต้นกล่องไม่ผ่าน', 'ลบไม่ผ่าน', 'เขียนไม่ผ่าน', 'ปิดงานไม่ผ่าน', 'ข้อมูลไฟล์ขาด', 'ยกเลิก'];
     S.rm.busy = true; S.rm.phase = 1; S.rm.done = 0; S.rm.t0 = Date.now(); S.rm.keyErr = false; S.rm.keyHex = null; S.rm.seedHex = null; S.rm.free = 0; S.rm.sentSince = 0; $('rTrace').textContent = ''; $('rTrace').hidden = true; $('fSpeed').textContent = '—'; { const b = $('bFlash'); b.disabled = false; b.classList.add('aborting'); $('flLbl').textContent = 'ยกเลิกการอัด'; } rmProgress();
     const _tick = setInterval(() => { if (S.rm.busy) rmProgress(); else clearInterval(_tick); }, 500);
-    // Keep the screen on while the image streams: a locked phone suspends this page, the gauge then
-    // runs out of image bytes and aborts the flash as "data lost". Released when the flash ends.
-    let _wake = null;
-    try { if (navigator.wakeLock) _wake = await navigator.wakeLock.request('screen'); } catch (e) { _wake = null; }
+    // Keep the screen on while the image streams: a locked phone (auto-lock, low-power mode) suspends
+    // this page, the gauge then waits for image bytes that never come and aborts as "data lost"
+    // (2026-11-08: K1ZF 384 KB, 30 s at the first block with nothing from the phone). Screen Wake
+    // Lock where the browser has it, otherwise a muted looping 2x2 video keeps iOS/Android awake.
+    const _wake = await keepAwake(true);
     try {
       const sz = f.size, cks = f.cks;
       const start = Uint8Array.of(0x01, f.ecuType, sz & 255, (sz >> 8) & 255, (sz >> 16) & 255, (sz >> 24) & 255, cks & 255, (cks >> 8) & 255);
@@ -1875,7 +1906,7 @@ function shDetectECU(bin) {
       $('rFlashMsg').textContent = 'อัดไม่สำเร็จ: ' + reason + ' — กล่องยังอยู่ในโหมดอัด อัดไฟล์เดิมซ้ำได้';
       histAdd(histRec(false, reason));
     }
-    if (_wake) { try { await _wake.release(); } catch (e) {} _wake = null; }
+    await keepAwake(false);
     S.rm.busy = false; rmVerdict();
   }
 
