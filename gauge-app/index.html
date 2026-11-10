@@ -2374,11 +2374,27 @@ function shDetectECU(bin) {
   ];
   function catOf(t) { for (const c of CATS) if (c.re.test(t.title)) return c; return { k: 'other', name: 'อื่นๆ', c: '#6b7280' }; }
 
+  async function fetchTimeout(url, ms) {
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), ms || 12000);
+    try { return await fetch(url, { signal: ctl.signal }); } finally { clearTimeout(to); }
+  }
+  async function loadManifest() {
+    $('tnLib').innerHTML = '<div class="tn-empty">กำลังโหลดคลัง…</div>';
+    try {
+      const r = await fetchTimeout('lib/manifest.json?v=33', 12000);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      TN.man = await r.json(); renderLib($('tnSearch') ? $('tnSearch').value : '');
+    } catch (e) {
+      const box = $('tnLib'); box.innerHTML = '';
+      const d = document.createElement('div'); d.className = 'tn-empty';
+      d.textContent = 'โหลดคลังไม่ได้ (' + (e.name === 'AbortError' ? 'เน็ตช้า/หมดเวลา' : e.message) + ') — ครั้งแรกต้องมีเน็ต';
+      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'tn-rb'; btn.textContent = '↻ ลองใหม่'; btn.style.marginTop = '8px';
+      btn.addEventListener('click', loadManifest); box.appendChild(d); box.appendChild(btn);
+    }
+  }
   window.tuneInit = async function () {
     if (TN.inited) return; TN.inited = true;
-    try { const r = await fetch('lib/manifest.json', { cache: 'no-cache' }); TN.man = await r.json(); }
-    catch (e) { $('tnLib').innerHTML = '<div class="tn-empty">โหลดคลังไม่ได้ (' + e.message + ')</div>'; return; }
-    renderLib('');
+    loadManifest();
     $('tnSearch').addEventListener('input', e => renderLib(e.target.value));
     $('tnTreeSearch').addEventListener('input', e => buildTree(e.target.value));
     document.querySelectorAll('#tnModes .tn-mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.md)));
@@ -2396,6 +2412,7 @@ function shDetectECU(bin) {
     if (pro) buildTree($('tnTreeSearch').value);
   }
   function renderLib(q) {
+    if (!TN.man) return;
     q = (q || '').trim().toUpperCase();
     const box = $('tnLib'); box.innerHTML = '';
     const groups = { gear: [], auto: [], crf: [] };
@@ -2415,9 +2432,11 @@ function shDetectECU(bin) {
   async function loadModel(m) {
     $('tnModelName').textContent = 'กำลังโหลด ' + m.code + '…'; $('tnModelSub').textContent = m.name;
     try {
-      const [bb, xx] = await Promise.all([fetch(m.bin, { cache: 'no-cache' }).then(r => r.arrayBuffer()), fetch(m.xdf, { cache: 'no-cache' }).then(r => r.text())]);
+      const [br, xr] = await Promise.all([fetchTimeout(m.bin, 15000), fetchTimeout(m.xdf, 15000)]);
+      if (!br.ok || !xr.ok) throw new Error('HTTP ' + br.status + '/' + xr.status);
+      const [bb, xx] = await Promise.all([br.arrayBuffer(), xr.text()]);
       TN.orig = new Uint8Array(bb); TN.work = TN.orig.slice(); TN.xdf = parseXdf(xx); TN.model = m;
-    } catch (e) { $('tnModelName').textContent = 'โหลดรุ่นไม่ได้'; $('tnModelSub').textContent = e.message; return; }
+    } catch (e) { $('tnModelName').textContent = 'โหลดรุ่นไม่ได้'; $('tnModelSub').textContent = (e.name === 'AbortError' ? 'เน็ตช้า — แตะรุ่นอีกครั้ง' : e.message); return; }
     TN.undo = []; TN.proT = null; TN.sideView = 'tree'; afterLoad();
     document.querySelectorAll('#tnLib .tn-m').forEach(x => x.classList.toggle('on', x.querySelector('b').textContent === m.code));
   }
