@@ -402,7 +402,10 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .tn-selinfo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
 .tn-cmp { display: inline-flex; align-items: center; gap: 5px; }
 .tn-tablewrap { position: relative; overflow: auto; border: 1px solid var(--line); border-radius: 8px; max-height: 60vh; -webkit-overflow-scrolling: touch; }
-.tn-cursor { position: absolute; pointer-events: none; border: 2px solid #39ffd0; border-radius: 3px; background: rgba(57,255,208,.14); box-shadow: 0 0 14px 2px rgba(57,255,208,.8), inset 0 0 8px rgba(57,255,208,.45); transition: left .12s linear, top .12s linear, width .1s, height .1s; z-index: 4; }
+.tn-cursor { position: absolute; pointer-events: none; border: 2px solid #39ffd0; border-radius: 3px; background: rgba(57,255,208,.18); box-shadow: 0 0 16px 3px rgba(57,255,208,.9), inset 0 0 8px rgba(57,255,208,.5); transition: left .1s linear, top .1s linear, width .1s, height .1s; z-index: 4; }
+.tn-xline, .tn-yline { position: absolute; pointer-events: none; z-index: 3; background: #39ffd0; box-shadow: 0 0 12px 2px rgba(57,255,208,.9); transition: left .1s linear, top .1s linear; }
+.tn-xline { height: 2px; left: 0; }
+.tn-yline { width: 2px; top: 0; }
 #prRT.on { color: #0a1512; background: #39ffd0; border-color: #39ffd0; box-shadow: 0 0 12px -2px rgba(57,255,208,.8); }
 .tn-table { border-collapse: collapse; font-family: var(--f-num); font-size: 13px; }
 .tn-table th { position: sticky; background: #0b0e13; color: var(--muted); font-weight: 700; padding: 4px 6px; border: 1px solid #1b1e25; font-size: 11px; white-space: nowrap; z-index: 1; }
@@ -483,7 +486,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
-    <span class="ver" id="appVer">v36</span>
+    <span class="ver" id="appVer">v37</span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -682,7 +685,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
               </div>
             </div>
             <div class="tn-selinfo"><span id="prSel">ยังไม่ได้เลือกช่อง</span><button class="tn-chip" id="prSelAll" type="button">ทั้งตาราง</button><button class="tn-chip" id="prSelRow" type="button">แถว</button><button class="tn-chip" id="prSelCol" type="button">คอลัมน์</button><button class="tn-chip" id="prRT" type="button">⚡ เรียลไทม์</button><label class="tn-cmp"><input type="checkbox" id="prCmp">เทียบไฟล์เดิม</label><button class="tn-chip" id="prUndo" type="button">ย้อนกลับ</button><button class="tn-chip" id="prSaveT" type="button">💾 บันทึกตาราง</button><button class="tn-chip" id="prResetT" type="button">คืนตารางนี้</button></div>
-            <div class="tn-tablewrap" id="prWrap"><table class="tn-table" id="prGrid"></table><div class="tn-cursor" id="prCursor" hidden></div></div>
+            <div class="tn-tablewrap" id="prWrap"><table class="tn-table" id="prGrid"></table><div class="tn-xline" id="prXline" hidden></div><div class="tn-yline" id="prYline" hidden></div><div class="tn-cursor" id="prCursor" hidden></div></div>
             <div class="tn-3dwrap" id="pr3dWrap" hidden><div class="tn-3dlbl"><span>← คันเร่ง (TPS) →</span><span id="pr3dsel">—</span><span>← รอบ (RPM) →</span></div><canvas id="pr3d"></canvas></div>
             <div class="tn-sendrow">
               <button class="btn tn-send tn-save" id="prSave" type="button">💾 บันทึก .bin</button>
@@ -2344,7 +2347,7 @@ function shDetectECU(bin) {
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'v36'; } catch (e) {}
+  try { $('appVer').textContent = 'v37'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
@@ -2623,7 +2626,7 @@ function shDetectECU(bin) {
       tb.appendChild(tr);
     }
     grid.appendChild(tb); bindGridSel(g); updateSelInfo(g, eq);
-    lastRC = -1; $('prCursor').hidden = true;                 // reset live cursor for the new table
+    lastRC = -1; rtHide();                                    // reset live cursor for the new table
     if (view3d) render3D(rtOn ? rtCell() : null);
   }
   let selDrag = false, selAnchor = null;
@@ -2767,7 +2770,15 @@ function shDetectECU(bin) {
       ctx.beginPath(); ctx.moveTo(q.pts[0][0], q.pts[0][1]); for (let i = 1; i < 4; i++) ctx.lineTo(q.pts[i][0], q.pts[i][1]); ctx.closePath();
       ctx.fillStyle = fs; ctx.fill(); ctx.strokeStyle = fs; ctx.lineWidth = 0.6 * dpr; ctx.stroke();   // stroke same colour = no seams, crisp
     });
-    if (liveRC && V[liveRC.r]) { const p = P(liveRC.r, liveRC.c, V[liveRC.r][liveRC.c]); ctx.beginPath(); ctx.arc(p[0], p[1], 8 * dpr, 0, 7); ctx.fillStyle = '#39ffd0'; ctx.shadowColor = '#39ffd0'; ctx.shadowBlur = 18 * dpr; ctx.fill(); ctx.shadowBlur = 0; ctx.strokeStyle = '#0a1512'; ctx.lineWidth = 1.5 * dpr; ctx.stroke(); }
+    if (liveRC && V[liveRC.r]) {
+      const p = P(liveRC.r, liveRC.c, V[liveRC.r][liveRC.c]);
+      const foot = toScreen(rot.apply(null, world(liveRC.r, liveRC.c, 0)));   // glowing drop-line from the base up to the live point
+      ctx.strokeStyle = '#39ffd0'; ctx.shadowColor = '#39ffd0'; ctx.shadowBlur = 12 * dpr; ctx.lineWidth = 2.4 * dpr;
+      ctx.beginPath(); ctx.moveTo(foot[0], foot[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
+      ctx.beginPath(); ctx.arc(foot[0], foot[1], 3 * dpr, 0, 7); ctx.fillStyle = '#39ffd0'; ctx.fill();
+      ctx.beginPath(); ctx.arc(p[0], p[1], 8 * dpr, 0, 7); ctx.fillStyle = '#39ffd0'; ctx.shadowBlur = 18 * dpr; ctx.fill();
+      ctx.shadowBlur = 0; ctx.strokeStyle = '#0a1512'; ctx.lineWidth = 1.5 * dpr; ctx.stroke();
+    }
   }
   // rotate (drag), zoom (wheel / pinch)
   (function () {
@@ -2787,7 +2798,8 @@ function shDetectECU(bin) {
   })();
   // ---- realtime cursor (live RPM x TPS from the gauge) ----
   let rtOn = false, lastRC = -1;
-  function toggleRT() { rtOn = !rtOn; $('prRT').classList.toggle('on', rtOn); if (!rtOn) { $('prCursor').hidden = true; lastRC = -1; } else if (!S.live || S.live.rpm == null) toast('เปิดเรียลไทม์แล้ว — ต่อบลูทูธเกจเพื่อให้เคอร์เซอร์วิ่ง'); }
+  function rtHide() { $('prCursor').hidden = true; $('prXline').hidden = true; $('prYline').hidden = true; }
+  function toggleRT() { rtOn = !rtOn; $('prRT').classList.toggle('on', rtOn); if (!rtOn) { rtHide(); lastRC = -1; } else if (!S.live || S.live.rpm == null) toast('เปิดเรียลไทม์แล้ว — ต่อบลูทูธเกจเพื่อให้เคอร์เซอร์วิ่ง'); }
   function rtCell() {
     if (!TN.proT || !S.live || S.live.rpm == null) return null;
     const xs = axisVals(TN.proT, 'x'), ys = axisVals(TN.proT, 'y'); if (!xs || !ys) return null;
@@ -2796,12 +2808,15 @@ function shDetectECU(bin) {
   function rtTick() {
     requestAnimationFrame(rtTick);
     if (!rtOn || TN.mode !== 'pro' || !TN.proT || $('vTune').hidden) { return; }
-    const rc = rtCell(); if (!rc) { $('prCursor').hidden = true; return; }
+    const rc = rtCell(); if (!rc) { rtHide(); return; }
     if (view3d) { if (rc.r * 1000 + rc.c !== lastRC) { lastRC = rc.r * 1000 + rc.c; render3D(rc); } return; }
-    const td = $('prGrid').querySelector('td[data-r="' + rc.r + '"][data-c="' + rc.c + '"]'); if (!td) { $('prCursor').hidden = true; return; }
-    const wrap = $('prWrap'), cur = $('prCursor'), wr = wrap.getBoundingClientRect(), cr = td.getBoundingClientRect();
-    cur.style.left = (cr.left - wr.left + wrap.scrollLeft) + 'px'; cur.style.top = (cr.top - wr.top + wrap.scrollTop) + 'px';
-    cur.style.width = cr.width + 'px'; cur.style.height = cr.height + 'px'; cur.hidden = false;
+    const td = $('prGrid').querySelector('td[data-r="' + rc.r + '"][data-c="' + rc.c + '"]'); if (!td) { rtHide(); return; }
+    const wrap = $('prWrap'), cur = $('prCursor'), gx = $('prGrid'), wr = wrap.getBoundingClientRect(), cr = td.getBoundingClientRect();
+    const lx = cr.left - wr.left + wrap.scrollLeft, ty = cr.top - wr.top + wrap.scrollTop;
+    cur.style.left = lx + 'px'; cur.style.top = ty + 'px'; cur.style.width = cr.width + 'px'; cur.style.height = cr.height + 'px'; cur.hidden = false;
+    const X = $('prXline'), Y = $('prYline');                                 // crosshair guide lines through the live cell
+    X.style.top = (ty + cr.height / 2 - 1) + 'px'; X.style.width = gx.offsetWidth + 'px'; X.hidden = false;
+    Y.style.left = (lx + cr.width / 2 - 1) + 'px'; Y.style.height = gx.offsetHeight + 'px'; Y.hidden = false;
     const key = rc.r * 1000 + rc.c;
     if (key !== lastRC) { lastRC = key;                                      // follow: keep the cursor in view
       if (cr.left < wr.left + 46) wrap.scrollLeft -= (wr.left + 46 - cr.left); else if (cr.right > wr.right) wrap.scrollLeft += (cr.right - wr.right + 8);
