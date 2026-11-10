@@ -411,8 +411,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .tn-table tbody th { left: 0; z-index: 1; }
 .tn-table td { padding: 3px 7px; border: 1px solid #14171d; text-align: right; color: #e9edf4; cursor: cell; min-width: 42px; font-variant-numeric: tabular-nums; position: relative; user-select: none; }
 .tn-table td.sel { outline: 2px solid var(--acc); outline-offset: -2px; }
-.tn-table td.chg { color: var(--red); font-weight: 800; text-shadow: 0 0 6px rgba(255,42,47,.5); }   /* tuned cells go red */
-.tn-table td.chg::after { content: ''; position: absolute; top: 0; right: 0; border: 5px solid transparent; border-top-color: var(--red); border-right-color: var(--red); }
+.tn-table td.chg::after { content: ''; position: absolute; top: 0; right: 0; border: 5px solid transparent; border-top-color: var(--red); border-right-color: var(--red); }   /* changed cell: small red corner, value stays readable */
 .tn-sendrow { display: grid; grid-template-columns: 1fr 1.3fr; gap: 8px; }
 @media (max-width: 480px) { .tn-sendrow { grid-template-columns: 1fr; } }
 .tn-save { justify-content: center; border-color: rgba(var(--acc-rgb),.5); background: rgba(6,9,13,.7); }
@@ -465,6 +464,9 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .tn-t { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; text-align: left; background: rgba(6,9,13,.55); border: 1px solid var(--line); border-left: 3px solid var(--c, var(--line)); border-radius: 6px; padding: 7px 9px; color: var(--fg); }
 .tn-t:hover { border-color: rgba(var(--acc-rgb),.6); border-left-color: var(--c, var(--acc)); }
 .tn-t.on { background: rgba(var(--acc-rgb),.16); border-color: var(--acc); border-left-color: var(--c, var(--acc)); box-shadow: 0 0 10px -3px var(--glow); }
+.tn-t.tuned span { color: var(--red); font-weight: 800; }
+.tn-t.tuned span::after { content: ' ●'; color: var(--red); font-size: 9px; vertical-align: middle; }
+#prTName.tuned { color: var(--red); text-shadow: 0 0 8px rgba(255,42,47,.4); }
 .tn-t span { font-size: 13px; line-height: 1.25; overflow: hidden; }
 .tn-t i { font-family: var(--f-num); font-size: 12px; color: var(--muted); font-style: normal; flex: none; }
 .tn-tname { display: flex; align-items: center; gap: 8px; min-width: 150px; flex: 1; }
@@ -481,7 +483,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
-    <span class="ver" id="appVer">v35</span>
+    <span class="ver" id="appVer">v36</span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -2342,7 +2344,7 @@ function shDetectECU(bin) {
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'v35'; } catch (e) {}
+  try { $('appVer').textContent = 'v36'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
@@ -2482,7 +2484,9 @@ function shDetectECU(bin) {
     updateSide();
   }
   function diffBytes() { let n = 0; const a = TN.orig, b = TN.work; if (!a) return 0; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) n++; return n; }
-  function refreshEdits() { const n = diffBytes(); const e = $('tnEdits'); e.hidden = !TN.model; $('tnBytes').textContent = n; e.style.opacity = n ? 1 : .55; }
+  function refreshEdits() { const n = diffBytes(); const e = $('tnEdits'); e.hidden = !TN.model; $('tnBytes').textContent = n; e.style.opacity = n ? 1 : .55; markTree(); }
+  function tableChanged(t) { const g = geom(t); if (!g || !TN.orig) return false; for (let r = 0; r < g.rc; r++) for (let c = 0; c < g.cc; c++) { const o = coff(g, r, c); if (TN.work[o] !== TN.orig[o]) return true; if (g.bytes === 2 && TN.work[o + 1] !== TN.orig[o + 1]) return true; } return false; }
+  function markTree() { if (!TN.xdf) return; document.querySelectorAll('#tnTree .tn-t').forEach(b => { const t = TN.xdf.byId[b.dataset.id]; b.classList.toggle('tuned', !!(t && tableChanged(t))); }); if (TN.proT) $('prTName').classList.toggle('tuned', tableChanged(TN.proT)); }
 
   // ---------- EASY MODE ----------
   function bandRows(g) { const rc = g.rc, a = Math.floor(rc / 3), b = Math.floor(2 * rc / 3); return { lo: [0, a], mid: [a, b], hi: [b, rc] }; }
@@ -2516,7 +2520,7 @@ function shDetectECU(bin) {
     if (TN.fuelT) { const g = geom(TN.fuelT), bd = bandRows(g); for (const band in bd) { const p = 1 + ezVal('fuel', band) / 100; if (p === 1) continue; for (let r = bd[band][0]; r < bd[band][1]; r++) for (let c = 0; c < g.cc; c++) { const o = coff(g, r, c); setRaw(TN.work, g, o, rawAt(TN.work, g, o) * p); } } }
     if (TN.ignT) { const g = geom(TN.ignT), eq = compileEq(g.eq), bd = bandRows(g); for (const band in bd) { const d = ezVal('ign', band); if (!d) continue; for (let r = bd[band][0]; r < bd[band][1]; r++) for (let c = 0; c < g.cc; c++) { const o = coff(g, r, c); setRaw(TN.work, g, o, eq.inv(eq.fwd(rawAt(TN.work, g, o)) + d)); } } }
     const rev = +$('ezRev').value;
-    TN.revTs.forEach(t => { const g = geom(t), eq = compileEq(g.eq); setRaw(TN.work, g, coff(g, 0, 0), eq.inv(rev)); });
+    if (TN.ez && rev !== TN.ez.rev0) TN.revTs.forEach(t => { const g = geom(t), eq = compileEq(g.eq); setRaw(TN.work, g, coff(g, 0, 0), eq.inv(rev)); });   // only touch rev-cut when the slider actually moved (avoid rounding the stock value)
     refreshEdits();
   }
 
@@ -2566,7 +2570,7 @@ function shDetectECU(bin) {
       const h = document.createElement('div'); h.className = 'tn-tg'; h.style.setProperty('--c', grp.c); h.textContent = name + ' · ' + grp.items.length; box.appendChild(h);
       grp.items.forEach(t => {
         const g = geom(t), b = document.createElement('button'); b.type = 'button';
-        b.className = 'tn-t' + (TN.proT && TN.proT.id === t.id ? ' on' : ''); b.style.setProperty('--c', grp.c); b.dataset.id = t.id;
+        b.className = 'tn-t' + (TN.proT && TN.proT.id === t.id ? ' on' : '') + (tableChanged(t) ? ' tuned' : ''); b.style.setProperty('--c', grp.c); b.dataset.id = t.id;
         b.innerHTML = '<span>' + t.title + '</span><i>' + g.rc + '×' + g.cc + '</i>';
         b.addEventListener('click', () => { TN.proT = t; TN.sel.clear(); renderGrid(); document.querySelectorAll('#tnTree .tn-t').forEach(x => x.classList.toggle('on', x.dataset.id === t.id)); if (window.matchMedia('(max-width:820px)').matches) sideCollapse(true); });
         box.appendChild(b);
@@ -2717,29 +2721,70 @@ function shDetectECU(bin) {
     if (view3d) render3D();
   }
   function heatC(t01, a) { t01 = Math.max(0, Math.min(1, t01)); const s = [[40, 110, 210], [40, 180, 120], [235, 200, 60], [220, 70, 50]]; const seg = t01 * 3, i = Math.min(2, Math.floor(seg)), f = seg - i, A = s[i], B = s[i + 1]; return 'rgba(' + Math.round(A[0] + (B[0] - A[0]) * f) + ',' + Math.round(A[1] + (B[1] - A[1]) * f) + ',' + Math.round(A[2] + (B[2] - A[2]) * f) + ',' + a + ')'; }
-  let yaw = 0.62;
+  let yaw = 0.7, pitch = 0.62, zoom = 1;
+  function heatRGB(t01) { t01 = Math.max(0, Math.min(1, t01)); const s = [[40, 110, 210], [40, 180, 120], [235, 200, 60], [220, 70, 50]]; const seg = t01 * 3, i = Math.min(2, Math.floor(seg)), f = seg - i, A = s[i], B = s[i + 1]; return [A[0] + (B[0] - A[0]) * f, A[1] + (B[1] - A[1]) * f, A[2] + (B[2] - A[2]) * f]; }
   function render3D(liveRC) {
     const t = TN.proT; if (!t || $('pr3dWrap').hidden) return;
-    const g = geom(t), eq = compileEq(g.eq); if (g.rc < 2 || g.cc < 2) { const c = $('pr3d').getContext('2d'); c.clearRect(0, 0, $('pr3d').width, $('pr3d').height); c.fillStyle = '#9aa3b2'; c.font = '14px sans-serif'; c.fillText('ตารางนี้เล็กเกินไปสำหรับกราฟ 3D', 20, 40); return; }
-    const cv = $('pr3d'), dpr = Math.min(2, window.devicePixelRatio || 1);
-    const W = cv.width = cv.clientWidth * dpr, H = cv.height = cv.clientHeight * dpr, ctx = cv.getContext('2d');
+    const g = geom(t), eq = compileEq(g.eq); const cv = $('pr3d');
+    const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    const W = cv.width = Math.round(cv.clientWidth * dpr), H = cv.height = Math.round(cv.clientHeight * dpr), ctx = cv.getContext('2d');
     ctx.clearRect(0, 0, W, H);
+    if (g.rc < 2 || g.cc < 2) { ctx.fillStyle = '#9aa3b2'; ctx.font = (14 * dpr) + 'px sans-serif'; ctx.fillText('ตารางนี้เล็กเกินไปสำหรับกราฟ 3D', 20 * dpr, 40 * dpr); return; }
+    const rc = g.rc, cc = g.cc;
     let mn = Infinity, mx = -Infinity; const V = [];
-    for (let r = 0; r < g.rc; r++) { V.push([]); for (let c = 0; c < g.cc; c++) { const v = eq.fwd(rawAt(TN.work, g, coff(g, r, c))); V[r].push(v); if (v < mn) mn = v; if (v > mx) mx = v; } }
-    const span = (mx - mn) || 1, sc = Math.min(W / (g.cc + 3), H / (g.rc + 3)) * 1.15, s = Math.sin(yaw), co = Math.cos(yaw);
-    const P = (r, c, v) => { const cx = c - (g.cc - 1) / 2, cz = r - (g.rc - 1) / 2; const x = cx * co - cz * s, z = cx * s + cz * co, y = (v - mn) / span; return [W / 2 + x * sc, H * 0.66 - y * H * 0.4 - z * sc * 0.44, z]; };
+    for (let r = 0; r < rc; r++) { V.push([]); for (let c = 0; c < cc; c++) { const v = eq.fwd(rawAt(TN.work, g, coff(g, r, c))); V[r].push(v); if (v < mn) mn = v; if (v > mx) mx = v; } }
+    const span = (mx - mn) || 1;
+    const amp = Math.max(cc, rc) * 0.42;                                   // height of the surface in grid units
+    const sy = Math.sin(yaw), cyw = Math.cos(yaw), sp = Math.sin(pitch), cp = Math.cos(pitch);
+    const base = Math.min(W, H) / (Math.max(cc, rc) + 1.5) * zoom;
+    // world -> rotate (yaw about Y, then pitch about X) -> orthographic
+    const rot = (x, y, z) => { const x1 = x * cyw + z * sy, z1 = -x * sy + z * cyw; const y2 = y * cp - z1 * sp, z2 = y * sp + z1 * cp; return [x1, y2, z2]; };
+    const world = (r, c, vn) => [(c - (cc - 1) / 2), vn * amp, (r - (rc - 1) / 2)];
+    const toScreen = p => [W / 2 + p[0] * base, H * 0.52 - p[1] * base, p[2]];
+    const P = (r, c, v) => toScreen(rot.apply(null, world(r, c, (v - mn) / span)));
+    const light = (() => { const l = [-0.35, 0.86, 0.38], n = Math.hypot(l[0], l[1], l[2]); return [l[0] / n, l[1] / n, l[2] / n]; })();
+    // base plate outline (depth cue)
+    const bc = [world(0, 0, 0), world(0, cc - 1, 0), world(rc - 1, cc - 1, 0), world(rc - 1, 0, 0)].map(p => toScreen(rot.apply(null, p)));
+    ctx.beginPath(); ctx.moveTo(bc[0][0], bc[0][1]); for (let i = 1; i < 4; i++) ctx.lineTo(bc[i][0], bc[i][1]); ctx.closePath();
+    ctx.fillStyle = 'rgba(10,16,24,.5)'; ctx.fill(); ctx.strokeStyle = 'rgba(120,160,200,.18)'; ctx.lineWidth = dpr; ctx.stroke();
+    // quads, painter's algorithm
     const quads = [];
-    for (let r = 0; r < g.rc - 1; r++) for (let c = 0; c < g.cc - 1; c++) {
-      const a = P(r, c, V[r][c]), b = P(r, c + 1, V[r][c + 1]), d = P(r + 1, c + 1, V[r + 1][c + 1]), e = P(r + 1, c, V[r + 1][c]);
+    for (let r = 0; r < rc - 1; r++) for (let c = 0; c < cc - 1; c++) {
+      const w1 = world(r, c, (V[r][c] - mn) / span), w2 = world(r, c + 1, (V[r][c + 1] - mn) / span), w3 = world(r + 1, c + 1, (V[r + 1][c + 1] - mn) / span), w4 = world(r + 1, c, (V[r + 1][c] - mn) / span);
+      // surface normal (world space) for lighting
+      const ux = w2[0] - w1[0], uy = w2[1] - w1[1], uz = w2[2] - w1[2], vx = w4[0] - w1[0], vy = w4[1] - w1[1], vz = w4[2] - w1[2];
+      let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; const nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
+      const diff = Math.abs(nx * light[0] + ny * light[1] + nz * light[2]); const shade = 0.4 + 0.6 * diff;
+      const a = toScreen(rot.apply(null, w1)), b = toScreen(rot.apply(null, w2)), d = toScreen(rot.apply(null, w3)), e = toScreen(rot.apply(null, w4));
       const avg = (V[r][c] + V[r][c + 1] + V[r + 1][c + 1] + V[r + 1][c]) / 4;
-      quads.push({ z: (a[2] + d[2]) / 2, pts: [a, b, d, e], t: (avg - mn) / span });
+      const col = heatRGB((avg - mn) / span);
+      quads.push({ z: (a[2] + b[2] + d[2] + e[2]) / 4, pts: [a, b, d, e], col: col.map(x => Math.round(Math.min(255, x * shade))) });
     }
     quads.sort((p, q) => p.z - q.z);
-    quads.forEach(q => { ctx.beginPath(); ctx.moveTo(q.pts[0][0], q.pts[0][1]); for (let i = 1; i < 4; i++) ctx.lineTo(q.pts[i][0], q.pts[i][1]); ctx.closePath(); ctx.fillStyle = heatC(q.t, .92); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.10)'; ctx.lineWidth = dpr; ctx.stroke(); });
-    if (liveRC) { const p = P(liveRC.r, liveRC.c, V[liveRC.r][liveRC.c]); ctx.beginPath(); ctx.arc(p[0], p[1], 7 * dpr, 0, 7); ctx.fillStyle = '#39ffd0'; ctx.shadowColor = '#39ffd0'; ctx.shadowBlur = 16 * dpr; ctx.fill(); ctx.shadowBlur = 0; }
+    ctx.lineJoin = 'round';
+    quads.forEach(q => {
+      const fs = 'rgb(' + q.col[0] + ',' + q.col[1] + ',' + q.col[2] + ')';
+      ctx.beginPath(); ctx.moveTo(q.pts[0][0], q.pts[0][1]); for (let i = 1; i < 4; i++) ctx.lineTo(q.pts[i][0], q.pts[i][1]); ctx.closePath();
+      ctx.fillStyle = fs; ctx.fill(); ctx.strokeStyle = fs; ctx.lineWidth = 0.6 * dpr; ctx.stroke();   // stroke same colour = no seams, crisp
+    });
+    if (liveRC && V[liveRC.r]) { const p = P(liveRC.r, liveRC.c, V[liveRC.r][liveRC.c]); ctx.beginPath(); ctx.arc(p[0], p[1], 8 * dpr, 0, 7); ctx.fillStyle = '#39ffd0'; ctx.shadowColor = '#39ffd0'; ctx.shadowBlur = 18 * dpr; ctx.fill(); ctx.shadowBlur = 0; ctx.strokeStyle = '#0a1512'; ctx.lineWidth = 1.5 * dpr; ctx.stroke(); }
   }
-  // drag to rotate the 3D view
-  (function () { let dn = false, px = 0; const cv = () => $('pr3d'); document.addEventListener('pointerdown', e => { if (e.target === $('pr3d')) { dn = true; px = e.clientX; } }); document.addEventListener('pointermove', e => { if (dn) { yaw += (e.clientX - px) * 0.01; px = e.clientX; render3D(rtCell()); } }); document.addEventListener('pointerup', () => { dn = false; }); })();
+  // rotate (drag), zoom (wheel / pinch)
+  (function () {
+    const pts = new Map(); let pinchD = 0;
+    const re = () => render3D(rtOn ? rtCell() : null);
+    $('pr3d').addEventListener('pointerdown', e => { pts.set(e.pointerId, { x: e.clientX, y: e.clientY }); try { $('pr3d').setPointerCapture(e.pointerId); } catch (_) {} });
+    $('pr3d').addEventListener('pointermove', e => {
+      if (!pts.has(e.pointerId)) return; const p = pts.get(e.pointerId);
+      if (pts.size >= 2) { const a = [...pts.values()]; const d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); if (pinchD) { zoom = Math.max(0.4, Math.min(5, zoom * (d / pinchD))); re(); } pinchD = d; }
+      else { yaw += (e.clientX - p.x) * 0.01; pitch = Math.max(0.05, Math.min(1.45, pitch + (e.clientY - p.y) * 0.008)); re(); }
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    });
+    const up = e => { pts.delete(e.pointerId); if (pts.size < 2) pinchD = 0; };
+    $('pr3d').addEventListener('pointerup', up); $('pr3d').addEventListener('pointercancel', up);
+    $('pr3d').addEventListener('wheel', e => { e.preventDefault(); zoom = Math.max(0.4, Math.min(5, zoom * (e.deltaY < 0 ? 1.12 : 0.89))); re(); }, { passive: false });
+    $('pr3d').addEventListener('dblclick', () => { yaw = 0.7; pitch = 0.62; zoom = 1; re(); });
+  })();
   // ---- realtime cursor (live RPM x TPS from the gauge) ----
   let rtOn = false, lastRC = -1;
   function toggleRT() { rtOn = !rtOn; $('prRT').classList.toggle('on', rtOn); if (!rtOn) { $('prCursor').hidden = true; lastRC = -1; } else if (!S.live || S.live.rpm == null) toast('เปิดเรียลไทม์แล้ว — ต่อบลูทูธเกจเพื่อให้เคอร์เซอร์วิ่ง'); }
