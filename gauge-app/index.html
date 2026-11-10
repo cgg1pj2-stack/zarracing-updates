@@ -481,7 +481,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
-    <span class="ver" id="appVer">v34</span>
+    <span class="ver" id="appVer">v35</span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -2342,7 +2342,7 @@ function shDetectECU(bin) {
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'v34'; } catch (e) {}
+  try { $('appVer').textContent = 'v35'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
@@ -2386,6 +2386,8 @@ function shDetectECU(bin) {
   const TN = { man: null, inited: false, model: null, orig: null, work: null, xdf: null, mode: 'easy',
     fuelT: null, ignT: null, revTs: [], proT: null, sel: new Set(), adj: 'pct', undo: [], ez: null, _ownName: '', sideView: 'lib' };
   const GRP = { gear: 'เกียร์', auto: 'ออโต้', crf: 'CRF' };
+  // model list embedded so the library shows instantly — no network wait (BIN/XDF still load when a model is picked)
+  const LIB_MANIFEST = {"models":[{"code":"K03-H01","name":"Wave 110i 2014-2017","group":"gear","sizeKb":64,"bin":"lib/K03-H01/base.bin","xdf":"lib/K03-H01/def.xdf"},{"code":"K03-T61","name":"Wave 110i 2014 (48K)","group":"gear","sizeKb":48,"bin":"lib/K03-T61/base.bin","xdf":"lib/K03-T61/def.xdf"},{"code":"K2J-TH1","name":"Wave 110i 2024","group":"gear","sizeKb":64,"bin":"lib/K2J-TH1/base.bin","xdf":"lib/K2J-TH1/def.xdf"},{"code":"K3F-T01","name":"Wave 125i LED 2023","group":"gear","sizeKb":64,"bin":"lib/K3F-T01/base.bin","xdf":"lib/K3F-T01/def.xdf"},{"code":"K1ZT-TC1","name":"PCX160 2025 ABS","group":"auto","sizeKb":384,"bin":"lib/K1ZT-TC1/base.bin","xdf":"lib/K1ZT-TC1/def.xdf"},{"code":"K1ZT-TF1","name":"PCX160 2025 CBS","group":"auto","sizeKb":384,"bin":"lib/K1ZT-TF1/base.bin","xdf":"lib/K1ZT-TF1/def.xdf"},{"code":"K0WF-T01","name":"ADV150 2017-2019","group":"auto","sizeKb":384,"bin":"lib/K0WF-T01/base.bin","xdf":"lib/K0WF-T01/def.xdf"},{"code":"K20J-T21","name":"Zoomer-X 2015-2017","group":"auto","sizeKb":256,"bin":"lib/K20J-T21/base.bin","xdf":"lib/K20J-T21/def.xdf"},{"code":"K59K-T11","name":"Click150i 2018-2020","group":"auto","sizeKb":384,"bin":"lib/K59K-T11/base.bin","xdf":"lib/K59K-T11/def.xdf"},{"code":"K60F-T01","name":"Click125i 2014-2015","group":"auto","sizeKb":384,"bin":"lib/K60F-T01/base.bin","xdf":"lib/K60F-T01/def.xdf"},{"code":"K60S-T71","name":"Click125i 2016-2017","group":"auto","sizeKb":384,"bin":"lib/K60S-T71/base.bin","xdf":"lib/K60S-T71/def.xdf"},{"code":"K1T-T01","name":"CRF (96K) K1T-T01","group":"crf","sizeKb":96,"bin":"lib/K1T-T01/base.bin","xdf":"lib/K1T-T01/def.xdf"},{"code":"KZZJ-J01","name":"CRF (96K) KZZJ-J01","group":"crf","sizeKb":96,"bin":"lib/KZZJ-J01/base.bin","xdf":"lib/KZZJ-J01/def.xdf"},{"code":"K33-951","name":"CBR300F","group":"crf","sizeKb":128,"bin":"lib/K33-951/base.bin","xdf":"lib/K33-951/def.xdf"},{"code":"KZZ-902","name":"CRF250 KZZ-902","group":"crf","sizeKb":128,"bin":"lib/KZZ-902/base.bin","xdf":"lib/KZZ-902/def.xdf"},{"code":"KZZ-903","name":"CRF250 KZZ-903","group":"crf","sizeKb":128,"bin":"lib/KZZ-903/base.bin","xdf":"lib/KZZ-903/def.xdf"},{"code":"KZZ-A22","name":"CRF250 KZZ-A22","group":"crf","sizeKb":128,"bin":"lib/KZZ-A22/base.bin","xdf":"lib/KZZ-A22/def.xdf"}]};
   let toastT = null;
   function toast(msg) { let el = $('tnToast'); if (!el) { el = document.createElement('div'); el.id = 'tnToast'; el.className = 'tn-toast'; document.body.appendChild(el); } el.textContent = msg; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2200); }
   // table categories for the XDF-style tree (label, colour, matcher)
@@ -2402,19 +2404,11 @@ function shDetectECU(bin) {
     const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), ms || 12000);
     try { return await fetch(url, { signal: ctl.signal }); } finally { clearTimeout(to); }
   }
-  async function loadManifest() {
-    $('tnLib').innerHTML = '<div class="tn-empty">กำลังโหลดคลัง…</div>';
-    try {
-      const r = await fetchTimeout('lib/manifest.json?v=33', 12000);
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      TN.man = await r.json(); renderLib($('tnSearch') ? $('tnSearch').value : '');
-    } catch (e) {
-      const box = $('tnLib'); box.innerHTML = '';
-      const d = document.createElement('div'); d.className = 'tn-empty';
-      d.textContent = 'โหลดคลังไม่ได้ (' + (e.name === 'AbortError' ? 'เน็ตช้า/หมดเวลา' : e.message) + ') — ครั้งแรกต้องมีเน็ต';
-      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'tn-rb'; btn.textContent = '↻ ลองใหม่'; btn.style.marginTop = '8px';
-      btn.addEventListener('click', loadManifest); box.appendChild(d); box.appendChild(btn);
-    }
+  function loadManifest() {
+    TN.man = LIB_MANIFEST;                                   // instant — list is embedded in the app, no fetch
+    renderLib($('tnSearch') ? $('tnSearch').value : '');
+    // best-effort refresh in the background so a newer list (if we ship one) is picked up without blocking
+    fetchTimeout('lib/manifest.json?v=34', 8000).then(r => r.ok ? r.json() : null).then(m => { if (m && m.models && m.models.length) { TN.man = m; renderLib($('tnSearch') ? $('tnSearch').value : ''); } }).catch(() => {});
   }
   window.tuneInit = async function () {
     if (TN.inited) return; TN.inited = true;
