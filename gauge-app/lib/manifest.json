@@ -1,0 +1,175 @@
+{
+ "generated": "2026-11-11",
+ "models": [
+  {
+   "code": "K03-H01",
+   "name": "Wave 110i 2014-2017",
+   "group": "gear",
+   "sizeKb": 64,
+   "tables": 35,
+   "flags": 5,
+   "bin": "lib/K03-H01/base.bin",
+   "xdf": "lib/K03-H01/def.xdf"
+  },
+  {
+   "code": "K03-T61",
+   "name": "Wave 110i 2014 (48K)",
+   "group": "gear",
+   "sizeKb": 48,
+   "tables": 36,
+   "flags": 2,
+   "bin": "lib/K03-T61/base.bin",
+   "xdf": "lib/K03-T61/def.xdf"
+  },
+  {
+   "code": "K2J-TH1",
+   "name": "Wave 110i 2024",
+   "group": "gear",
+   "sizeKb": 64,
+   "tables": 32,
+   "flags": 3,
+   "bin": "lib/K2J-TH1/base.bin",
+   "xdf": "lib/K2J-TH1/def.xdf"
+  },
+  {
+   "code": "K3F-T01",
+   "name": "Wave 125i LED 2023",
+   "group": "gear",
+   "sizeKb": 64,
+   "tables": 17,
+   "flags": 5,
+   "bin": "lib/K3F-T01/base.bin",
+   "xdf": "lib/K3F-T01/def.xdf"
+  },
+  {
+   "code": "K1ZT-TC1",
+   "name": "PCX160 2025 ABS",
+   "group": "auto",
+   "sizeKb": 384,
+   "tables": 34,
+   "flags": 12,
+   "bin": "lib/K1ZT-TC1/base.bin",
+   "xdf": "lib/K1ZT-TC1/def.xdf"
+  },
+  {
+   "code": "K1ZT-TF1",
+   "name": "PCX160 2025 CBS",
+   "group": "auto",
+   "sizeKb": 384,
+   "tables": 35,
+   "flags": 17,
+   "bin": "lib/K1ZT-TF1/base.bin",
+   "xdf": "lib/K1ZT-TF1/def.xdf"
+  },
+  {
+   "code": "K0WF-T01",
+   "name": "ADV150 2017-2019",
+   "group": "auto",
+   "sizeKb": 384,
+   "tables": 17,
+   "flags": 15,
+   "bin": "lib/K0WF-T01/base.bin",
+   "xdf": "lib/K0WF-T01/def.xdf"
+  },
+  {
+   "code": "K20J-T21",
+   "name": "Zoomer-X 2015-2017",
+   "group": "auto",
+   "sizeKb": 256,
+   "tables": 19,
+   "flags": 11,
+   "bin": "lib/K20J-T21/base.bin",
+   "xdf": "lib/K20J-T21/def.xdf"
+  },
+  {
+   "code": "K59K-T11",
+   "name": "Click150i 2018-2020",
+   "group": "auto",
+   "sizeKb": 384,
+   "tables": 25,
+   "flags": 14,
+   "bin": "lib/K59K-T11/base.bin",
+   "xdf": "lib/K59K-T11/def.xdf"
+  },
+  {
+   "code": "K60F-T01",
+   "name": "Click125i 2014-2015",
+   "group": "auto",
+   "sizeKb": 384,
+   "tables": 15,
+   "flags": 11,
+   "bin": "lib/K60F-T01/base.bin",
+   "xdf": "lib/K60F-T01/def.xdf"
+  },
+  {
+   "code": "K60S-T71",
+   "name": "Click125i 2016-2017",
+   "group": "auto",
+   "sizeKb": 384,
+   "tables": 21,
+   "flags": 14,
+   "bin": "lib/K60S-T71/base.bin",
+   "xdf": "lib/K60S-T71/def.xdf"
+  },
+  {
+   "code": "K1T-T01",
+   "name": "CRF (96K) K1T-T01",
+   "group": "crf",
+   "sizeKb": 96,
+   "tables": 32,
+   "flags": 0,
+   "bin": "lib/K1T-T01/base.bin",
+   "xdf": "lib/K1T-T01/def.xdf"
+  },
+  {
+   "code": "KZZJ-J01",
+   "name": "CRF (96K) KZZJ-J01",
+   "group": "crf",
+   "sizeKb": 96,
+   "tables": 33,
+   "flags": 0,
+   "bin": "lib/KZZJ-J01/base.bin",
+   "xdf": "lib/KZZJ-J01/def.xdf"
+  },
+  {
+   "code": "K33-951",
+   "name": "CBR300F",
+   "group": "crf",
+   "sizeKb": 128,
+   "tables": 32,
+   "flags": 0,
+   "bin": "lib/K33-951/base.bin",
+   "xdf": "lib/K33-951/def.xdf"
+  },
+  {
+   "code": "KZZ-902",
+   "name": "CRF250 KZZ-902",
+   "group": "crf",
+   "sizeKb": 128,
+   "tables": 29,
+   "flags": 0,
+   "bin": "lib/KZZ-902/base.bin",
+   "xdf": "lib/KZZ-902/def.xdf"
+  },
+  {
+   "code": "KZZ-903",
+   "name": "CRF250 KZZ-903",
+   "group": "crf",
+   "sizeKb": 128,
+   "tables": 30,
+   "flags": 0,
+   "bin": "lib/KZZ-903/base.bin",
+   "xdf": "lib/KZZ-903/def.xdf"
+  },
+  {
+   "code": "KZZ-A22",
+   "name": "CRF250 KZZ-A22",
+   "group": "crf",
+   "sizeKb": 128,
+   "tables": 30,
+   "flags": 0,
+   "bin": "lib/KZZ-A22/base.bin",
+   "xdf": "lib/KZZ-A22/def.xdf"
+  }
+ ]
+}

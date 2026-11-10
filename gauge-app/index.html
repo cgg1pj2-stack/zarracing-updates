@@ -327,6 +327,89 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
   .tach canvas { max-height: calc(100dvh - 92px); }
 }
 @media (prefers-reduced-motion: reduce) { .meter i { transition: none; } }
+
+/* ---- tune tab (ZAR TUNE) ---- */
+.tnwrap { display: grid; gap: 10px; }
+.tn-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--tile); border: 1.5px solid rgba(var(--acc-rgb), .85); border-radius: 10px; padding: 10px 14px; }
+.tn-head { display: flex; align-items: center; gap: 8px; font-family: var(--f-num); font-style: italic; font-weight: 800; font-size: 20px; letter-spacing: 1px; }
+.tn-head svg { width: 20px; height: 20px; color: var(--acc); filter: drop-shadow(0 0 6px var(--glow)); }
+.tn-modes { display: inline-flex; gap: 3px; background: rgba(4,6,9,.9); border: 1px solid var(--line); border-radius: 8px; padding: 3px; }
+.tn-mode { background: none; border: 0; padding: 7px 16px; border-radius: 6px; font-family: var(--f-num); font-weight: 800; font-style: italic; font-size: 16px; color: var(--muted); }
+.tn-mode.on { background: rgba(var(--acc-rgb), .22); color: var(--fg); box-shadow: 0 0 10px -2px var(--glow); }
+.tn-file { margin-left: auto; text-align: right; line-height: 1.25; }
+.tn-file b { display: block; font-family: var(--f-num); font-weight: 800; font-size: 18px; }
+.tn-file span { font-size: 12px; color: var(--muted); }
+.tn-edits { font-size: 13px; color: var(--amber); border: 1px solid #5a4a1e; background: rgba(255,176,32,.08); border-radius: 8px; padding: 6px 10px; }
+.tn-edits b { font-family: var(--f-num); font-size: 16px; }
+.tn-grid { display: grid; grid-template-columns: 250px 1fr; gap: 10px; align-items: start; }
+@media (max-width: 820px) { .tn-grid { grid-template-columns: 1fr; } }
+.tn-side { background: var(--tile); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.tn-sec { font-family: var(--f-num); font-style: italic; font-weight: 800; letter-spacing: 1px; font-size: 15px; color: var(--muted); margin-bottom: 8px; }
+.tn-search { width: 100%; background: rgba(4,6,9,.9); border: 1px solid var(--line); border-radius: 7px; color: var(--fg); padding: 8px 10px; font: inherit; font-size: 14px; margin-bottom: 8px; }
+.tn-lib { display: grid; gap: 5px; max-height: 360px; overflow: auto; }
+.tn-grp { font-size: 11px; letter-spacing: 1px; color: var(--muted); margin: 8px 2px 2px; text-transform: uppercase; }
+.tn-m { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; text-align: left; background: rgba(6,9,13,.6); border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; color: var(--fg); }
+.tn-m:hover { border-color: rgba(var(--acc-rgb), .6); }
+.tn-m.on { border-color: var(--acc); background: rgba(var(--acc-rgb), .14); box-shadow: 0 0 10px -3px var(--glow); }
+.tn-m b { font-family: var(--f-num); font-weight: 800; font-size: 16px; }
+.tn-m small { display: block; color: var(--muted); font-size: 11.5px; }
+.tn-m i { font-family: var(--f-num); font-size: 13px; color: var(--muted); font-style: normal; flex: none; }
+.tn-empty { color: var(--muted); font-size: 13px; padding: 8px; }
+.tn-own { display: flex; align-items: center; gap: 8px; margin-top: 10px; border: 1px dashed rgba(var(--acc-rgb), .5); border-radius: 7px; padding: 9px 10px; font-size: 13px; color: var(--muted); }
+.tn-own svg { width: 16px; height: 16px; }
+.tn-ownmsg { margin-top: 6px; font-size: 12px; color: var(--amber); }
+.tn-main { min-height: 300px; }
+.tn-pick { display: grid; place-items: center; min-height: 320px; background: var(--tile); border: 1px dashed var(--line); border-radius: 10px; }
+.tn-pick-in { text-align: center; color: var(--muted); display: grid; gap: 6px; justify-items: center; padding: 20px; }
+.tn-pick-in svg { width: 46px; height: 46px; color: rgba(var(--acc-rgb), .5); }
+.tn-pick-in b { font-family: var(--f-num); font-size: 20px; color: var(--fg); }
+.tn-pick-in span { font-size: 13px; }
+.tn-note { margin: 0 0 10px; font-size: 13px; color: var(--muted); border-left: 3px solid var(--acc); padding: 6px 10px; background: rgba(var(--acc-rgb),.06); }
+.tn-block { background: var(--tile); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+.tn-bh { display: flex; align-items: center; gap: 8px; font-family: var(--f-num); font-style: italic; font-weight: 800; font-size: 18px; margin-bottom: 8px; }
+.tn-bh svg { width: 18px; height: 18px; color: var(--acc); }
+.tn-sl { display: grid; grid-template-columns: 1fr 140px 56px; align-items: center; gap: 10px; padding: 6px 0; }
+.tn-sl > span { font-size: 14px; color: var(--muted); }
+.tn-sl input[type=range] { width: 100%; accent-color: var(--acc); }
+.tn-sl > b { font-family: var(--f-num); font-weight: 800; font-size: 18px; text-align: right; }
+.tn-sl.hot > b { color: var(--acc); text-shadow: 0 0 8px var(--glow); }
+@media (max-width: 560px) { .tn-sl { grid-template-columns: 1fr 44px; } .tn-sl input[type=range] { grid-column: 1/-1; order: 3; } }
+.tn-rev { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tn-rev > span { font-size: 14px; color: var(--muted); }
+.tn-rev > b { font-family: var(--f-num); font-weight: 800; font-size: 22px; color: var(--acc); margin-left: auto; }
+.tn-revbtns { display: inline-flex; gap: 5px; flex-wrap: wrap; }
+.tn-rb { background: rgba(6,9,13,.7); border: 1px solid var(--line); border-radius: 6px; color: var(--fg); padding: 5px 10px; font-family: var(--f-num); font-weight: 700; font-size: 14px; }
+.tn-rb.on { border-color: var(--acc); background: rgba(var(--acc-rgb), .2); }
+#ezRev { width: 100%; accent-color: var(--acc); margin-top: 8px; }
+.tn-revrow { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.tn-revrow span { font-family: var(--f-num); font-size: 16px; }
+.tn-chip { background: rgba(6,9,13,.7); border: 1px solid var(--line); border-radius: 6px; color: var(--muted); padding: 5px 10px; font-size: 12.5px; }
+.tn-chip:hover { color: var(--fg); border-color: rgba(var(--acc-rgb),.6); }
+.tn-send { width: 100%; justify-content: center; border-color: rgba(var(--acc-rgb), .9); background: rgba(var(--acc-rgb), .16); font-family: var(--f-num); font-style: italic; font-weight: 800; font-size: 20px; letter-spacing: 1px; padding: 12px; display: inline-flex; align-items: center; gap: 8px; }
+.tn-send svg { width: 20px; height: 20px; }
+.tn-send:disabled { opacity: .4; }
+.tn-pro-top { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.tn-tsel { flex: 1; min-width: 180px; background: rgba(4,6,9,.9); border: 1px solid var(--line); border-radius: 7px; color: var(--fg); padding: 8px 10px; font: inherit; font-size: 14px; }
+.tn-adj { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.tn-adjmode { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.tn-adjmode button { background: rgba(6,9,13,.7); border: 0; color: var(--muted); padding: 7px 11px; font-family: var(--f-num); font-weight: 800; font-size: 15px; }
+.tn-adjmode button.on { background: rgba(var(--acc-rgb), .22); color: var(--fg); }
+.tn-quick { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.tn-q { background: rgba(6,9,13,.7); border: 1px solid var(--line); border-radius: 6px; color: var(--fg); padding: 6px 9px; font-family: var(--f-num); font-weight: 700; font-size: 13.5px; }
+.tn-q:hover { border-color: var(--acc); }
+.tn-num { width: 74px; background: rgba(4,6,9,.9); border: 1px solid var(--line); border-radius: 6px; color: var(--fg); padding: 7px 8px; font: inherit; }
+.tn-apply { background: rgba(var(--acc-rgb), .2); border: 1px solid var(--acc); border-radius: 6px; color: var(--fg); padding: 7px 12px; font-family: var(--f-num); font-weight: 800; }
+.tn-selinfo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.tn-cmp { display: inline-flex; align-items: center; gap: 5px; }
+.tn-tablewrap { overflow: auto; border: 1px solid var(--line); border-radius: 8px; max-height: 60vh; -webkit-overflow-scrolling: touch; }
+.tn-table { border-collapse: collapse; font-family: var(--f-num); font-size: 13px; }
+.tn-table th { position: sticky; background: #0b0e13; color: var(--muted); font-weight: 700; padding: 4px 6px; border: 1px solid #1b1e25; font-size: 11px; white-space: nowrap; z-index: 1; }
+.tn-table th.corner { left: 0; top: 0; z-index: 3; }
+.tn-table thead th { top: 0; z-index: 2; }
+.tn-table tbody th { left: 0; z-index: 1; }
+.tn-table td { padding: 3px 7px; border: 1px solid #14171d; text-align: right; color: #e9edf4; cursor: cell; min-width: 42px; font-variant-numeric: tabular-nums; position: relative; user-select: none; }
+.tn-table td.sel { outline: 2px solid var(--acc); outline-offset: -2px; }
+.tn-table td.chg::after { content: ''; position: absolute; top: 0; right: 0; border: 5px solid transparent; border-top-color: var(--red); border-right-color: var(--red); }
 </style>
 </head>
 <body>
@@ -381,6 +464,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       <button class="tab" role="tab" id="tGauge" aria-selected="true" type="button">GAUGE</button>
       <button class="tab" role="tab" id="tDrag" aria-selected="false" type="button">DRAG LOG</button>
       <button class="tab" role="tab" id="tLog" aria-selected="false" type="button">DATA LOG</button>
+      <button class="tab" role="tab" id="tTune" aria-selected="false" type="button">จูน</button>
       <button class="tab" role="tab" id="tRemap" aria-selected="false" type="button">อัดรีแมพ</button>
     </div>
     <div class="shift" id="shift" aria-hidden="true"></div>
@@ -453,6 +537,79 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
         <div class="tile legend" id="lgLegend"></div>
         <p class="empty" id="lgNote">เกจเก็บค่าเฉลี่ย A/F · IGN · INJ ลงตาราง RPM × TPS ตลอดเวลาที่ขี่ (แม้ไม่ได้ต่อมือถือ) · ต่อบลูทูธแล้วตารางจะดึงมาแสดงที่นี่ · แตะช่องเพื่อดูรายละเอียด</p>
       </div>
+    </div>
+  </section>
+
+  <section id="vTune" hidden>
+    <div class="tnwrap">
+      <div class="tn-bar">
+        <div class="tn-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>ตารางจูน · ZAR TUNE</div>
+        <div class="tn-modes" id="tnModes">
+          <button class="tn-mode on" data-md="easy" type="button">มือใหม่</button>
+          <button class="tn-mode" data-md="pro" type="button">ตารางโปร</button>
+        </div>
+        <div class="tn-file"><b id="tnModelName">ยังไม่ได้เลือกรุ่น</b><span id="tnModelSub">เลือกจากคลัง หรือเปิดไฟล์เอง</span></div>
+        <div class="tn-edits" id="tnEdits" hidden>แก้แล้ว <b id="tnBytes">0</b> ไบต์ · ยังไม่ส่ง</div>
+      </div>
+
+      <div class="tn-grid">
+        <aside class="tn-side">
+          <div class="tn-sec">คลังรุ่น · BIN + XDF</div>
+          <input class="tn-search" id="tnSearch" type="search" placeholder="ค้นหารุ่น เช่น K03, PCX, CRF" autocomplete="off">
+          <div class="tn-lib" id="tnLib"><div class="tn-empty">กำลังโหลดคลัง…</div></div>
+          <label class="tn-own" for="tnBin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>เปิดไฟล์เอง (.bin + .xdf)</label>
+          <input type="file" id="tnBin" accept=".bin" hidden>
+          <input type="file" id="tnXdf" accept=".xdf" hidden>
+          <div class="tn-ownmsg" id="tnOwnMsg" hidden></div>
+        </aside>
+
+        <main class="tn-main">
+          <div class="tn-pick" id="tnPick">
+            <div class="tn-pick-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><b>เลือกรุ่นจากคลังด้านซ้าย</b><span>แล้วเลือกโหมด มือใหม่ (สไลเดอร์) หรือ ตารางโปร</span></div>
+          </div>
+
+          <!-- EASY MODE -->
+          <div class="tn-easy" id="tnEasy" hidden>
+            <p class="tn-note">สไลเดอร์ปรับจากไฟล์เดิมของรุ่นนี้ · แก้เสร็จกด "สร้างไฟล์ → ส่งไปอัด"</p>
+            <div class="tn-block" id="ezFuelBlock">
+              <div class="tn-bh"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c3 4 6 7 6 11a6 6 0 0 1-12 0c0-4 3-7 6-11z"/></svg>น้ำมัน (เพิ่ม-ลด %)</div>
+              <div class="tn-sl" data-band="lo" data-kind="fuel"><span>รอบต้น / ออกตัว</span><input type="range" min="-20" max="20" value="0" step="1"><b>0%</b></div>
+              <div class="tn-sl" data-band="mid" data-kind="fuel"><span>รอบกลาง / เร่งแซง</span><input type="range" min="-20" max="20" value="0" step="1"><b>0%</b></div>
+              <div class="tn-sl" data-band="hi" data-kind="fuel"><span>รอบท้าย / ปลายจัด</span><input type="range" min="-20" max="20" value="0" step="1"><b>0%</b></div>
+            </div>
+            <div class="tn-block" id="ezIgnBlock">
+              <div class="tn-bh"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>องศาไฟ (เพิ่ม-ลด °)</div>
+              <div class="tn-sl" data-band="lo" data-kind="ign"><span>รอบต้น / ออกตัว</span><input type="range" min="-5" max="5" value="0" step="0.5"><b>0°</b></div>
+              <div class="tn-sl" data-band="mid" data-kind="ign"><span>รอบกลาง / เร่งแซง</span><input type="range" min="-5" max="5" value="0" step="0.5"><b>0°</b></div>
+              <div class="tn-sl" data-band="hi" data-kind="ign"><span>รอบท้าย / ปลายจัด</span><input type="range" min="-5" max="5" value="0" step="0.5"><b>0°</b></div>
+            </div>
+            <div class="tn-block" id="ezRevBlock">
+              <div class="tn-bh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>รอบตัด / ปลดรอบ</div>
+              <div class="tn-rev"><span>ตั้งรอบตัด</span><div class="tn-revbtns" id="ezRevBtns"></div><b id="ezRevNow">—</b></div>
+              <input type="range" id="ezRev" min="7000" max="14000" value="9000" step="100">
+              <div class="tn-revrow"><span id="ezRevVal">9000 รอบ</span><button class="tn-chip" id="ezRevReset" type="button">คืนค่าเดิม</button></div>
+            </div>
+            <button class="btn tn-send" id="ezSend" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>สร้างไฟล์ → ส่งไปอัด</button>
+          </div>
+
+          <!-- PRO MODE -->
+          <div class="tn-pro" id="tnPro" hidden>
+            <div class="tn-pro-top">
+              <select class="tn-tsel" id="prTable"></select>
+              <div class="tn-adj">
+                <div class="tn-adjmode" id="prAdjMode"><button class="on" data-a="pct" type="button">%</button><button data-a="add" type="button">+/-</button><button data-a="set" type="button">=</button></div>
+                <div class="tn-quick" id="prQuick"></div>
+                <input class="tn-num" id="prNum" type="number" step="any" placeholder="ค่า" inputmode="decimal">
+                <button class="tn-apply" id="prApply" type="button">ใส่ค่า</button>
+              </div>
+            </div>
+            <div class="tn-selinfo"><span id="prSel">ยังไม่ได้เลือกช่อง</span><label class="tn-cmp"><input type="checkbox" id="prCmp">เทียบไฟล์เดิม</label><button class="tn-chip" id="prUndo" type="button">ย้อนกลับ</button><button class="tn-chip" id="prResetT" type="button">คืนตารางนี้</button></div>
+            <div class="tn-tablewrap"><table class="tn-table" id="prGrid"></table></div>
+            <button class="btn tn-send" id="prSend" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>ส่งไปอัด</button>
+          </div>
+        </main>
+      </div>
+      <p class="rwarn">⚠️ ไฟล์ที่แก้จะเขียนทับทั้งกล่อง — ส่งไปอัดแล้วระบบจะคิด checksum และเช็ครุ่นให้ที่แท็บ "อัดรีแมพ" ก่อนอัดจริง · อัดเฉพาะไฟล์ที่ตรงรุ่น/ขนาดกับกล่อง</p>
     </div>
   </section>
 
@@ -2087,16 +2244,18 @@ function shDetectECU(bin) {
     try { if (!document.fullscreenElement) { await document.documentElement.requestFullscreen(); try { await screen.orientation.lock('landscape'); } catch (e) {} } else await document.exitFullscreen(); } catch (e) {}
   });
   function show(tab) {
-    const v = { gauge: 'vGauge', drag: 'vDrag', log: 'vLog', remap: 'vRemap' }, t = { gauge: 'tGauge', drag: 'tDrag', log: 'tLog', remap: 'tRemap' };
+    const v = { gauge: 'vGauge', drag: 'vDrag', log: 'vLog', tune: 'vTune', remap: 'vRemap' }, t = { gauge: 'tGauge', drag: 'tDrag', log: 'tLog', tune: 'tTune', remap: 'tRemap' };
     if (!v[tab]) tab = 'gauge';
     for (const k in v) { $(v[k]).hidden = k !== tab; $(t[k]).setAttribute('aria-selected', k === tab); }
     store.set('zar.tab', tab);
     if (tab === 'log') lgPaintCursor(true);
     if (tab === 'remap') rmSetState();
+    if (tab === 'tune' && window.tuneInit) window.tuneInit();
   }
   $('tGauge').addEventListener('click', () => show('gauge'));
   $('tDrag').addEventListener('click', () => show('drag'));
   $('tLog').addEventListener('click', () => show('log'));
+  $('tTune').addEventListener('click', () => show('tune'));
   $('tRemap').addEventListener('click', () => show('remap'));
   show(store.get('zar.tab', 'gauge'));
 
@@ -2107,6 +2266,248 @@ function shDetectECU(bin) {
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
+
+  // ================= ZAR TUNE (table editor + beginner mode) =================
+  // Thai in these XDFs is cp874 bytes stored as &#NNN; -> after XML parse each is a <256 code unit.
+  const thaiFix = s => { if (!s) return ''; let o = ''; for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); o += (c >= 0xA1 && c <= 0xFB) ? String.fromCharCode(0x0E00 + (c - 0xA0)) : s[i]; } return o; };
+  const tnum = (v, d) => { if (v == null || v === '') return d || 0; v = String(v).trim(); const n = /^0x/i.test(v) ? parseInt(v, 16) : parseFloat(v); return isNaN(n) ? (d || 0) : n; };
+  function compileEq(eq) {
+    const src = eq || 'X';
+    let fwd; try { fwd = new Function('x', 'return (' + src.replace(/\s+/g, '').replace(/X/gi, '(x)') + ');'); fwd(1); } catch (e) { fwd = x => x; }
+    const b = fwd(0), a = fwd(1) - b, lin = Math.abs((fwd(2) - b) - 2 * a) < 1e-6 && Math.abs(a) > 1e-12;
+    const inv = y => { if (lin) return (y - b) / a; let x0 = 0, x1 = 1e4, f0 = fwd(0) - y, f1 = fwd(x1) - y, it = 0; while (Math.abs(f1) > 1e-6 && it++ < 60 && f1 !== f0) { const x2 = x1 - f1 * (x1 - x0) / (f1 - f0); x0 = x1; f0 = f1; x1 = x2; f1 = fwd(x1) - y; } return x1; };
+    return { fwd, inv };
+  }
+  const _ct = (node, tag) => { const el = node.getElementsByTagName(tag); for (let i = 0; i < el.length; i++) if (el[i].parentNode === node) return el[i].textContent; return ''; };
+  const _ca = (node, tag) => { const el = node.getElementsByTagName(tag); for (let i = 0; i < el.length; i++) if (el[i].parentNode === node) { const a = {}, at = el[i].attributes; for (let j = 0; j < at.length; j++) a[at[j].name] = at[j].value; return a; } return null; };
+  function parseXdf(text) {
+    const doc = new DOMParser().parseFromString(text, 'text/xml');
+    const root = doc.getElementsByTagName('XDFFORMAT')[0]; if (!root) throw new Error('XDF format not found');
+    const tables = [], byId = {};
+    const ts = root.getElementsByTagName('XDFTABLE');
+    for (let i = 0; i < ts.length; i++) {
+      const t = ts[i], o = { id: t.getAttribute('uniqueid'), title: thaiFix(_ct(t, 'title')), ax: {} };
+      const ax = t.getElementsByTagName('XDFAXIS');
+      for (let k = 0; k < ax.length; k++) { const a = ax[k], e = _ca(a, 'EMBEDDEDDATA'), m = a.getElementsByTagName('MATH')[0], ei = _ca(a, 'embedinfo'); const labels = [], ls = a.getElementsByTagName('LABEL'); for (let j = 0; j < ls.length; j++) labels.push(Number(ls[j].getAttribute('value'))); o.ax[a.getAttribute('id')] = { eq: m ? m.getAttribute('equation') : null, e, embed: ei, labels }; }
+      tables.push(o); byId[o.id] = o;
+    }
+    return { tables, byId };
+  }
+  function geom(t) {
+    const z = t.ax.z || t.ax.Z; if (!z || !z.e) return null; const e = z.e;
+    const esz = tnum(e.mmedelementsizebits, 16) || 16, flags = tnum(e.mmedtypeflags, 0), bytes = esz / 8;
+    const minor = (tnum(e.mmedminorstridebits, 0) / 8) || bytes, cc = tnum(e.mmedcolcount, 1) || 1;
+    return { addr: tnum(e.mmedaddress, 0), esz, bytes, rc: tnum(e.mmedrowcount, 1) || 1, cc, signed: !!(flags & 1), le: !(flags & 4), minor, major: (tnum(e.mmedmajorstridebits, 0) / 8) || cc * minor, eq: z.eq };
+  }
+  const coff = (g, r, c) => g.addr + r * g.major + c * g.minor;
+  function rawAt(buf, g, o) { if (g.bytes === 1) { let v = buf[o]; return g.signed && v > 127 ? v - 256 : v; } let v = g.le ? buf[o] | (buf[o + 1] << 8) : (buf[o] << 8) | buf[o + 1]; if (g.signed && v > 32767) v -= 65536; return v; }
+  function setRaw(buf, g, o, raw) { raw = Math.round(raw); if (g.bytes === 1) { if (raw < 0) raw += 256; buf[o] = raw & 0xFF; return; } if (raw < 0) raw += 65536; raw &= 0xFFFF; if (g.le) { buf[o] = raw & 0xFF; buf[o + 1] = (raw >> 8) & 0xFF; } else { buf[o] = (raw >> 8) & 0xFF; buf[o + 1] = raw & 0xFF; } }
+
+  const TN = { man: null, inited: false, model: null, orig: null, work: null, xdf: null, mode: 'easy',
+    fuelT: null, ignT: null, revTs: [], proT: null, sel: new Set(), adj: 'pct', undo: [], ez: null, _ownName: '' };
+  const GRP = { gear: 'เกียร์', auto: 'ออโต้', crf: 'CRF' };
+
+  window.tuneInit = async function () {
+    if (TN.inited) return; TN.inited = true;
+    try { const r = await fetch('lib/manifest.json', { cache: 'no-cache' }); TN.man = await r.json(); }
+    catch (e) { $('tnLib').innerHTML = '<div class="tn-empty">โหลดคลังไม่ได้ (' + e.message + ')</div>'; return; }
+    renderLib('');
+    $('tnSearch').addEventListener('input', e => renderLib(e.target.value));
+    document.querySelectorAll('#tnModes .tn-mode').forEach(b => b.addEventListener('click', () => setMode(b.dataset.md)));
+    $('tnBin').addEventListener('change', onOwnBin); $('tnXdf').addEventListener('change', onOwnXdf);
+    bindEasy(); bindPro();
+  };
+  function renderLib(q) {
+    q = (q || '').trim().toUpperCase();
+    const box = $('tnLib'); box.innerHTML = '';
+    const groups = { gear: [], auto: [], crf: [] };
+    TN.man.models.forEach(m => { if (!q || (m.code + ' ' + m.name).toUpperCase().includes(q)) (groups[m.group] || groups.gear).push(m); });
+    let any = false;
+    ['gear', 'auto', 'crf'].forEach(g => {
+      if (!groups[g].length) return; any = true;
+      const h = document.createElement('div'); h.className = 'tn-grp'; h.textContent = GRP[g] + ' · ' + groups[g].length + ' รุ่น'; box.appendChild(h);
+      groups[g].forEach(m => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'tn-m' + (TN.model && TN.model.code === m.code ? ' on' : '');
+        b.innerHTML = '<span><b>' + m.code + '</b><small>' + m.name + '</small></span><i>' + m.sizeKb + 'K</i>';
+        b.addEventListener('click', () => loadModel(m)); box.appendChild(b);
+      });
+    });
+    if (!any) box.innerHTML = '<div class="tn-empty">ไม่พบรุ่นที่ค้นหา</div>';
+  }
+  async function loadModel(m) {
+    $('tnModelName').textContent = 'กำลังโหลด ' + m.code + '…'; $('tnModelSub').textContent = m.name;
+    try {
+      const [bb, xx] = await Promise.all([fetch(m.bin, { cache: 'no-cache' }).then(r => r.arrayBuffer()), fetch(m.xdf, { cache: 'no-cache' }).then(r => r.text())]);
+      TN.orig = new Uint8Array(bb); TN.work = TN.orig.slice(); TN.xdf = parseXdf(xx); TN.model = m;
+    } catch (e) { $('tnModelName').textContent = 'โหลดรุ่นไม่ได้'; $('tnModelSub').textContent = e.message; return; }
+    TN.undo = []; afterLoad();
+    document.querySelectorAll('#tnLib .tn-m').forEach(x => x.classList.toggle('on', x.querySelector('b').textContent === m.code));
+  }
+  function is2D(t) { const g = geom(t); return g && g.rc > 1 && g.cc > 1; }
+  function afterLoad() {
+    const T = TN.xdf.tables;
+    TN.fuelT = T.find(t => is2D(t) && /น้ำมัน|Injection|inj|fuel/i.test(t.title) && !/AF|แลมด|lambda|ทอค|torque|ยก/i.test(t.title)) || null;
+    TN.ignT = T.find(t => is2D(t) && /ไฟ|Ignition|ign|องศาไฟ/i.test(t.title) && !/ดรอป|คอย|ทอค|ยก|ฉีด/i.test(t.title)) || null;
+    TN.revTs = T.filter(t => { const g = geom(t); return g && g.rc * g.cc === 2 && /ตัดรอบ|รอบตัด|REV ?LIMIT|Rev Limiter|ลิมิตรอบเครื่อง|ปลดรอบ/i.test(t.title); });
+    $('tnModelName').textContent = TN.model.code + ' · ' + TN.model.sizeKb + 'K';
+    $('tnModelSub').textContent = TN.model.name + ' · ตาราง ' + TN.xdf.tables.length;
+    $('tnPick').hidden = true; setMode(TN.mode); refreshEdits();
+  }
+  function setMode(md) {
+    TN.mode = md; document.querySelectorAll('#tnModes .tn-mode').forEach(b => b.classList.toggle('on', b.dataset.md === md));
+    const have = !!TN.model;
+    if (!have) { $('tnPick').hidden = false; $('tnEasy').hidden = true; $('tnPro').hidden = true; return; }
+    $('tnPick').hidden = true; $('tnEasy').hidden = md !== 'easy'; $('tnPro').hidden = md !== 'pro';
+    if (md === 'easy') buildEasy(); else buildPro();
+  }
+  function diffBytes() { let n = 0; const a = TN.orig, b = TN.work; if (!a) return 0; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) n++; return n; }
+  function refreshEdits() { const n = diffBytes(); const e = $('tnEdits'); e.hidden = !TN.model; $('tnBytes').textContent = n; e.style.opacity = n ? 1 : .55; }
+
+  // ---------- EASY MODE ----------
+  function bandRows(g) { const rc = g.rc, a = Math.floor(rc / 3), b = Math.floor(2 * rc / 3); return { lo: [0, a], mid: [a, b], hi: [b, rc] }; }
+  function bindEasy() {
+    document.querySelectorAll('#tnEasy .tn-sl input').forEach(inp => inp.addEventListener('input', () => { const sl = inp.closest('.tn-sl'); const unit = sl.dataset.kind === 'fuel' ? '%' : '°'; sl.querySelector('b').textContent = (inp.value > 0 ? '+' : '') + inp.value + unit; sl.classList.toggle('hot', +inp.value !== 0); applyEasy(); }));
+    $('ezRev').addEventListener('input', () => { $('ezRevVal').textContent = (+$('ezRev').value) + ' รอบ'; $('ezRevNow').textContent = (+$('ezRev').value).toLocaleString(); document.querySelectorAll('#ezRevBtns .tn-rb').forEach(x => x.classList.toggle('on', +x.dataset.rpm === +$('ezRev').value)); applyEasy(); });
+    $('ezRevReset').addEventListener('click', () => { const v = TN.ez ? TN.ez.rev0 : 9000; $('ezRev').value = v; $('ezRev').dispatchEvent(new Event('input')); });
+    $('ezSend').addEventListener('click', () => sendToFlash());
+  }
+  function buildEasy() {
+    $('ezFuelBlock').hidden = !TN.fuelT; $('ezIgnBlock').hidden = !TN.ignT; $('ezRevBlock').hidden = !TN.revTs.length;
+    document.querySelectorAll('#tnEasy .tn-sl input').forEach(i => { i.value = 0; const sl = i.closest('.tn-sl'); sl.querySelector('b').textContent = '0' + (sl.dataset.kind === 'fuel' ? '%' : '°'); sl.classList.remove('hot'); });
+    let rev0 = 9000;
+    const ignCut = TN.revTs.find(t => !/น้ำมัน/i.test(t.title)) || TN.revTs[0];
+    if (ignCut) { const g = geom(ignCut), eq = compileEq(g.eq); rev0 = Math.round(eq.fwd(rawAt(TN.orig, g, coff(g, 0, 0))) / 100) * 100; }
+    if (!(rev0 >= 7000 && rev0 <= 14000)) rev0 = 9000;
+    TN.ez = { rev0 };
+    const btns = $('ezRevBtns'); btns.innerHTML = '';
+    [9000, 10000, 11000, 12000, 13000].forEach(v => { const b = document.createElement('button'); b.type = 'button'; b.className = 'tn-rb'; b.dataset.rpm = v; b.textContent = (v / 1000) + 'k'; b.addEventListener('click', () => { $('ezRev').value = v; $('ezRev').dispatchEvent(new Event('input')); }); btns.appendChild(b); });
+    $('ezRev').value = rev0; $('ezRevVal').textContent = rev0 + ' รอบ'; $('ezRevNow').textContent = rev0.toLocaleString();
+    document.querySelectorAll('#ezRevBtns .tn-rb').forEach(x => x.classList.toggle('on', +x.dataset.rpm === rev0));
+    $('tnEasy').querySelector('.tn-note').textContent = (!TN.fuelT && !TN.ignT && !TN.revTs.length)
+      ? 'รุ่นนี้ XDF เปิดอ่านได้เฉพาะบางตาราง — ลองใช้โหมดโปร'
+      : 'สไลเดอร์ปรับจากไฟล์เดิมของรุ่นนี้ · แก้เสร็จกด "สร้างไฟล์ → ส่งไปอัด"';
+    applyEasy();
+  }
+  function ezVal(kind, band) { const el = document.querySelector('#tnEasy .tn-sl[data-kind="' + kind + '"][data-band="' + band + '"] input'); return el ? +el.value : 0; }
+  function applyEasy() {
+    if (!TN.orig) return; TN.work.set(TN.orig);
+    if (TN.fuelT) { const g = geom(TN.fuelT), bd = bandRows(g); for (const band in bd) { const p = 1 + ezVal('fuel', band) / 100; if (p === 1) continue; for (let r = bd[band][0]; r < bd[band][1]; r++) for (let c = 0; c < g.cc; c++) { const o = coff(g, r, c); setRaw(TN.work, g, o, rawAt(TN.work, g, o) * p); } } }
+    if (TN.ignT) { const g = geom(TN.ignT), eq = compileEq(g.eq), bd = bandRows(g); for (const band in bd) { const d = ezVal('ign', band); if (!d) continue; for (let r = bd[band][0]; r < bd[band][1]; r++) for (let c = 0; c < g.cc; c++) { const o = coff(g, r, c); setRaw(TN.work, g, o, eq.inv(eq.fwd(rawAt(TN.work, g, o)) + d)); } } }
+    const rev = +$('ezRev').value;
+    TN.revTs.forEach(t => { const g = geom(t), eq = compileEq(g.eq); setRaw(TN.work, g, coff(g, 0, 0), eq.inv(rev)); });
+    refreshEdits();
+  }
+
+  // ---------- PRO MODE ----------
+  const QUICK = { pct: [-5, -2, -1, 1, 2, 5], add: [-5, -2, -1, 1, 2, 5] };
+  function bindPro() {
+    $('prTable').addEventListener('change', () => { TN.proT = TN.xdf.byId[$('prTable').value]; TN.sel.clear(); renderGrid(); });
+    document.querySelectorAll('#prAdjMode button').forEach(b => b.addEventListener('click', () => { TN.adj = b.dataset.a; document.querySelectorAll('#prAdjMode button').forEach(x => x.classList.toggle('on', x === b)); renderQuick(); }));
+    $('prApply').addEventListener('click', () => applyAdj(+$('prNum').value));
+    $('prCmp').addEventListener('change', renderGrid);
+    $('prUndo').addEventListener('click', () => { if (!TN.undo.length) return; TN.work.set(TN.undo.pop()); renderGrid(); refreshEdits(); });
+    $('prResetT').addEventListener('click', () => { if (!TN.proT) return; pushUndo(); const g = geom(TN.proT); for (let r = 0; r < g.rc; r++) for (let c = 0; c < g.cc; c++) { const o = coff(g, r, c); TN.work[o] = TN.orig[o]; if (g.bytes === 2) TN.work[o + 1] = TN.orig[o + 1]; } renderGrid(); refreshEdits(); });
+    $('prSend').addEventListener('click', () => sendToFlash());
+  }
+  function buildPro() {
+    const sel = $('prTable'); sel.innerHTML = '';
+    const order = t => (/น้ำมัน|Injection|fuel/i.test(t.title) ? 0 : /ไฟ|Ignition|องศาไฟ/i.test(t.title) ? 1 : /ตัดรอบ|รอบตัด|REV|Rev Limiter|ลิมิต/i.test(t.title) ? 2 : /AF|แลมด|lambda/i.test(t.title) ? 3 : 5);
+    const list = TN.xdf.tables.filter(geom).slice().sort((a, b) => order(a) - order(b));
+    const labelOf = t => { const g = geom(t); const tag = /น้ำมัน|Injection|fuel/i.test(t.title) ? '⛽ ' : /ไฟ|Ignition|องศาไฟ/i.test(t.title) ? '⚡ ' : /ตัดรอบ|รอบตัด|REV|Rev Limiter|ลิมิต/i.test(t.title) ? '⛔ ' : (g.rc > 1 && g.cc > 1) ? '▦ ' : '• '; return tag + t.title + '  (' + g.rc + '×' + g.cc + ')'; };
+    list.forEach(t => { const o = document.createElement('option'); o.value = t.id; o.textContent = labelOf(t); sel.appendChild(o); });
+    TN.proT = list[0] || null; if (TN.proT) sel.value = TN.proT.id;
+    renderQuick(); renderGrid();
+  }
+  function renderQuick() {
+    const q = $('prQuick'); q.innerHTML = ''; if (TN.adj === 'set') return;
+    QUICK[TN.adj].forEach(v => { const b = document.createElement('button'); b.className = 'tn-q'; b.type = 'button'; b.textContent = (v > 0 ? '+' : '') + v + (TN.adj === 'pct' ? '%' : ''); b.addEventListener('click', () => applyAdj(v)); q.appendChild(b); });
+  }
+  function tnFmt(v) { const a = Math.abs(v); return a === 0 ? '0' : a < 1 ? v.toFixed(3) : a < 100 ? v.toFixed(2) : Math.round(v).toString(); }
+  function axisVals(t, which) {
+    const a = t.ax[which]; if (!a) return null;
+    if (a.embed && a.embed.linkobjid) { const lt = TN.xdf.byId[a.embed.linkobjid]; if (lt) { const g = geom(lt), eq = compileEq(g.eq), out = []; const n = g.rc * g.cc; for (let i = 0; i < n; i++) out.push(eq.fwd(rawAt(TN.orig, g, coff(g, Math.floor(i / g.cc), i % g.cc)))); return out; } }
+    if (a.labels && a.labels.length) return a.labels;
+    return null;
+  }
+  function heat(t01) {
+    t01 = Math.max(0, Math.min(1, t01));
+    const stops = [[40, 110, 210], [40, 180, 120], [235, 200, 60], [220, 70, 50]];
+    const seg = t01 * 3, i = Math.min(2, Math.floor(seg)), f = seg - i, a = stops[i], b = stops[i + 1];
+    return 'rgba(' + Math.round(a[0] + (b[0] - a[0]) * f) + ',' + Math.round(a[1] + (b[1] - a[1]) * f) + ',' + Math.round(a[2] + (b[2] - a[2]) * f) + ',.26)';
+  }
+  function renderGrid() {
+    const t = TN.proT, grid = $('prGrid'); grid.innerHTML = ''; if (!t) return;
+    const g = geom(t), eq = compileEq(g.eq), cmp = $('prCmp').checked, src = cmp ? TN.orig : TN.work;
+    const xs = axisVals(t, 'x'), ys = axisVals(t, 'y');
+    let vmin = Infinity, vmax = -Infinity;
+    if (g.rc * g.cc > 2) for (let r = 0; r < g.rc; r++) for (let c = 0; c < g.cc; c++) { const v = eq.fwd(rawAt(src, g, coff(g, r, c))); if (v < vmin) vmin = v; if (v > vmax) vmax = v; }
+    const span = vmax - vmin, heatOn = span > 1e-9;
+    const thead = document.createElement('thead'), hr = document.createElement('tr');
+    const corner = document.createElement('th'); corner.className = 'corner'; corner.textContent = cmp ? 'เดิม' : 'RPM\\TPS'; hr.appendChild(corner);
+    for (let c = 0; c < g.cc; c++) { const th = document.createElement('th'); th.textContent = xs ? tnFmt(xs[c]) : c; hr.appendChild(th); }
+    thead.appendChild(hr); grid.appendChild(thead);
+    const tb = document.createElement('tbody');
+    for (let r = 0; r < g.rc; r++) {
+      const tr = document.createElement('tr'); const rh = document.createElement('th'); rh.textContent = ys ? tnFmt(ys[r]) : r; tr.appendChild(rh);
+      for (let c = 0; c < g.cc; c++) {
+        const o = coff(g, r, c), td = document.createElement('td'); td.dataset.r = r; td.dataset.c = c;
+        const ev = eq.fwd(rawAt(src, g, o)); td.textContent = tnFmt(ev);
+        if (heatOn) td.style.background = heat((ev - vmin) / span);
+        const changed = TN.work[o] !== TN.orig[o] || (g.bytes === 2 && TN.work[o + 1] !== TN.orig[o + 1]);
+        if (changed && !cmp) td.classList.add('chg');
+        if (TN.sel.has(r * g.cc + c)) td.classList.add('sel');
+        tr.appendChild(td);
+      }
+      tb.appendChild(tr);
+    }
+    grid.appendChild(tb); bindGridSel(g); updateSelInfo(g, eq);
+  }
+  let dragging = false;
+  function bindGridSel(g) {
+    const cells = $('prGrid').querySelectorAll('td');
+    const key = td => (+td.dataset.r) * g.cc + (+td.dataset.c);
+    const paint = () => cells.forEach(td => td.classList.toggle('sel', TN.sel.has(key(td))));
+    cells.forEach(td => {
+      td.addEventListener('pointerdown', e => { e.preventDefault(); dragging = true; if (!e.shiftKey && !e.ctrlKey) TN.sel.clear(); TN.sel.add(key(td)); paint(); updateSelInfo(g, compileEq(g.eq)); });
+      td.addEventListener('pointerenter', () => { if (dragging) { TN.sel.add(key(td)); paint(); } });
+    });
+  }
+  addEventListener('pointerup', () => { if (dragging) { dragging = false; if (TN.proT) { const g = geom(TN.proT); updateSelInfo(g, compileEq(g.eq)); } } });
+  function updateSelInfo(g, eq) {
+    const n = TN.sel.size; if (!n) { $('prSel').textContent = 'ยังไม่ได้เลือกช่อง'; return; }
+    let mn = Infinity, mx = -Infinity, sum = 0; TN.sel.forEach(k => { const r = Math.floor(k / g.cc), c = k % g.cc, v = eq.fwd(rawAt(TN.work, g, coff(g, r, c))); mn = Math.min(mn, v); mx = Math.max(mx, v); sum += v; });
+    $('prSel').textContent = 'เลือก ' + n + ' ช่อง · ต่ำ ' + tnFmt(mn) + ' / สูง ' + tnFmt(mx) + ' / เฉลี่ย ' + tnFmt(sum / n);
+  }
+  function pushUndo() { TN.undo.push(TN.work.slice()); if (TN.undo.length > 12) TN.undo.shift(); }
+  function applyAdj(v) {
+    if (!TN.proT || !TN.sel.size || isNaN(v)) return; pushUndo();
+    const g = geom(TN.proT), eq = compileEq(g.eq);
+    TN.sel.forEach(k => { const r = Math.floor(k / g.cc), c = k % g.cc, o = coff(g, r, c);
+      if (TN.adj === 'pct') setRaw(TN.work, g, o, rawAt(TN.work, g, o) * (1 + v / 100));
+      else if (TN.adj === 'add') setRaw(TN.work, g, o, eq.inv(eq.fwd(rawAt(TN.work, g, o)) + v));
+      else setRaw(TN.work, g, o, eq.inv(v));
+    });
+    renderGrid(); refreshEdits();
+  }
+
+  // ---------- own file ----------
+  async function onOwnBin(ev) { const f = ev.target.files && ev.target.files[0]; if (!f) return; TN.orig = new Uint8Array(await f.arrayBuffer()); TN.work = TN.orig.slice(); TN._ownName = f.name.replace(/\.bin$/i, ''); $('tnOwnMsg').hidden = false; $('tnOwnMsg').textContent = 'โหลด BIN แล้ว (' + Math.round(f.size / 1024) + 'K) — เลือกไฟล์ .xdf ของรุ่นนี้ด้วย'; $('tnXdf').click(); }
+  async function onOwnXdf(ev) { const f = ev.target.files && ev.target.files[0]; if (!f || !TN.orig) { $('tnOwnMsg').hidden = false; $('tnOwnMsg').textContent = 'เลือก .bin ก่อน แล้วค่อยเลือก .xdf'; return; }
+    try { TN.xdf = parseXdf(await f.text()); } catch (e) { $('tnOwnMsg').hidden = false; $('tnOwnMsg').textContent = 'อ่าน XDF ไม่ได้ (อาจเป็นไฟล์ล็อกรหัส): ' + e.message; return; }
+    TN.model = { code: TN._ownName || 'ไฟล์ของคุณ', name: 'เปิดเอง', sizeKb: Math.round(TN.orig.length / 1024) }; TN.undo = [];
+    document.querySelectorAll('#tnLib .tn-m').forEach(x => x.classList.remove('on')); $('tnOwnMsg').hidden = false; $('tnOwnMsg').textContent = 'พร้อมแก้ไข'; afterLoad();
+  }
+
+  // ---------- hand the edited buffer to the existing flash panel ----------
+  function sendToFlash() {
+    if (!TN.work) return;
+    const buf = TN.work.slice();
+    S.rm.file = detectBin(buf);
+    S.rm.file.name = (TN.model ? TN.model.code : 'zar') + '_tuned.bin';
+    S.rm.file.fid = findBinId(buf); S.rm.file.fits = ecuFits(S.rm.file.fid);
+    rmSetFile(); rmVerdict(); show('remap');
+    $('rFlashMsg').textContent = 'ไฟล์จากตารางจูนพร้อมแล้ว — ตรวจรุ่นให้ตรงกล่องแล้วกดอัด';
+  }
 })();
 
 // offline / installable app (sw.js)
