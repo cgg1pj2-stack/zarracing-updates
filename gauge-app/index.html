@@ -401,7 +401,9 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .tn-apply { background: rgba(var(--acc-rgb), .2); border: 1px solid var(--acc); border-radius: 6px; color: var(--fg); padding: 7px 12px; font-family: var(--f-num); font-weight: 800; }
 .tn-selinfo { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
 .tn-cmp { display: inline-flex; align-items: center; gap: 5px; }
-.tn-tablewrap { overflow: auto; border: 1px solid var(--line); border-radius: 8px; max-height: 60vh; -webkit-overflow-scrolling: touch; }
+.tn-tablewrap { position: relative; overflow: auto; border: 1px solid var(--line); border-radius: 8px; max-height: 60vh; -webkit-overflow-scrolling: touch; }
+.tn-cursor { position: absolute; pointer-events: none; border: 2px solid #39ffd0; border-radius: 3px; background: rgba(57,255,208,.14); box-shadow: 0 0 14px 2px rgba(57,255,208,.8), inset 0 0 8px rgba(57,255,208,.45); transition: left .12s linear, top .12s linear, width .1s, height .1s; z-index: 4; }
+#prRT.on { color: #0a1512; background: #39ffd0; border-color: #39ffd0; box-shadow: 0 0 12px -2px rgba(57,255,208,.8); }
 .tn-table { border-collapse: collapse; font-family: var(--f-num); font-size: 13px; }
 .tn-table th { position: sticky; background: #0b0e13; color: var(--muted); font-weight: 700; padding: 4px 6px; border: 1px solid #1b1e25; font-size: 11px; white-space: nowrap; z-index: 1; }
 .tn-table th.corner { left: 0; top: 0; z-index: 3; }
@@ -409,7 +411,19 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .tn-table tbody th { left: 0; z-index: 1; }
 .tn-table td { padding: 3px 7px; border: 1px solid #14171d; text-align: right; color: #e9edf4; cursor: cell; min-width: 42px; font-variant-numeric: tabular-nums; position: relative; user-select: none; }
 .tn-table td.sel { outline: 2px solid var(--acc); outline-offset: -2px; }
+.tn-table td.chg { color: var(--red); font-weight: 800; text-shadow: 0 0 6px rgba(255,42,47,.5); }   /* tuned cells go red */
 .tn-table td.chg::after { content: ''; position: absolute; top: 0; right: 0; border: 5px solid transparent; border-top-color: var(--red); border-right-color: var(--red); }
+.tn-sendrow { display: grid; grid-template-columns: 1fr 1.3fr; gap: 8px; }
+@media (max-width: 480px) { .tn-sendrow { grid-template-columns: 1fr; } }
+.tn-save { justify-content: center; border-color: rgba(var(--acc-rgb),.5); background: rgba(6,9,13,.7); }
+.tn-viewtog { display: inline-flex; gap: 3px; background: rgba(4,6,9,.9); border: 1px solid var(--line); border-radius: 7px; padding: 3px; }
+.tn-viewtog button { background: none; border: 0; padding: 6px 13px; border-radius: 5px; font-family: var(--f-num); font-weight: 800; font-size: 15px; color: var(--muted); }
+.tn-viewtog button.on { background: rgba(var(--acc-rgb),.22); color: var(--fg); }
+.tn-3dwrap { border: 1px solid var(--line); border-radius: 8px; background: radial-gradient(120% 80% at 50% 10%, rgba(var(--acc-rgb),.06), rgba(3,5,7,.6)); padding: 6px; }
+#pr3d { width: 100%; height: 56vh; max-height: 440px; display: block; touch-action: none; }
+.tn-3dlbl { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); padding: 2px 6px; }
+.tn-toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); background: rgba(10,14,20,.96); border: 1px solid var(--acc); color: var(--fg); padding: 10px 18px; border-radius: 10px; font-family: var(--f-num); font-weight: 700; font-size: 15px; box-shadow: 0 8px 24px -8px #000, 0 0 16px -4px var(--glow); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 50; }
+.tn-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .tn-table td { touch-action: none; }          /* drag on data cells = select a band; drag on the RPM/TPS headers still scrolls */
 .tn-table th { touch-action: auto; }
 .tn-tablewrap { max-height: min(56vh, 440px); overscroll-behavior: contain; }
@@ -467,7 +481,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
-    <span class="ver" id="appVer"></span>
+    <span class="ver" id="appVer">v34</span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -596,7 +610,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
           <button class="tn-mode on" data-md="easy" type="button">มือใหม่</button>
           <button class="tn-mode" data-md="pro" type="button">ตารางโปร</button>
         </div>
-        <div class="tn-file"><b id="tnModelName">ยังไม่ได้เลือกรุ่น</b><span id="tnModelSub">เลือกจากคลัง หรือเปิดไฟล์เอง</span></div>
+        <div class="tn-file"><b id="tnModelName">ยังไม่ได้เลือกรุ่น</b><span id="tnModelSub">เลือกจากคลัง หรือเปิดไฟล์เอง</span><button class="tn-chip" id="tnRestore" type="button" hidden>↺ กู้ร่างที่บันทึก</button></div>
         <div class="tn-edits" id="tnEdits" hidden>แก้แล้ว <b id="tnBytes">0</b> ไบต์ · ยังไม่ส่ง</div>
       </div>
 
@@ -647,13 +661,17 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
               <input type="range" id="ezRev" min="7000" max="14000" value="9000" step="100">
               <div class="tn-revrow"><span id="ezRevVal">9000 รอบ</span><button class="tn-chip" id="ezRevReset" type="button">คืนค่าเดิม</button></div>
             </div>
-            <button class="btn tn-send" id="ezSend" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>สร้างไฟล์ → ส่งไปอัด</button>
+            <div class="tn-sendrow">
+              <button class="btn tn-send tn-save" id="ezSave" type="button">💾 บันทึก .bin</button>
+              <button class="btn tn-send" id="ezSend" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>ไปหน้าอัดไฟล์</button>
+            </div>
           </div>
 
           <!-- PRO MODE -->
           <div class="tn-pro" id="tnPro" hidden>
             <div class="tn-pro-top">
               <div class="tn-tname"><button class="tn-treebtn" id="prTreeBtn" type="button" title="รายการตาราง">▦</button><b id="prTName">—</b></div>
+              <div class="tn-viewtog" id="prView"><button class="on" data-v="grid" type="button">ตาราง</button><button data-v="g3d" type="button">3D</button></div>
               <div class="tn-adj">
                 <div class="tn-adjmode" id="prAdjMode"><button class="on" data-a="pct" type="button">%</button><button data-a="add" type="button">+/-</button><button data-a="set" type="button">=</button></div>
                 <div class="tn-quick" id="prQuick"></div>
@@ -661,9 +679,13 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
                 <button class="tn-apply" id="prApply" type="button">ใส่ค่า</button>
               </div>
             </div>
-            <div class="tn-selinfo"><span id="prSel">ยังไม่ได้เลือกช่อง</span><button class="tn-chip" id="prSelAll" type="button">ทั้งตาราง</button><button class="tn-chip" id="prSelRow" type="button">แถว</button><button class="tn-chip" id="prSelCol" type="button">คอลัมน์</button><label class="tn-cmp"><input type="checkbox" id="prCmp">เทียบไฟล์เดิม</label><button class="tn-chip" id="prUndo" type="button">ย้อนกลับ</button><button class="tn-chip" id="prResetT" type="button">คืนตารางนี้</button></div>
-            <div class="tn-tablewrap"><table class="tn-table" id="prGrid"></table></div>
-            <button class="btn tn-send" id="prSend" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>ส่งไปอัด</button>
+            <div class="tn-selinfo"><span id="prSel">ยังไม่ได้เลือกช่อง</span><button class="tn-chip" id="prSelAll" type="button">ทั้งตาราง</button><button class="tn-chip" id="prSelRow" type="button">แถว</button><button class="tn-chip" id="prSelCol" type="button">คอลัมน์</button><button class="tn-chip" id="prRT" type="button">⚡ เรียลไทม์</button><label class="tn-cmp"><input type="checkbox" id="prCmp">เทียบไฟล์เดิม</label><button class="tn-chip" id="prUndo" type="button">ย้อนกลับ</button><button class="tn-chip" id="prSaveT" type="button">💾 บันทึกตาราง</button><button class="tn-chip" id="prResetT" type="button">คืนตารางนี้</button></div>
+            <div class="tn-tablewrap" id="prWrap"><table class="tn-table" id="prGrid"></table><div class="tn-cursor" id="prCursor" hidden></div></div>
+            <div class="tn-3dwrap" id="pr3dWrap" hidden><div class="tn-3dlbl"><span>← คันเร่ง (TPS) →</span><span id="pr3dsel">—</span><span>← รอบ (RPM) →</span></div><canvas id="pr3d"></canvas></div>
+            <div class="tn-sendrow">
+              <button class="btn tn-send tn-save" id="prSave" type="button">💾 บันทึก .bin</button>
+              <button class="btn tn-send" id="prSend" type="button"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>ไปหน้าอัดไฟล์</button>
+            </div>
           </div>
         </main>
       </div>
@@ -2320,7 +2342,7 @@ function shDetectECU(bin) {
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'app v999'; } catch (e) {}
+  try { $('appVer').textContent = 'v34'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
@@ -2364,6 +2386,8 @@ function shDetectECU(bin) {
   const TN = { man: null, inited: false, model: null, orig: null, work: null, xdf: null, mode: 'easy',
     fuelT: null, ignT: null, revTs: [], proT: null, sel: new Set(), adj: 'pct', undo: [], ez: null, _ownName: '', sideView: 'lib' };
   const GRP = { gear: 'เกียร์', auto: 'ออโต้', crf: 'CRF' };
+  let toastT = null;
+  function toast(msg) { let el = $('tnToast'); if (!el) { el = document.createElement('div'); el.id = 'tnToast'; el.className = 'tn-toast'; document.body.appendChild(el); } el.textContent = msg; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2200); }
   // table categories for the XDF-style tree (label, colour, matcher)
   const CATS = [
     { k: 'fuel', name: 'น้ำมัน', c: '#39b6ff', re: /น้ำมัน|Injection|fuel/i },
@@ -2402,6 +2426,7 @@ function shDetectECU(bin) {
     $('tnCollapse').addEventListener('click', () => sideCollapse(true));
     $('tnReopen').addEventListener('click', () => sideCollapse(false));
     $('tnBackLib').addEventListener('click', () => { TN.sideView = 'lib'; updateSide(); });
+    $('tnRestore').addEventListener('click', () => restoreDraft());
     $('prTreeBtn').addEventListener('click', () => { if ($('tnGrid').classList.contains('collapsed')) sideCollapse(false); TN.sideView = 'tree'; updateSide(); });
     bindEasy(); bindPro();
   };
@@ -2448,7 +2473,7 @@ function shDetectECU(bin) {
     TN.revTs = T.filter(t => { const g = geom(t); return g && g.rc * g.cc === 2 && /ตัดรอบ|รอบตัด|REV ?LIMIT|Rev Limiter|ลิมิตรอบเครื่อง|ปลดรอบ/i.test(t.title); });
     $('tnModelName').textContent = TN.model.code + ' · ' + TN.model.sizeKb + 'K';
     $('tnModelSub').textContent = TN.model.name + ' · ตาราง ' + TN.xdf.tables.length;
-    $('tnPick').hidden = true; setMode(TN.mode); refreshEdits();
+    $('tnPick').hidden = true; setMode(TN.mode); refreshEdits(); updateRestore();
     if (window.matchMedia('(max-width:820px)').matches) {                 // phone: jump down to the editor so it doesn't feel like nothing happened
       const el = document.querySelector('.tn-main'); if (el) requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }));
     }
@@ -2472,6 +2497,7 @@ function shDetectECU(bin) {
     $('ezRev').addEventListener('input', () => { $('ezRevVal').textContent = (+$('ezRev').value) + ' รอบ'; $('ezRevNow').textContent = (+$('ezRev').value).toLocaleString(); document.querySelectorAll('#ezRevBtns .tn-rb').forEach(x => x.classList.toggle('on', +x.dataset.rpm === +$('ezRev').value)); applyEasy(); });
     $('ezRevReset').addEventListener('click', () => { const v = TN.ez ? TN.ez.rev0 : 9000; $('ezRev').value = v; $('ezRev').dispatchEvent(new Event('input')); });
     $('ezSend').addEventListener('click', () => sendToFlash());
+    $('ezSave').addEventListener('click', () => saveBin());
   }
   function buildEasy() {
     $('ezFuelBlock').hidden = !TN.fuelT; $('ezIgnBlock').hidden = !TN.ignT; $('ezRevBlock').hidden = !TN.revTs.length;
@@ -2512,6 +2538,10 @@ function shDetectECU(bin) {
     $('prSelRow').addEventListener('click', () => selLine('row'));
     $('prSelCol').addEventListener('click', () => selLine('col'));
     $('prSend').addEventListener('click', () => sendToFlash());
+    $('prSave').addEventListener('click', () => saveBin());
+    $('prSaveT').addEventListener('click', () => saveDraft(false));
+    document.querySelectorAll('#prView button').forEach(b => b.addEventListener('click', () => setView(b.dataset.v)));
+    $('prRT').addEventListener('click', () => toggleRT());
   }
   function selLine(kind) {
     if (!TN.proT || !TN.sel.size) return; const g = geom(TN.proT), rows = new Set(), cols = new Set();
@@ -2595,6 +2625,8 @@ function shDetectECU(bin) {
       tb.appendChild(tr);
     }
     grid.appendChild(tb); bindGridSel(g); updateSelInfo(g, eq);
+    lastRC = -1; $('prCursor').hidden = true;                 // reset live cursor for the new table
+    if (view3d) render3D(rtOn ? rtCell() : null);
   }
   let selDrag = false, selAnchor = null;
   function rectSel(a, b, g) { TN.sel.clear(); const r0 = Math.min(a.r, b.r), r1 = Math.max(a.r, b.r), c0 = Math.min(a.c, b.c), c1 = Math.max(a.c, b.c); for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) TN.sel.add(r * g.cc + c); }
@@ -2640,19 +2672,112 @@ function shDetectECU(bin) {
   }
 
   // ---------- hand the edited buffer to the existing flash panel ----------
+  function tunedName() { return (TN.model ? TN.model.code : 'zar') + '_tuned.bin'; }
   function sendToFlash() {
-    if (!TN.work) return;
+    if (!TN.work) { toast('ยังไม่มีไฟล์ — เลือกรุ่นก่อน'); return; }
     const buf = TN.work.slice();
     S.rm.file = detectBin(buf);
-    S.rm.file.name = (TN.model ? TN.model.code : 'zar') + '_tuned.bin';
+    S.rm.file.name = tunedName();
     S.rm.file.fid = findBinId(buf); S.rm.file.fits = ecuFits(S.rm.file.fid);
     rmSetFile(); rmVerdict(); show('remap');
     $('rFlashMsg').textContent = 'ไฟล์จากตารางจูนพร้อมแล้ว — ตรวจรุ่นให้ตรงกล่องแล้วกดอัด';
+    // portrait: make sure the file row/picker is in view
+    requestAnimationFrame(() => { const el = $('rFile') ? $('rFile').closest('.fl-panel') || document.querySelector('.fl-file') : null; if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
   }
+  // ---- Save .bin As (download, user names it) ----
+  function u8b64(u8) { let s = ''; const CH = 0x8000; for (let i = 0; i < u8.length; i += CH) s += String.fromCharCode.apply(null, u8.subarray(i, i + CH)); return btoa(s); }
+  function b64u8(b) { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
+  function saveBin() {
+    if (!TN.work) { toast('ยังไม่มีไฟล์ — เลือกรุ่นก่อน'); return; }
+    const buf = TN.work.slice(); try { detectBin(buf); } catch (e) {}       // apply the maker checksum, same as flashing
+    let name = prompt('ตั้งชื่อไฟล์ .bin', tunedName());
+    if (name == null) return; name = (name || tunedName()).trim(); if (!/\.bin$/i.test(name)) name += '.bin';
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([buf], { type: 'application/octet-stream' })); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000); toast('บันทึกไฟล์ ' + name + ' แล้ว');
+  }
+  // ---- per-model draft (so edits survive closing the app) ----
+  function draftKey() { return 'zarTuneDraft'; }
+  function saveDraft(silent) {
+    if (!TN.work) { toast('ยังไม่มีไฟล์'); return; }
+    try { localStorage.setItem(draftKey(), JSON.stringify({ code: TN.model ? TN.model.code : 'own', size: TN.work.length, data: u8b64(TN.work), t: Date.now() })); }
+    catch (e) { toast('บันทึกร่างไม่ได้ (พื้นที่เต็ม)'); return; }
+    updateRestore(); if (!silent) toast('บันทึกแล้ว · ' + (TN.proT ? TN.proT.title : 'ตาราง') + ' · รวมแก้ ' + diffBytes() + ' ไบต์');
+  }
+  function getDraft() { try { return JSON.parse(localStorage.getItem(draftKey()) || 'null'); } catch (e) { return null; } }
+  function updateRestore() {
+    const el = $('tnRestore'); if (!el) return; const d = getDraft();
+    const ok = d && TN.model && d.code === TN.model.code && d.size === (TN.orig ? TN.orig.length : 0);
+    el.hidden = !ok;
+  }
+  function restoreDraft() {
+    const d = getDraft(); if (!d || !TN.orig || d.size !== TN.orig.length) return;
+    const u = b64u8(d.data); if (u.length !== TN.work.length) return;
+    pushUndo(); TN.work.set(u); if (TN.mode === 'pro') renderGrid(); else buildEasy(); refreshEdits(); toast('กู้ร่างที่บันทึกไว้แล้ว');
+  }
+  // ---- view toggle: table / 3D ----
+  let view3d = false;
+  function setView(v) {
+    view3d = v === 'g3d';
+    document.querySelectorAll('#prView button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    $('prWrap').hidden = view3d; $('pr3dWrap').hidden = !view3d;
+    if (view3d) render3D();
+  }
+  function heatC(t01, a) { t01 = Math.max(0, Math.min(1, t01)); const s = [[40, 110, 210], [40, 180, 120], [235, 200, 60], [220, 70, 50]]; const seg = t01 * 3, i = Math.min(2, Math.floor(seg)), f = seg - i, A = s[i], B = s[i + 1]; return 'rgba(' + Math.round(A[0] + (B[0] - A[0]) * f) + ',' + Math.round(A[1] + (B[1] - A[1]) * f) + ',' + Math.round(A[2] + (B[2] - A[2]) * f) + ',' + a + ')'; }
+  let yaw = 0.62;
+  function render3D(liveRC) {
+    const t = TN.proT; if (!t || $('pr3dWrap').hidden) return;
+    const g = geom(t), eq = compileEq(g.eq); if (g.rc < 2 || g.cc < 2) { const c = $('pr3d').getContext('2d'); c.clearRect(0, 0, $('pr3d').width, $('pr3d').height); c.fillStyle = '#9aa3b2'; c.font = '14px sans-serif'; c.fillText('ตารางนี้เล็กเกินไปสำหรับกราฟ 3D', 20, 40); return; }
+    const cv = $('pr3d'), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = cv.width = cv.clientWidth * dpr, H = cv.height = cv.clientHeight * dpr, ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, W, H);
+    let mn = Infinity, mx = -Infinity; const V = [];
+    for (let r = 0; r < g.rc; r++) { V.push([]); for (let c = 0; c < g.cc; c++) { const v = eq.fwd(rawAt(TN.work, g, coff(g, r, c))); V[r].push(v); if (v < mn) mn = v; if (v > mx) mx = v; } }
+    const span = (mx - mn) || 1, sc = Math.min(W / (g.cc + 3), H / (g.rc + 3)) * 1.15, s = Math.sin(yaw), co = Math.cos(yaw);
+    const P = (r, c, v) => { const cx = c - (g.cc - 1) / 2, cz = r - (g.rc - 1) / 2; const x = cx * co - cz * s, z = cx * s + cz * co, y = (v - mn) / span; return [W / 2 + x * sc, H * 0.66 - y * H * 0.4 - z * sc * 0.44, z]; };
+    const quads = [];
+    for (let r = 0; r < g.rc - 1; r++) for (let c = 0; c < g.cc - 1; c++) {
+      const a = P(r, c, V[r][c]), b = P(r, c + 1, V[r][c + 1]), d = P(r + 1, c + 1, V[r + 1][c + 1]), e = P(r + 1, c, V[r + 1][c]);
+      const avg = (V[r][c] + V[r][c + 1] + V[r + 1][c + 1] + V[r + 1][c]) / 4;
+      quads.push({ z: (a[2] + d[2]) / 2, pts: [a, b, d, e], t: (avg - mn) / span });
+    }
+    quads.sort((p, q) => p.z - q.z);
+    quads.forEach(q => { ctx.beginPath(); ctx.moveTo(q.pts[0][0], q.pts[0][1]); for (let i = 1; i < 4; i++) ctx.lineTo(q.pts[i][0], q.pts[i][1]); ctx.closePath(); ctx.fillStyle = heatC(q.t, .92); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.10)'; ctx.lineWidth = dpr; ctx.stroke(); });
+    if (liveRC) { const p = P(liveRC.r, liveRC.c, V[liveRC.r][liveRC.c]); ctx.beginPath(); ctx.arc(p[0], p[1], 7 * dpr, 0, 7); ctx.fillStyle = '#39ffd0'; ctx.shadowColor = '#39ffd0'; ctx.shadowBlur = 16 * dpr; ctx.fill(); ctx.shadowBlur = 0; }
+  }
+  // drag to rotate the 3D view
+  (function () { let dn = false, px = 0; const cv = () => $('pr3d'); document.addEventListener('pointerdown', e => { if (e.target === $('pr3d')) { dn = true; px = e.clientX; } }); document.addEventListener('pointermove', e => { if (dn) { yaw += (e.clientX - px) * 0.01; px = e.clientX; render3D(rtCell()); } }); document.addEventListener('pointerup', () => { dn = false; }); })();
+  // ---- realtime cursor (live RPM x TPS from the gauge) ----
+  let rtOn = false, lastRC = -1;
+  function toggleRT() { rtOn = !rtOn; $('prRT').classList.toggle('on', rtOn); if (!rtOn) { $('prCursor').hidden = true; lastRC = -1; } else if (!S.live || S.live.rpm == null) toast('เปิดเรียลไทม์แล้ว — ต่อบลูทูธเกจเพื่อให้เคอร์เซอร์วิ่ง'); }
+  function rtCell() {
+    if (!TN.proT || !S.live || S.live.rpm == null) return null;
+    const xs = axisVals(TN.proT, 'x'), ys = axisVals(TN.proT, 'y'); if (!xs || !ys) return null;
+    return { r: nearestIdx(ys, S.live.rpm), c: nearestIdx(xs, S.live.tps == null ? 0 : S.live.tps) };
+  }
+  function rtTick() {
+    requestAnimationFrame(rtTick);
+    if (!rtOn || TN.mode !== 'pro' || !TN.proT || $('vTune').hidden) { return; }
+    const rc = rtCell(); if (!rc) { $('prCursor').hidden = true; return; }
+    if (view3d) { if (rc.r * 1000 + rc.c !== lastRC) { lastRC = rc.r * 1000 + rc.c; render3D(rc); } return; }
+    const td = $('prGrid').querySelector('td[data-r="' + rc.r + '"][data-c="' + rc.c + '"]'); if (!td) { $('prCursor').hidden = true; return; }
+    const wrap = $('prWrap'), cur = $('prCursor'), wr = wrap.getBoundingClientRect(), cr = td.getBoundingClientRect();
+    cur.style.left = (cr.left - wr.left + wrap.scrollLeft) + 'px'; cur.style.top = (cr.top - wr.top + wrap.scrollTop) + 'px';
+    cur.style.width = cr.width + 'px'; cur.style.height = cr.height + 'px'; cur.hidden = false;
+    const key = rc.r * 1000 + rc.c;
+    if (key !== lastRC) { lastRC = key;                                      // follow: keep the cursor in view
+      if (cr.left < wr.left + 46) wrap.scrollLeft -= (wr.left + 46 - cr.left); else if (cr.right > wr.right) wrap.scrollLeft += (cr.right - wr.right + 8);
+      if (cr.top < wr.top + 26) wrap.scrollTop -= (wr.top + 26 - cr.top); else if (cr.bottom > wr.bottom) wrap.scrollTop += (cr.bottom - wr.bottom + 8);
+    }
+  }
+  requestAnimationFrame(rtTick);
 })();
 
 // offline / installable app (sw.js)
-if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+if ('serviceWorker' in navigator) {
+  let swReloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (swReloaded) return; swReloaded = true; location.reload(); });   // a new version took over -> refresh once to run it
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => { reg.update(); setInterval(() => reg.update(), 3600000); }).catch(() => {}));
+}
 </script>
 
 </body>
