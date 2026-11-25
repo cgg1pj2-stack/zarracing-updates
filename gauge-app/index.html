@@ -240,6 +240,10 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .fl-mode i.r { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--muted); flex: none; }
 .fl-mode b { font-family: var(--f-num); font-weight: 800; font-size: 16px; display: block; line-height: 1.1; }
 .fl-mode small { color: var(--muted); font-size: 12px; }
+.fl-mode-soon { opacity: .3 !important; filter: grayscale(1); }
+.rd-steps { margin: 4px 16px 10px; padding-left: 20px; color: var(--muted); font-size: 13px; line-height: 1.8; }
+.rd-steps b { color: var(--fg); }
+.rd-actions { display: flex; gap: 10px; margin: 10px 16px 0; flex-wrap: wrap; }
 .fl-mode.on { opacity: 1; border-color: var(--acc); background: rgba(var(--acc-rgb), .14); box-shadow: 0 0 12px rgba(var(--acc-rgb), .3); }
 .fl-mode.on i.r { border-color: var(--acc); background: radial-gradient(circle, var(--acc) 42%, transparent 48%); box-shadow: 0 0 8px var(--glow); }
 .fl-seed { margin: 0 16px 12px; padding: 8px 12px 10px; border: 1px solid var(--line); border-radius: 8px; background: rgba(8,10,14,.5); }
@@ -491,7 +495,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
-    <span class="ver" id="appVer">v39</span>
+    <span class="ver" id="appVer">v40</span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -538,6 +542,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       <button class="tab" role="tab" id="tLog" aria-selected="false" type="button">DATA LOG</button>
       <button class="tab" role="tab" id="tTune" aria-selected="false" type="button">จูน</button>
       <button class="tab" role="tab" id="tRemap" aria-selected="false" type="button">อัดรีแมพ</button>
+      <button class="tab" role="tab" id="tRead" aria-selected="false" type="button">ดูดไฟล์</button>
     </div>
     <div class="shift" id="shift" aria-hidden="true"></div>
   </div>
@@ -778,6 +783,51 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
         <span>📊 ความคืบหน้า <b id="fPct">0%</b></span>
       </div>
       <p class="rwarn">⚠️ การอัดกล่องมีความเสี่ยง — อัดเฉพาะไฟล์ที่ตรงรุ่น/ขนาดกับกล่อง · ห้ามดับเครื่องหรือตัดไฟระหว่างอัด · รองรับ Keihin และ Shindengen (256/384KB)</p>
+    </div>
+  </section>
+
+  <section id="vRead" hidden>
+    <div class="flwrap">
+      <div class="fl-sub">
+        <span class="fl-title">ดูดไฟล์กล่อง (Read ROM)</span>
+        <span class="fl-sub2">อ่านไฟล์เดิมจากกล่องผ่านเกจ · อ่านอย่างเดียว ไม่เขียนทับ</span>
+        <span class="fl-link" id="rdKline"><i class="d"></i><b>ยังไม่เชื่อม</b></span>
+      </div>
+      <div class="fl-grid">
+        <div class="fl-panel">
+          <div class="fl-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>เลือกชนิดกล่อง</div>
+          <div class="fl-modes" id="rdModes">
+            <div class="fl-mode on" data-e="0"><i class="r"></i><div><b>รถเกียร์ 48KB</b><small>Keihin · Wave / Dream</small></div></div>
+            <div class="fl-mode fl-mode-soon" data-e="99"><i class="r"></i><div><b>รถเกียร์ 64KB</b><small>เปิดใช้งานเร็ว ๆ นี้</small></div></div>
+            <div class="fl-mode" data-e="1"><i class="r"></i><div><b>ออโต้ 256KB</b><small>Shindengen · Zoomer-X ฯลฯ</small></div></div>
+            <div class="fl-mode" data-e="2"><i class="r"></i><div><b>ออโต้ 384KB</b><small>Shindengen · PCX / Click / ADV</small></div></div>
+          </div>
+          <div class="fl-brand">ZAR RACING</div>
+        </div>
+        <div class="fl-panel">
+          <div class="fl-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>ขั้นตอนการดูด</div>
+          <ol class="rd-steps">
+            <li>เสียบเกจเข้ากล่อง เปิดกุญแจให้เกจเชื่อมต่อรถ</li>
+            <li>กด <b>เริ่มดูดไฟล์</b></li>
+            <li>เมื่อขึ้นให้ <b>ดับกุญแจ แล้วเปิดใหม่</b> เกจจะดับแล้วติดใหม่ แล้วเริ่มอ่านเอง</li>
+            <li>รอจนครบ 100% แล้วกด <b>บันทึกไฟล์ .bin</b></li>
+          </ol>
+          <button class="btn fl-flash" id="bRead" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l-5-5h3V4h4v7h3z"/><path d="M4 18h16v2H4z"/></svg><span id="rdLbl">เริ่มดูดไฟล์</span></button>
+          <div class="meter rbar"><i id="rdBar"></i></div>
+          <span id="rdMsg" class="rmsg">เชื่อมต่อรถก่อน แล้วเลือกชนิดกล่องให้ตรง</span>
+          <div class="rd-actions">
+            <button class="fl-readbtn" id="bReadSave" type="button" hidden>💾 บันทึกไฟล์ .bin</button>
+            <button class="fl-readbtn dtc-clear" id="bReadAbort" type="button" hidden>ยกเลิก</button>
+          </div>
+          <pre id="rdTrace" class="rtrace" hidden></pre>
+        </div>
+      </div>
+      <div class="fl-foot">
+        <span>📦 ขนาด <b id="rdTotal">—</b></span>
+        <span>⬇️ ดูดแล้ว <b id="rdGot">0 KB</b></span>
+        <span>📊 ความคืบหน้า <b id="rdPct">0%</b></span>
+      </div>
+      <p class="rwarn">ℹ️ การดูดไฟล์เป็นการอ่านอย่างเดียว ไม่แก้ไขข้อมูลในกล่อง · 256/384KB ใช้เวลานาน (หลายนาที) ห้ามดับกุญแจระหว่างอ่าน</p>
     </div>
   </section>
 </div>
@@ -1926,6 +1976,7 @@ function shDetectECU(bin) {
       let fc = u8[7] | u8[8] << 8; if (fc === 0xFFFF) fc = null;
       S.ecu = { state: u8[1], idHex, flashCount: fc, info: ecuLookup(idHex), live: u8.length > 9 && u8[9] === 1 };
       rmSetState();
+      if (typeof rdSetState === 'function') rdSetState();
       dtcRender();
     } else if (u8[0] === 0xE2) {                      // fault codes: [state, count, codes...]
       if (Date.now() - dtcSentAt < 1500 && (u8[1] === 0 || u8[1] === 2)) return;   // old result still in flight right after a button press
@@ -1942,6 +1993,10 @@ function shDetectECU(bin) {
       el.textContent += new TextDecoder().decode(u8.subarray(1));
       if (el.textContent.length > 6000) el.textContent = el.textContent.slice(-5000);
       el.scrollTop = el.scrollHeight;
+    } else if (u8[0] === 0xD2) {                      // ดูดไฟล์: one decoded block [off32 LE][data...]
+      rdOnData(u8);
+    } else if (u8[0] === 0xF1) {                      // ดูดไฟล์ progress [phase, result, done32]
+      rdOnProgress(u8);
     } else if (u8[0] === 0xE1) {                      // Shindengen: ECU asks for the key -> send the key MATERIAL
       const seed = [u8[1], u8[2]], kind = u8[3] || 0;  // kind: 0 write key, 1 recovery key (the gauge computes the key)
       S.rm.seedHex = hex(seed);
@@ -1967,6 +2022,89 @@ function shDetectECU(bin) {
   let _gq = Promise.resolve();
   function gattWrite(ch, data) { const p = _gq.then(() => ch.writeValueWithResponse(data)); _gq = p.catch(() => {}); return p; }
   async function rmReadEcu() { if (chFlash) { try { await gattWrite(chFlash, Uint8Array.of(0x04)); } catch (e) {} } }
+
+  // ---------- ดูดไฟล์ (Read ROM) ----------
+  // ECU codes must match the firmware's kdump::EcuType: 0 = Keihin 48KB, 1 = Shindengen 256KB,
+  // 2 = Shindengen 384KB. 64KB geared (code pending) is shown as "เร็ว ๆ นี้" and not selectable.
+  const RD_SIZE = { 0: 49152, 1: 262144, 2: 393216 };
+  const RD = { ecuSel: 0, size: 0, buf: null, expect: 0, phase: 0, running: false, seekAt: 0, done: false };
+  function rdSetState() {
+    const linked = S.link === 'ok' && !!chFlash;
+    const kl = $('rdKline'), klb = kl ? kl.querySelector('b') : null;
+    if (kl) { kl.className = 'fl-link' + (linked ? ' ok' : ''); if (klb) klb.textContent = linked ? 'เชื่อมต่อแล้ว' : 'ยังไม่เชื่อม'; }
+    const b = $('bRead');
+    if (b) { b.disabled = !linked || RD.running; }
+    if (!RD.running && $('rdMsg')) $('rdMsg').textContent = linked ? 'เลือกชนิดกล่องให้ตรง แล้วกดเริ่มดูดไฟล์' : 'เชื่อมต่อรถก่อน (ไปหน้าหลัก กดเชื่อมต่อ)';
+  }
+  // mode picker
+  document.querySelectorAll('#rdModes .fl-mode').forEach(m => m.addEventListener('click', () => {
+    if (m.dataset.e === '99') { toast('รถเกียร์ 64KB เปิดใช้งานเร็ว ๆ นี้'); return; }
+    if (RD.running) return;
+    document.querySelectorAll('#rdModes .fl-mode').forEach(x => x.classList.toggle('on', x === m));
+    RD.ecuSel = parseInt(m.dataset.e, 10);
+  }));
+  function rdBar(pct) { const i = $('rdBar'); if (i) i.style.width = Math.max(0, Math.min(100, pct)) + '%'; $('rdPct').textContent = Math.round(pct) + '%'; }
+  async function rdStart() {
+    if (!chFlash || RD.running) return;
+    if (!(RD.ecuSel in RD_SIZE)) { toast('ชนิดกล่องนี้ยังไม่เปิดใช้งาน'); return; }
+    RD.size = RD_SIZE[RD.ecuSel];
+    RD.buf = new Uint8Array(RD.size); RD.expect = 0; RD.phase = 1; RD.running = true; RD.done = false; RD.seekAt = 0;
+    $('rdTotal').textContent = (RD.size / 1024) + ' KB'; $('rdGot').textContent = '0 KB'; rdBar(0);
+    $('bReadSave').hidden = true; $('bReadAbort').hidden = false; $('bRead').disabled = true;
+    const tr = $('rdTrace'); if (tr) { tr.hidden = false; tr.textContent = ''; }
+    $('rdMsg').textContent = '📢 ให้ดับกุญแจ แล้วเปิดใหม่ — เกจจะดับแล้วติดใหม่ จากนั้นเริ่มอ่านเอง';
+    try { await gattWrite(chFlash, Uint8Array.of(0x08, RD.ecuSel)); } catch (e) { RD.running = false; $('rdMsg').textContent = 'สั่งเริ่มไม่สำเร็จ — ลองเชื่อมต่อใหม่'; rdSetState(); }
+  }
+  function rdOnData(u8) {
+    if (!RD.running || !RD.buf) return;
+    const off = u8[1] | u8[2] << 8 | u8[3] << 16 | u8[4] << 24;
+    const n = u8.length - 5;
+    if (n <= 0 || off + n > RD.size) return;
+    if (off === RD.expect) {
+      RD.buf.set(u8.subarray(5), off);
+      RD.expect += n;
+      $('rdGot').textContent = Math.floor(RD.expect / 1024) + ' KB';
+      rdBar(100 * RD.expect / RD.size);
+    } else if (off > RD.expect) {
+      // a notify was dropped: ask the gauge to re-read from the first missing byte (throttled)
+      const now = Date.now();
+      if (now - RD.seekAt > 400) { RD.seekAt = now; const e = RD.expect;
+        gattWrite(chFlash, Uint8Array.of(0x09, e & 255, (e >> 8) & 255, (e >> 16) & 255, (e >> 24) & 255)).catch(() => {}); }
+    }
+    // off < expect: a re-read we already have — ignore
+  }
+  function rdOnProgress(u8) {
+    if (!RD.running) return;
+    RD.phase = u8[1]; const result = u8[2];
+    if (RD.phase === 2 && RD.expect === 0) $('rdMsg').textContent = '⏳ กำลังอ่านไฟล์จากกล่อง… อย่าดับกุญแจ';
+    if (RD.phase === 3) {                                   // DONE
+      RD.running = false; RD.done = true;
+      rdBar(100); $('rdGot').textContent = Math.floor(RD.size / 1024) + ' KB';
+      $('rdMsg').textContent = '✅ ดูดไฟล์เสร็จแล้ว — กดบันทึกไฟล์ .bin';
+      $('bReadSave').hidden = false; $('bReadAbort').hidden = true; rdSetState();
+    } else if (RD.phase === 4) {                            // FAILED
+      RD.running = false;
+      $('rdMsg').textContent = '❌ ดูดไฟล์ไม่สำเร็จ (code ' + result + ') — ดับ-เปิดกุญแจแล้วลองใหม่';
+      $('bReadAbort').hidden = true; rdSetState();
+    }
+  }
+  function rdSave() {
+    if (!RD.buf || !RD.done) return;
+    const kb = RD.size / 1024;
+    const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
+    const name = 'ZAR_dump_' + kb + 'KB_' + ts + '.bin';
+    const blob = new Blob([RD.buf], { type: 'application/octet-stream' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    toast('บันทึก ' + name);
+  }
+  async function rdAbort() {
+    if (chFlash) { try { await gattWrite(chFlash, Uint8Array.of(0x03)); } catch (e) {} }
+    RD.running = false; $('bReadAbort').hidden = true; $('rdMsg').textContent = 'ยกเลิกแล้ว'; rdSetState();
+  }
+  $('bRead') && $('bRead').addEventListener('click', rdStart);
+  $('bReadSave') && $('bReadSave').addEventListener('click', rdSave);
+  $('bReadAbort') && $('bReadAbort').addEventListener('click', rdAbort);
 
   // ---------- fault codes (DTC) ----------
   // Descriptions ported from src/data/honda_kline.h hkDtcDesc() (same table as the gauge's DTC page).
@@ -2335,12 +2473,13 @@ function shDetectECU(bin) {
     try { if (!document.fullscreenElement) { await document.documentElement.requestFullscreen(); try { await screen.orientation.lock('landscape'); } catch (e) {} } else await document.exitFullscreen(); } catch (e) {}
   });
   function show(tab) {
-    const v = { gauge: 'vGauge', drag: 'vDrag', log: 'vLog', tune: 'vTune', remap: 'vRemap' }, t = { gauge: 'tGauge', drag: 'tDrag', log: 'tLog', tune: 'tTune', remap: 'tRemap' };
+    const v = { gauge: 'vGauge', drag: 'vDrag', log: 'vLog', tune: 'vTune', remap: 'vRemap', read: 'vRead' }, t = { gauge: 'tGauge', drag: 'tDrag', log: 'tLog', tune: 'tTune', remap: 'tRemap', read: 'tRead' };
     if (!v[tab]) tab = 'gauge';
     for (const k in v) { $(v[k]).hidden = k !== tab; $(t[k]).setAttribute('aria-selected', k === tab); }
     store.set('zar.tab', tab);
     if (tab === 'log') lgPaintCursor(true);
     if (tab === 'remap') rmSetState();
+    if (tab === 'read') rdSetState();
     if (tab === 'tune' && window.tuneInit) window.tuneInit();
   }
   $('tGauge').addEventListener('click', () => show('gauge'));
@@ -2348,12 +2487,13 @@ function shDetectECU(bin) {
   $('tLog').addEventListener('click', () => show('log'));
   $('tTune').addEventListener('click', () => show('tune'));
   $('tRemap').addEventListener('click', () => show('remap'));
+  $('tRead').addEventListener('click', () => show('read'));
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'v39'; } catch (e) {}
+  try { $('appVer').textContent = 'v40'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
