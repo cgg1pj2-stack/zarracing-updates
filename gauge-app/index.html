@@ -495,7 +495,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
-    <span class="ver" id="appVer">v40</span>
+    <span class="ver" id="appVer">v41</span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -2052,7 +2052,7 @@ function shDetectECU(bin) {
     $('rdTotal').textContent = (RD.size / 1024) + ' KB'; $('rdGot').textContent = '0 KB'; rdBar(0);
     $('bReadSave').hidden = true; $('bReadAbort').hidden = false; $('bRead').disabled = true;
     const tr = $('rdTrace'); if (tr) { tr.hidden = false; tr.textContent = ''; }
-    $('rdMsg').textContent = '📢 ให้ดับกุญแจ แล้วเปิดใหม่ — เกจจะดับแล้วติดใหม่ จากนั้นเริ่มอ่านเอง';
+    $('rdMsg').textContent = '📢 ให้ดับกุญแจแล้วเปิดใหม่ 1 ครั้ง — เกจจะติดใหม่แล้วเริ่มอ่านเอง (เชื่อมต่อกลับให้อัตโนมัติ) · ถ้าเริ่มอ่านเลยก็รอได้';
     try { await gattWrite(chFlash, Uint8Array.of(0x08, RD.ecuSel)); } catch (e) { RD.running = false; $('rdMsg').textContent = 'สั่งเริ่มไม่สำเร็จ — ลองเชื่อมต่อใหม่'; rdSetState(); }
   }
   function rdOnData(u8) {
@@ -2060,6 +2060,7 @@ function shDetectECU(bin) {
     const off = u8[1] | u8[2] << 8 | u8[3] << 16 | u8[4] << 24;
     const n = u8.length - 5;
     if (n <= 0 || off + n > RD.size) return;
+    if (off === 0 && RD.expect > 0) { RD.expect = 0; }   // gauge rebooted (key cycle) and restarted the read from the top
     if (off === RD.expect) {
       RD.buf.set(u8.subarray(5), off);
       RD.expect += n;
@@ -2082,10 +2083,10 @@ function shDetectECU(bin) {
       rdBar(100); $('rdGot').textContent = Math.floor(RD.size / 1024) + ' KB';
       $('rdMsg').textContent = '✅ ดูดไฟล์เสร็จแล้ว — กดบันทึกไฟล์ .bin';
       $('bReadSave').hidden = false; $('bReadAbort').hidden = true; rdSetState();
-    } else if (RD.phase === 4) {                            // FAILED
-      RD.running = false;
-      $('rdMsg').textContent = '❌ ดูดไฟล์ไม่สำเร็จ (code ' + result + ') — ดับ-เปิดกุญแจแล้วลองใหม่';
-      $('bReadAbort').hidden = true; rdSetState();
+    } else if (RD.phase === 4) {                            // FAILED (ECU not in the read window yet)
+      // keep the read armed on the gauge (it only cleared NVS on done/abort): one key-cycle resumes it.
+      // So don't give up here — tell the user to flip the key once; the gauge auto-retries on reboot.
+      $('rdMsg').textContent = '🔑 ยังเริ่มอ่านไม่ได้ — ดับกุญแจแล้วเปิดใหม่ 1 ครั้ง เกจจะเริ่มอ่านเองหลังติดเครื่อง (ถ้าต้องการเลิก กดยกเลิก)';
     }
   }
   function rdSave() {
@@ -2493,7 +2494,7 @@ function shDetectECU(bin) {
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'v40'; } catch (e) {}
+  try { $('appVer').textContent = 'v41'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
