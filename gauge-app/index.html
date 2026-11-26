@@ -495,7 +495,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
-    <span class="ver" id="appVer">v41</span>
+    <span class="ver" id="appVer">v42</span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -818,6 +818,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
           <div class="rd-actions">
             <button class="fl-readbtn" id="bReadSave" type="button" hidden>💾 บันทึกไฟล์ .bin</button>
             <button class="fl-readbtn dtc-clear" id="bReadAbort" type="button" hidden>ยกเลิก</button>
+            <button class="fl-readbtn" id="bReadLog" type="button" hidden>📋 คัดลอก log</button>
           </div>
           <pre id="rdTrace" class="rtrace" hidden></pre>
         </div>
@@ -1989,7 +1990,9 @@ function shDetectECU(bin) {
       S.rm.free = u8[7] | u8[8] << 8; S.rm.sentSince = 0;   // fresh snapshot of the gauge buffer; bytes sent after it count against it
       rmProgress();
     } else if (u8[0] === 0xD0) {                      // K-line trace line(s) from the gauge (what it sent / what the ECU answered)
-      const el = $('rTrace'); el.hidden = false;
+      // during / after a ดูดไฟล์ run the lines belong to the read page's log, otherwise to the flash log
+      const el = RD.running ? $('rdTrace') : $('rTrace'); el.hidden = false;
+      if (el.id === 'rdTrace' && $('bReadLog')) $('bReadLog').hidden = false;
       el.textContent += new TextDecoder().decode(u8.subarray(1));
       if (el.textContent.length > 6000) el.textContent = el.textContent.slice(-5000);
       el.scrollTop = el.scrollHeight;
@@ -2086,7 +2089,7 @@ function shDetectECU(bin) {
     } else if (RD.phase === 4) {                            // FAILED (ECU not in the read window yet)
       // keep the read armed on the gauge (it only cleared NVS on done/abort): one key-cycle resumes it.
       // So don't give up here — tell the user to flip the key once; the gauge auto-retries on reboot.
-      $('rdMsg').textContent = '🔑 ยังเริ่มอ่านไม่ได้ — ดับกุญแจแล้วเปิดใหม่ 1 ครั้ง เกจจะเริ่มอ่านเองหลังติดเครื่อง (ถ้าต้องการเลิก กดยกเลิก)';
+      $('rdMsg').textContent = '🔑 ยังอ่านไม่ได้ (code ' + result + ') — ดับกุญแจแล้วเปิดใหม่ 1 ครั้ง เกจจะลองใหม่เอง · ดู log ด้านล่าง กด "คัดลอก log" ส่งให้ช่างได้ (ถ้าต้องการเลิก กดยกเลิก)';
     }
   }
   function rdSave() {
@@ -2106,6 +2109,11 @@ function shDetectECU(bin) {
   $('bRead') && $('bRead').addEventListener('click', rdStart);
   $('bReadSave') && $('bReadSave').addEventListener('click', rdSave);
   $('bReadAbort') && $('bReadAbort').addEventListener('click', rdAbort);
+  $('bReadLog') && $('bReadLog').addEventListener('click', async () => {
+    const txt = ($('rdTrace') && $('rdTrace').textContent) || '';
+    try { await navigator.clipboard.writeText(txt); toast('คัดลอก log แล้ว — วางส่งในแชทได้เลย'); }
+    catch (e) { const r = document.createRange(); r.selectNodeContents($('rdTrace')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('เลือกข้อความแล้ว กดคัดลอกเอง'); }
+  });
 
   // ---------- fault codes (DTC) ----------
   // Descriptions ported from src/data/honda_kline.h hkDtcDesc() (same table as the gauge's DTC page).
@@ -2494,7 +2502,7 @@ function shDetectECU(bin) {
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'v41'; } catch (e) {}
+  try { $('appVer').textContent = 'v42'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
