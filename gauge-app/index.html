@@ -2243,7 +2243,8 @@ function shDetectECU(bin) {
   // this app was in the background) = there is no read any more: say so instead of waiting for ever.
   setInterval(() => {
     if (!RD.running) return;
-    if (S.link !== 'ok' || Date.now() - RD.statAt < 15000) { RD.quiet = 0; return; }
+    if (S.link !== 'ok') { RD.statAt = Date.now(); RD.quiet = 0; return; }   // not connected (key cycle, gauge booting): the clock starts when the link is back
+    if (Date.now() - RD.statAt < 15000) { RD.quiet = 0; return; }
     if (++RD.quiet >= 3) rdEnd('⚠️ เกจไม่ได้อยู่ในโหมดดูดไฟล์แล้ว (หมดเวลา ถูกยกเลิก หรือเกจเปิดใหม่) — กดเริ่มดูดใหม่อีกครั้ง');
   }, 2000);
   function rdSave() {
