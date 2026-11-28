@@ -495,7 +495,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
-    <span class="ver" id="appVer">v45</span>
+    <span class="ver" id="appVer">v46</span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -2071,6 +2071,7 @@ function shDetectECU(bin) {
     const n = u8.length - 5;
     if (n <= 0 || off + n > RD.size) return;
     if (off === 0 && RD.expect > 0) { RD.expect = 0; }   // gauge rebooted (key cycle) and restarted the read from the top
+    RD.lastDataAt = Date.now();
     if (off === RD.expect) {
       RD.buf.set(u8.subarray(5), off);
       RD.expect += n;
@@ -2088,6 +2089,16 @@ function shDetectECU(bin) {
     if (!RD.running) return;
     RD.phase = u8[1]; const result = u8[2];
     if (RD.phase === 2 && RD.expect === 0) $('rdMsg').textContent = '⏳ กำลังอ่านไฟล์จากกล่อง… อย่าดับกุญแจ';
+    if (RD.phase === 2 && u8.length >= 7) {                 // gauge is ahead of us and nothing arrives: a notify was lost -> ask again
+      const gd = (u8[3] | u8[4] << 8 | u8[5] << 16 | u8[6] << 24) >>> 0, now = Date.now();
+      if (gd > RD.expect && now - (RD.lastDataAt || 0) > 700 && now - RD.seekAt > 700) { RD.seekAt = now; const e = RD.expect;
+        gattWrite(chFlash, Uint8Array.of(0x09, e & 255, (e >> 8) & 255, (e >> 16) & 255, (e >> 24) & 255)).catch(() => {}); }
+    }
+    if (RD.phase === 3 && RD.expect < RD.size) {            // gauge says done but we do not hold the whole file: never save a holey image
+      RD.running = false; RD.done = false;
+      $('rdMsg').textContent = '⚠️ รับไฟล์มาไม่ครบ (' + RD.expect + '/' + RD.size + ' ไบต์) — กดเริ่มดูดใหม่อีกครั้ง';
+      $('bReadAbort').hidden = true; rdSetState(); return;
+    }
     if (RD.phase === 3) {                                   // DONE
       RD.running = false; RD.done = true;
       rdBar(100); $('rdGot').textContent = Math.floor(RD.size / 1024) + ' KB';
@@ -2509,7 +2520,7 @@ function shDetectECU(bin) {
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'v45'; } catch (e) {}
+  try { $('appVer').textContent = 'v46'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
