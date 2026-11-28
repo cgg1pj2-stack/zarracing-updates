@@ -517,7 +517,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
-    <span class="ver" id="appVer">v48</span>
+    <span class="ver" id="appVer">v49</span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -2073,8 +2073,12 @@ function shDetectECU(bin) {
       S.rm.free = u8[7] | u8[8] << 8; S.rm.sentSince = 0;   // fresh snapshot of the gauge buffer; bytes sent after it count against it
       rmProgress();
     } else if (u8[0] === 0xD0) {                      // K-line trace line(s) from the gauge (what it sent / what the ECU answered)
-      // during / after a ดูดไฟล์ run the lines belong to the read page's log, otherwise to the flash log
-      const el = (RD.running || Date.now() - RD.endedAt < 30000) ? $('rdTrace') : $('rTrace'); el.hidden = false;   // also the gauge's closing lines, which come after the app is done
+      // route to whichever op's log is live: SMART KEY, then ดูดไฟล์, else the flash log
+      let el;
+      if (SK.running || Date.now() - (SK.endedAt || 0) < 30000) { el = $('skTrace'); if ($('bSkLog')) $('bSkLog').hidden = false; }
+      else if (RD.running || Date.now() - RD.endedAt < 30000) { el = $('rdTrace'); if ($('bReadLog')) $('bReadLog').hidden = false; }
+      else el = $('rTrace');
+      el.hidden = false;
       if (el.id === 'rdTrace' && $('bReadLog')) $('bReadLog').hidden = false;
       el.textContent += new TextDecoder().decode(u8.subarray(1));
       if (el.textContent.length > 6000) el.textContent = el.textContent.slice(-5000);
@@ -2372,7 +2376,7 @@ function shDetectECU(bin) {
   ];
   const SK = { mi: -1, job: 0, running: false, buf: null, seen: null, have: 0, phase: 0, done: 0, result: 0,
                live: false, lastAt: 0, statAt: 0, quiet: 0, ackSent: false, decoded: false, backupSaved: false,
-               shownBusy: false, sticky: false, cancelArm: 0, model: null, code: '', raw: '', allZero: false, awake: false };
+               shownBusy: false, sticky: false, cancelArm: 0, model: null, code: '', raw: '', allZero: false, awake: false, endedAt: 0 };
 
   function skFill() {                                     // populate the model dropdown once
     const sel = $('skModel'); if (!sel || sel.options.length > 1) return;
@@ -2446,7 +2450,7 @@ function shDetectECU(bin) {
     catch (e) { skEnd('สั่งเริ่มไม่สำเร็จ — ลองเชื่อมต่อใหม่'); }
   }
   function skEnd(msg) {
-    SK.running = false; SK.sticky = true;
+    SK.running = false; SK.sticky = true; SK.endedAt = Date.now();
     $('bSkAbort').hidden = true; skCancelReset();
     $('skMsg').textContent = msg; skSetState(); skAwake(false);
   }
@@ -2939,7 +2943,7 @@ function shDetectECU(bin) {
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'v48'; } catch (e) {}
+  try { $('appVer').textContent = 'v49'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
