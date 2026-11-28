@@ -304,6 +304,28 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 .fl-foot span { display: inline-flex; align-items: center; gap: 6px; }
 .fl-foot b { font-family: var(--f-num); font-size: 17px; color: var(--fg); }
 .rwarn { color: var(--amber); font-size: 13px; line-height: 1.6; background: rgba(255,176,32,.07); border: 1px solid #5a4a1e; border-radius: 8px; padding: 10px 14px; margin: 0; }
+.sk-panel { padding: 14px 0 16px; }
+.sk-modelbar { padding: 0 16px; }
+.sk-modelbar select { width: 100%; padding: 11px 12px; background: #0a0c10; color: #fff; border: 1px solid rgba(var(--acc-rgb), .6); border-radius: 8px; font-size: 15px; font-family: var(--f-num); font-weight: 700; }
+.sk-modelpick { margin-top: 10px; text-align: center; font-family: var(--f-num); font-weight: 800; font-size: 19px; color: #fff; }
+.sk-modelpick span:last-child { color: var(--acc); font-size: 14px; }
+.sk-idbox { margin: 14px 16px 0; padding: 16px 12px 14px; background: radial-gradient(ellipse at top, rgba(var(--acc-rgb), .14), rgba(5,6,9,.55)); border: 1.5px solid rgba(var(--acc-rgb), .5); border-radius: 12px; }
+.sk-idlabel { text-align: center; font-family: var(--f-num); font-weight: 800; letter-spacing: 3px; color: var(--acc); margin-bottom: 12px; font-size: 14px; }
+.sk-idrow { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.sk-digits { display: flex; gap: 4px; flex-wrap: nowrap; }
+.sk-dig { font-family: var(--f-num); font-weight: 900; font-size: clamp(22px, 7vw, 34px); width: clamp(20px, 7vw, 30px); text-align: center; color: #fff; background: linear-gradient(#1b1e26, #0a0c10); border: 1px solid rgba(var(--acc-rgb), .5); border-radius: 6px; padding: 6px 0; box-shadow: inset 0 0 8px rgba(var(--acc-rgb), .3), 0 0 6px rgba(var(--acc-rgb), .22); text-shadow: 0 0 8px rgba(var(--acc-rgb), .6); }
+.sk-dig.off { color: #39404d; text-shadow: none; box-shadow: inset 0 0 6px rgba(0,0,0,.6); }
+.sk-check { width: 46px; height: 46px; border-radius: 50%; border: 3px solid #2a2f38; flex: none; }
+.sk-check.ok { border-color: #39d353; box-shadow: 0 0 14px #39d35388; background: radial-gradient(circle, #0c2a12, transparent); }
+.sk-check.ok::after { content: '\2713'; color: #39d353; display: grid; place-items: center; height: 100%; font-size: 28px; font-weight: 900; }
+.sk-check.fail { border-color: #ff4d4d; box-shadow: 0 0 14px #ff4d4d88; }
+.sk-check.fail::after { content: '\2715'; color: #ff4d4d; display: grid; place-items: center; height: 100%; font-size: 26px; font-weight: 900; }
+.sk-raw { text-align: center; color: var(--muted); font: 12px ui-monospace, Menlo, Consolas, monospace; margin-top: 10px; letter-spacing: 1px; }
+.sk-meter { margin: 14px 16px 0; }
+.sk-pctrow { text-align: right; margin: 5px 16px 0; color: var(--muted); font-family: var(--f-num); font-weight: 700; font-size: 12px; }
+.sk-actions { display: flex; gap: 10px; margin: 14px 16px 0; }
+.sk-actions .btn { flex: 1; margin: 0; }
+.sk-renew { border: 1px solid #5a4a1e !important; background: rgba(255,176,32,.1) !important; color: var(--amber) !important; box-shadow: none !important; }
 .legend { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
 .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 2px; vertical-align: -2px; margin-right: 6px; }
 
@@ -495,7 +517,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
-    <span class="ver" id="appVer">v47</span>
+    <span class="ver" id="appVer">v48</span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -543,6 +565,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       <button class="tab" role="tab" id="tTune" aria-selected="false" type="button">จูน</button>
       <button class="tab" role="tab" id="tRemap" aria-selected="false" type="button">อัดรีแมพ</button>
       <button class="tab" role="tab" id="tRead" aria-selected="false" type="button">ดูดไฟล์</button>
+      <button class="tab" role="tab" id="tSmk" aria-selected="false" type="button">SMART KEY</button>
     </div>
     <div class="shift" id="shift" aria-hidden="true"></div>
   </div>
@@ -834,6 +857,53 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       <p class="rwarn">ℹ️ การดูดไฟล์เป็นการอ่านอย่างเดียว ไม่แก้ไขข้อมูลในกล่อง · 256/384KB ใช้เวลานาน (หลายนาที) ห้ามดับกุญแจระหว่างอ่าน</p>
     </div>
   </section>
+  <section id="vSmk" hidden>
+    <div class="flwrap">
+      <div class="fl-sub">
+        <span class="fl-title">SMART KEY / HISS</span>
+        <span class="fl-sub2">อ่านรหัสสมาทคีย์ (Smart Key ID) · ดู iD / ลบ iD ผ่านเกจ</span>
+        <span class="fl-link" id="skKline"><i class="d"></i><b>ยังไม่เชื่อม</b></span>
+      </div>
+      <div class="fl-panel sk-panel">
+        <div class="sk-modelbar">
+          <select id="skModel"><option value="">— เลือกรุ่นรถ / กล่อง ECM —</option></select>
+          <div class="sk-modelpick"><span id="skModelName">—</span> <span id="skModelPart"></span></div>
+        </div>
+        <div class="sk-idbox">
+          <div class="sk-idlabel">SMART KEY ID</div>
+          <div class="sk-idrow">
+            <div class="sk-digits" id="skDigits"></div>
+            <div class="sk-check" id="skCheck"></div>
+          </div>
+          <div class="sk-raw" id="skRaw">RAM : -- -- -- --</div>
+        </div>
+        <div class="meter rbar sk-meter"><i id="skBar"></i></div>
+        <div class="sk-pctrow"><span id="skPct">0%</span></div>
+        <div class="sk-actions">
+          <button class="btn fl-flash" id="bSkRead" type="button" disabled><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2.8-2H21v2h-2v2h-2v-2h-2.2A4 4 0 0 1 7 16a4 4 0 0 1 0-8 4 4 0 0 1 3.8 4z"/></svg><span>อ่านรหัส SMART KEY</span></button>
+          <button class="btn sk-renew" id="bSkRenew" type="button" disabled>RENEW (ลบ iD)</button>
+        </div>
+        <span id="skMsg" class="rmsg">เชื่อมต่อรถก่อน แล้วเลือกรุ่น</span>
+        <div class="rd-actions">
+          <button class="fl-readbtn" id="bSkSave" type="button" hidden>💾 บันทึก EEPROM (.bin)</button>
+          <button class="fl-readbtn dtc-clear" id="bSkAbort" type="button" hidden>ยกเลิก</button>
+        </div>
+        <pre id="skTrace" class="rtrace" hidden></pre>
+        <div class="rd-actions"><button class="fl-readbtn" id="bSkLog" type="button" hidden>📋 คัดลอก log</button></div>
+      </div>
+      <div class="fl-panel">
+        <div class="fl-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg>ขั้นตอน</div>
+        <ol class="rd-steps">
+          <li>เลือกรุ่นรถ / กล่อง ECM ให้ตรง</li>
+          <li>กด <b>อ่านรหัส SMART KEY</b> (หรือ <b>RENEW</b> เพื่อลบรหัสกุญแจในกล่อง)</li>
+          <li><b>ดับกุญแจ รอ 3 วินาที แล้วเปิดใหม่</b> 1 ครั้ง — เกจอ่านเองทันทีที่ไฟเข้า</li>
+          <li>รอจนขึ้นรหัส 9 หลัก — แสดงทั้งบนมือถือและบนหน้าเกจพร้อมกัน</li>
+        </ol>
+        <p class="rwarn">ℹ️ อ่านรหัส = อ่านอย่างเดียว ไม่แก้กล่อง · RENEW = ลบรหัสกุญแจในกล่อง (ดาวน์โหลดไฟล์สำรองก่อนทุกครั้ง) ระหว่างทำ <b>ห้ามดับกุญแจ ห้ามปิดแอป</b></p>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <script>
@@ -931,6 +1001,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
     readDrag();
     keepAwake();
     if (RD.running) { RD.awake = false; rdAwake(true); }   // back in the middle of a ROM read: keep the screen on again
+    if (typeof SK !== 'undefined' && SK.running) { SK.awake = false; skAwake(true); }
     rmSetState();
     rdSetState();                                    // the read page's Start button follows the link at once
   }
@@ -942,7 +1013,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
       // During a ROM read the gauge loses power with the key (it is fed from the same line) and comes
       // back reading on its own; the image then waits in the gauge until we are back. So keep trying
       // to reconnect for as long as a read is in progress; otherwise give up after 20 tries.
-      const readingRom = (typeof RD !== 'undefined' && RD && RD.running);
+      const readingRom = (typeof RD !== 'undefined' && RD && RD.running) || (typeof SK !== 'undefined' && SK && SK.running);
       try { await openGatt(); } catch (e) {
         if (readingRom || n < 20) reconnectTimer = setTimeout(() => retry(n + 1), readingRom ? 1000 : 1500);
         else setLink('bad', 'LOST');
@@ -2012,6 +2083,10 @@ function shDetectECU(bin) {
       rdOnData(u8);
     } else if (u8[0] === 0xF1) {                      // ดูดไฟล์ progress [phase, result, done32]
       rdOnProgress(u8);
+    } else if (u8[0] === 0xD3) {                      // SMART KEY: a slice of the 512-byte EEPROM [off16][data]
+      skOnData(u8);
+    } else if (u8[0] === 0xF2) {                      // SMART KEY status [phase, result, doneWord16, job, proto]
+      skOnStatus(u8);
     } else if (u8[0] === 0xE1) {                      // Shindengen: ECU asks for the key -> send the key MATERIAL
       const seed = [u8[1], u8[2]], kind = u8[3] || 0;  // kind: 0 write key, 1 recovery key (the gauge computes the key)
       S.rm.seedHex = hex(seed);
@@ -2277,6 +2352,203 @@ function shDetectECU(bin) {
     try { await navigator.clipboard.writeText(txt); toast('คัดลอก log แล้ว — วางส่งในแชทได้เลย'); }
     catch (e) { const r = document.createRange(); r.selectNodeContents($('rdTrace')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('เลือกข้อความแล้ว กดคัดลอกเอง'); }
   });
+
+  // ======================= SMART KEY / HISS (ดูรหัส / ลบ iD) =======================
+  // Reads (or RENEWs) the 512-byte immobiliser EEPROM. The gauge does the K-line; this page holds the
+  // per-model byte offsets + decode formula (ported from v3 SMK.cs) and shows the 9-digit SMART KEY ID.
+  // proto: 0 = Shindengen (0x91), 1 = Keihin SCOOPY (0x27/0x82). pcx: PCX-style decimal decode vs Keihin.
+  const SK_MODELS = [
+    { n: 'ADV 150',    p: '30400-K0WA-N01', proto: 0, pcx: true,  f: 0x40, s: 0x50 },
+    { n: 'ADV 160',    p: '30400-K0WL-NXX', proto: 0, pcx: true,  f: 0x40, s: 0x4C },
+    { n: 'BEAT 110',   p: '30400-K1AL-NB1', proto: 0, pcx: true,  f: 0x3C, s: 0x3E },
+    { n: 'PCX 150',    p: '30400-K97G-NXX', proto: 0, pcx: true,  f: 0x40, s: 0x50 },
+    { n: 'PCX 160',    p: '30400-K1ZG-NXX', proto: 0, pcx: true,  f: 0x40, s: 0x4C },
+    { n: 'PCX 160',    p: '30400-K1ZN-NXX', proto: 0, pcx: true,  f: 0x40, s: 0x4C },
+    { n: 'STYLO 160',  p: '30400-K3VA-N01', proto: 0, pcx: true,  f: 0x3C, s: 0x3E },
+    { n: 'SCOOPY 110', p: '30400-K2F-NXX',  proto: 1, pcx: false, f: 0x46, s: 0x48 },
+    { n: 'VARIO 125',  p: '30400-K2VG-N42', proto: 0, pcx: true,  f: 0x3C, s: 0x3E },
+    { n: 'VARIO 150',  p: '30400-K59J-A71', proto: 0, pcx: true,  f: 0x90, s: 0xA0 },
+    { n: 'VARIO 160',  p: '30400-K2SA-N02', proto: 0, pcx: true,  f: 0x3C, s: 0x3E },
+  ];
+  const SK = { mi: -1, job: 0, running: false, buf: null, seen: null, have: 0, phase: 0, done: 0, result: 0,
+               live: false, lastAt: 0, statAt: 0, quiet: 0, ackSent: false, decoded: false, backupSaved: false,
+               shownBusy: false, sticky: false, cancelArm: 0, model: null, code: '', raw: '', allZero: false, awake: false };
+
+  function skFill() {                                     // populate the model dropdown once
+    const sel = $('skModel'); if (!sel || sel.options.length > 1) return;
+    SK_MODELS.forEach((m, i) => { const o = document.createElement('option'); o.value = i; o.textContent = m.n + '  /  ' + m.p; sel.appendChild(o); });
+  }
+  function skSetState() {
+    skFill();
+    const linked = S.link === 'ok' && !!chFlash;
+    const kl = $('skKline'), klb = kl ? kl.querySelector('b') : null;
+    if (kl) { kl.className = 'fl-link' + (linked ? ' ok' : ''); if (klb) klb.textContent = linked ? 'เชื่อมต่อแล้ว' : 'ยังไม่เชื่อม'; }
+    const picked = SK.mi >= 0;
+    if ($('bSkRead'))  $('bSkRead').disabled  = !linked || !picked || SK.running;
+    if ($('bSkRenew')) $('bSkRenew').disabled = !linked || !picked || SK.running;
+    if (!SK.running && !SK.sticky && $('skMsg')) $('skMsg').textContent = linked ? (picked ? 'กด อ่านรหัส SMART KEY' : 'เลือกรุ่นรถ / กล่อง ECM ก่อน') : 'เชื่อมต่อรถก่อน (ไปหน้าหลัก กดเชื่อมต่อ)';
+  }
+  function skAwake(on) { if (on === SK.awake) return; SK.awake = on; try { const p = keepAwake(on); if (p && p.catch) p.catch(() => {}); } catch (e) {} }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && SK.running) { SK.awake = false; skAwake(true); } });
+
+  function skDigits(code) {                               // render the 9-digit ID as individual cells
+    const box = $('skDigits'); if (!box) return;
+    const s = (code || '---------').padStart(9, '-').slice(-9);
+    box.innerHTML = '';
+    for (const ch of s) { const d = document.createElement('span'); d.className = 'sk-dig' + (ch === '-' ? ' off' : ''); d.textContent = ch; box.appendChild(d); }
+  }
+  function skBar(pct) { const i = $('skBar'); if (i) i.style.width = Math.max(0, Math.min(100, pct)) + '%'; if ($('skPct')) $('skPct').textContent = Math.round(pct) + '%'; }
+  function skLog(t) { const el = $('skTrace'); if (!el) return; el.hidden = false; el.textContent += 'APP ' + t + '\n'; const b = $('bSkLog'); if (b) b.hidden = false; }
+
+  function skDecode(m, buf) {
+    const f0 = buf[m.f], f1 = buf[m.f + 1], s0 = buf[m.s], s1 = buf[m.s + 1];
+    const raw = [f0, f1, s0, s1].map(b => b.toString(16).toUpperCase().padStart(2, '0')).join(' ');
+    const allZero = (f0 | f1 | s0 | s1) === 0;
+    let code;
+    if (m.pcx) { const id = ((s1 << 24) | (s0 << 16) | (f1 << 8) | f0) >>> 0; code = String(id).padStart(9, '0'); }
+    else {        // SCOOPY (Keihin) — v3: (part1*0x10000 >> 2) - 0x20000000 + (part2 ^ 0x8000), as a 9-digit number
+      const part1 = (f1 << 8) | f0, part2 = (s1 << 8) | s0;
+      const v = part1 * 16384 - 0x20000000 + (part2 ^ 0x8000);   // *0x10000/4, kept exact (no 32-bit shift)
+      code = (v < 0 ? '-' : '') + Math.abs(v).toString().padStart(9, '0');
+    }
+    return { raw, code, allZero };
+  }
+
+  // tell the gauge what to show: [0x0D, status, model\0 id\0 raw\0]   status 1 busy, 2 OK, 3 FAIL, 4 EMPTY
+  function skShow(status, model, id, raw) {
+    if (!chFlash) return;
+    const enc = s => Array.from(unescape(encodeURIComponent(s || '')), c => c.charCodeAt(0) & 0xFF);
+    const body = [].concat(enc(model), [0], enc(id), [0], enc(raw), [0]).slice(0, 90);
+    gattWrite(chFlash, Uint8Array.of(0x0D, status & 255, ...body)).catch(() => {});
+  }
+
+  function skBegin(job) {
+    const m = SK_MODELS[SK.mi]; SK.model = m; SK.job = job;
+    SK.buf = new Uint8Array(512); SK.seen = new Uint8Array(512); SK.have = 0; SK.phase = 0; SK.done = 0; SK.result = 0;
+    SK.running = true; SK.live = false; SK.lastAt = 0; SK.statAt = Date.now(); SK.quiet = 0;
+    SK.ackSent = false; SK.decoded = false; SK.backupSaved = false; SK.shownBusy = false; SK.sticky = false;
+    SK.code = ''; SK.raw = ''; SK.allZero = false;
+    skDigits(''); skBar(0); $('skRaw').textContent = 'RAM : -- -- -- --';
+    if ($('skCheck')) $('skCheck').className = 'sk-check';
+    $('bSkSave').hidden = true; $('bSkAbort').hidden = false;
+    $('skModelName').textContent = m.n; $('skModelPart').textContent = '(' + m.p + ')';
+    const tr = $('skTrace'); if (tr) { tr.hidden = false; tr.textContent = ''; }
+    skCancelReset(); skAwake(true); skSetState();
+  }
+  async function skStart(job) {
+    if (!chFlash || SK.running || SK.mi < 0) return;
+    skBegin(job);
+    const m = SK.model;
+    skLog(($('appVer') ? $('appVer').textContent : '') + ' SMK ' + (job === 2 ? 'RENEW' : 'READ') + ' ' + m.n + ' proto=' + m.proto);
+    $('skMsg').textContent = '📢 ดับกุญแจ รอ 3 วินาที แล้วเปิดกุญแจ 1 ครั้ง — เกจจะอ่านเองทันทีที่ไฟเข้า (ถ้าเกจดับตามกุญแจ มือถือจะต่อกลับเอง ไม่ต้องกดอะไร)';
+    skShow(1, m.n, '', '');
+    try { await gattWrite(chFlash, Uint8Array.of(0x0B, job, m.proto)); }
+    catch (e) { skEnd('สั่งเริ่มไม่สำเร็จ — ลองเชื่อมต่อใหม่'); }
+  }
+  function skEnd(msg) {
+    SK.running = false; SK.sticky = true;
+    $('bSkAbort').hidden = true; skCancelReset();
+    $('skMsg').textContent = msg; skSetState(); skAwake(false);
+  }
+  function skAck() { SK.ackSent = true; if (chFlash) gattWrite(chFlash, Uint8Array.of(0x0C)).catch(() => {}); }   // phone holds all 512
+  function skProceed() { if (chFlash) gattWrite(chFlash, Uint8Array.of(0x0E)).catch(() => {}); }                   // backup saved -> write (renew)
+
+  function skOnData(u8) {
+    if (!SK.running || !SK.buf) return;
+    const off = (u8[1] | u8[2] << 8) >>> 0, n = u8.length - 3;
+    if (n <= 0 || off + n > 512) return;
+    SK.live = true; SK.lastAt = Date.now(); SK.statAt = Date.now(); SK.quiet = 0;
+    for (let i = 0; i < n; i++) { if (!SK.seen[off + i]) { SK.seen[off + i] = 1; SK.have++; } SK.buf[off + i] = u8[3 + i]; }
+    skBar(Math.min(100, 100 * SK.have / 512));
+    if (SK.have >= 512) skGotAll();
+  }
+  function skGotAll() {
+    skAck();                                              // idempotent: re-ACK if the gauge keeps resending
+    if (SK.decoded) return; SK.decoded = true;
+    const m = SK.model, d = skDecode(m, SK.buf);
+    SK.code = d.code; SK.raw = d.raw; SK.allZero = d.allZero;
+    skDigits(d.allZero ? '000000000' : d.code); skBar(100);
+    $('skRaw').textContent = 'RAM : ' + d.raw;
+    skLog('read 512 bytes: ' + m.n + ' raw ' + d.raw + ' -> ' + (d.allZero ? '(empty / immo reset)' : d.code));
+
+    if (SK.job === 1) {                                   // READ: done
+      if ($('skCheck')) $('skCheck').className = 'sk-check ok';
+      skShow(d.allZero ? 4 : 2, m.n, d.allZero ? '000000000' : d.code, d.raw);
+      SK.name = 'SMK_' + m.p.replace(/^30400-/, '') + '_' + (d.allZero ? 'EMPTY' : d.code) + '_' + new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14) + '.bin';
+      $('bSkSave').hidden = false;                        // the raw 512-byte EEPROM can be saved too
+      skEnd(d.allZero ? '✅ อ่านสำเร็จ — กล่องนี้ยังไม่ผูกกุญแจ (รหัสว่าง) นำกล่องไป ON ใกล้กุญแจ จะผูกให้เอง'
+                      : '✅ อ่านรหัสสมาทคีย์สำเร็จ: ' + d.code + ' (รุ่น ' + m.n + ')');
+    } else {                                              // RENEW: save a backup FIRST, then let the gauge write
+      skSaveBin(SK.buf, 'RENEW-BACKUP_' + m.p.replace(/^30400-/, '') + '_' + new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14) + '.bin');
+      SK.backupSaved = true;
+      $('skMsg').textContent = '💾 สำรอง EEPROM แล้ว — กำลังลบรหัสในกล่อง (ห้ามดับกุญแจ ห้ามปิดแอป)...';
+      skShow(1, m.n, '', '');
+      skProceed();                                        // gauge zeroes 0x20..0xAF and writes back
+    }
+  }
+  function skOnStatus(u8) {
+    const ph = u8[1], result = u8[2], done = (u8[3] | u8[4] << 8) >>> 0, now = Date.now();
+    if (!SK.running) return;
+    if (ph === 1 || ph === 2 || ph === 3) { SK.live = true; SK.statAt = now; SK.quiet = 0; }
+    SK.phase = ph; SK.done = done; SK.result = result;
+    if (!SK.shownBusy && SK.model && (ph === 1 || ph === 2)) { SK.shownBusy = true; skShow(1, SK.model.n, '', ''); }
+    if (ph === 1) { $('skMsg').textContent = '🔑 เกจรอจังหวะกล่อง — ดับกุญแจ รอ 3 วินาที แล้วเปิด 1 ครั้ง'; }
+    else if (ph === 2) { if (!SK.decoded) { skBar(Math.max(100 * SK.have / 512, 100 * done / 256)); $('skMsg').textContent = '⏳ กำลังอ่าน EEPROM จากกล่อง ' + Math.floor(100 * done / 256) + '% — ห้ามดับกุญแจ'; } }
+    else if (ph === 3) { skBar(100 * done / 256); $('skMsg').textContent = '✍️ กำลังลบรหัส (เขียน EEPROM) ' + Math.floor(100 * done / 256) + '% — ห้ามดับกุญแจ ห้ามปิดแอป'; if ($('skCheck')) $('skCheck').className = 'sk-check'; }
+    else if (ph === 4) {                                  // DONE
+      if (SK.job === 2) {                                 // renew finished
+        skDigits('000000000'); skBar(100);
+        if ($('skCheck')) $('skCheck').className = 'sk-check ok';
+        skShow(4, SK.model.n, '000000000', '');
+        skEnd('✅ ลบรหัส (RENEW) สำเร็จ — นำกล่องไป ON ใกล้กล่องกุญแจ ECM จะผูกรหัสใหม่อัตโนมัติ · มีไฟล์สำรองในเครื่องแล้ว');
+      } else if (!SK.decoded) { /* read done on the gauge but data not all here yet: data path will finish it */ }
+    }
+    else if (ph === 5) {                                  // FAILED
+      if ($('skCheck')) $('skCheck').className = 'sk-check fail';
+      const why = result === 1 ? 'เข้าถึงความปลอดภัยไม่ผ่าน (Security) — เลือกรุ่นให้ตรง แล้วดับกุญแจ รอ 3 วิ ค่อยเปิด'
+                : result === 2 ? 'อ่าน EEPROM ไม่ครบ — ตรวจสาย/สวิตช์กุญแจ แล้วลองใหม่'
+                : result === 4 ? '⚠️ เขียน EEPROM ไม่ครบ — RENEW ไม่สมบูรณ์ ใช้ไฟล์สำรองเขียนคืน แล้วลองใหม่'
+                : result === 3 ? 'ยกเลิกแล้ว' : 'ไม่สำเร็จ (code ' + result + ')';
+      skShow(3, SK.model ? SK.model.n : '', '', '');
+      skEnd('❌ ' + why + ' · กดคัดลอก log ส่งให้ช่างได้');
+    }
+  }
+  function skSaveBin(buf, name) {
+    const blob = new Blob([buf], { type: 'application/octet-stream' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    toast('บันทึก ' + name);
+  }
+  // the gauge went silent while we think a read is running (timed out / cancelled on its screen / rebooted idle)
+  setInterval(() => {
+    if (!SK.running) return;
+    if (S.link !== 'ok') { SK.statAt = Date.now(); SK.quiet = 0; return; }
+    if (Date.now() - SK.statAt < 20000) { SK.quiet = 0; return; }
+    if (SK.phase === 3) return;                           // never time out a write
+    if (++SK.quiet >= 3) skEnd('⚠️ เกจไม่ได้อยู่ในโหมด SMART KEY แล้ว (หมดเวลา/ยกเลิก/เกจเปิดใหม่) — กดเริ่มใหม่อีกครั้ง');
+  }, 2000);
+
+  let skCancelT = 0;
+  function skCancelReset() { SK.cancelArm = 0; clearTimeout(skCancelT); const b = $('bSkAbort'); if (b) b.textContent = 'ยกเลิก'; }
+  async function skAbort() {
+    if (SK.phase === 3) { toast('กำลังเขียน EEPROM อยู่ — ยกเลิกไม่ได้'); return; }   // never interrupt a write
+    const now = Date.now();
+    if (!SK.cancelArm || now - SK.cancelArm > 4000) { SK.cancelArm = now; $('bSkAbort').textContent = '⚠️ กดอีกครั้งเพื่อยืนยันยกเลิก'; clearTimeout(skCancelT); skCancelT = setTimeout(skCancelReset, 4000); return; }
+    if (chFlash) { try { await gattWrite(chFlash, Uint8Array.of(0x03)); } catch (e) {} }
+    skEnd('ยกเลิกแล้ว — ก่อนสตาร์ทรถให้ดับ-เปิดกุญแจ 1 ครั้ง');
+  }
+
+  if ($('skModel')) $('skModel').addEventListener('change', e => { if (SK.running) return; SK.mi = parseInt(e.target.value, 10); if (isNaN(SK.mi)) SK.mi = -1;
+    const m = SK_MODELS[SK.mi]; if (m) { $('skModelName').textContent = m.n; $('skModelPart').textContent = '(' + m.p + ')'; } SK.sticky = false; skDigits(''); if ($('skCheck')) $('skCheck').className = 'sk-check'; skSetState(); });
+  if ($('bSkRead'))  $('bSkRead').addEventListener('click', () => skStart(1));
+  if ($('bSkRenew')) $('bSkRenew').addEventListener('click', () => {
+    const m = SK_MODELS[SK.mi]; if (!m) return;
+    if (!confirm('RENEW จะลบรหัสกุญแจที่ผูกไว้ในกล่อง (EEPROM 0x20–0xAF) แล้วเขียนกลับ\nรุ่น: ' + m.n + ' (' + m.p + ')\n\n• โปรแกรมจะดาวน์โหลดไฟล์สำรอง EEPROM ก่อนเขียนทุกครั้ง\n• ระหว่างเขียน ห้ามดับกุญแจ / ห้ามปิดแอป\n\nทำต่อหรือไม่?')) return;
+    skStart(2);
+  });
+  if ($('bSkSave')) $('bSkSave').addEventListener('click', () => { if (SK.buf && SK.name) skSaveBin(SK.buf, SK.name); });
+  if ($('bSkAbort')) $('bSkAbort').addEventListener('click', skAbort);
+  if ($('bSkLog')) $('bSkLog').addEventListener('click', async () => { const t = ($('skTrace') && $('skTrace').textContent) || ''; try { await navigator.clipboard.writeText(t); toast('คัดลอก log แล้ว'); } catch (e) {} });
 
   // ---------- fault codes (DTC) ----------
   // Descriptions ported from src/data/honda_kline.h hkDtcDesc() (same table as the gauge's DTC page).
@@ -2645,13 +2917,14 @@ function shDetectECU(bin) {
     try { if (!document.fullscreenElement) { await document.documentElement.requestFullscreen(); try { await screen.orientation.lock('landscape'); } catch (e) {} } else await document.exitFullscreen(); } catch (e) {}
   });
   function show(tab) {
-    const v = { gauge: 'vGauge', drag: 'vDrag', log: 'vLog', tune: 'vTune', remap: 'vRemap', read: 'vRead' }, t = { gauge: 'tGauge', drag: 'tDrag', log: 'tLog', tune: 'tTune', remap: 'tRemap', read: 'tRead' };
+    const v = { gauge: 'vGauge', drag: 'vDrag', log: 'vLog', tune: 'vTune', remap: 'vRemap', read: 'vRead', smk: 'vSmk' }, t = { gauge: 'tGauge', drag: 'tDrag', log: 'tLog', tune: 'tTune', remap: 'tRemap', read: 'tRead', smk: 'tSmk' };
     if (!v[tab]) tab = 'gauge';
     for (const k in v) { $(v[k]).hidden = k !== tab; $(t[k]).setAttribute('aria-selected', k === tab); }
     store.set('zar.tab', tab);
     if (tab === 'log') lgPaintCursor(true);
     if (tab === 'remap') rmSetState();
     if (tab === 'read') rdSetState();
+    if (tab === 'smk') skSetState();
     if (tab === 'tune' && window.tuneInit) window.tuneInit();
   }
   $('tGauge').addEventListener('click', () => show('gauge'));
@@ -2660,12 +2933,13 @@ function shDetectECU(bin) {
   $('tTune').addEventListener('click', () => show('tune'));
   $('tRemap').addEventListener('click', () => show('remap'));
   $('tRead').addEventListener('click', () => show('read'));
+  $('tSmk').addEventListener('click', () => show('smk'));
   show(store.get('zar.tab', 'gauge'));
 
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'v47'; } catch (e) {}
+  try { $('appVer').textContent = 'v48'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
