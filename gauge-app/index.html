@@ -495,7 +495,7 @@ table.cells { border-collapse: separate; border-spacing: 0; font-family: var(--f
 <div class="app">
   <header class="bar">
     <div class="logo"><b>ZAR</b> RACING</div>
-    <span class="ver" id="appVer">v44</span>
+    <span class="ver" id="appVer">v45</span>
     <div class="chips">
       <span class="chip bad" id="cBle"><span class="dot"></span><span>BT OFF</span></span>
       <span class="chip" id="cEcu"><span class="dot"></span><span>ECU</span></span>
@@ -2062,7 +2062,7 @@ function shDetectECU(bin) {
     $('rdTotal').textContent = (RD.size / 1024) + ' KB'; $('rdGot').textContent = '0 KB'; rdBar(0);
     $('bReadSave').hidden = true; $('bReadAbort').hidden = false; $('bRead').disabled = true;
     const tr = $('rdTrace'); if (tr) { tr.hidden = false; tr.textContent = ''; }
-    $('rdMsg').textContent = '📢 เกจกำลังรีเซ็ตตัวเองแล้วอ่านไฟล์ให้อัตโนมัติ — ไม่ต้องดับเปิดกุญแจ · ระหว่างอ่าน เกจจะปิดบลูทูธ ~1 นาที (มือถือขึ้น RECONNECT อย่าเพิ่งปิดแอป) แล้วต่อกลับส่งไฟล์เอง';
+    $('rdMsg').textContent = '📢 ดับกุญแจ รอ 3 วินาที แล้วเปิดกุญแจ 1 ครั้ง — เกจจะส่งรหัสทันทีที่ไฟเข้าแล้วอ่านไฟล์เอง · ระหว่างอ่านบลูทูธจะปิด ~1 นาที (ขึ้น RECONNECT อย่าปิดแอป) แล้วต่อกลับส่งไฟล์เอง';
     try { await gattWrite(chFlash, Uint8Array.of(0x08, RD.ecuSel)); } catch (e) { RD.running = false; $('rdMsg').textContent = 'สั่งเริ่มไม่สำเร็จ — ลองเชื่อมต่อใหม่'; rdSetState(); }
   }
   function rdOnData(u8) {
@@ -2509,7 +2509,7 @@ function shDetectECU(bin) {
   setTheme(store.get('zar.theme', 0));
   rmSetFile();                                            // hide the file rows until a .bin is picked
   histRender();                                           // paint the flash history
-  try { $('appVer').textContent = 'v44'; } catch (e) {}
+  try { $('appVer').textContent = 'v45'; } catch (e) {}
   syncGpsSource();
   (function loop() { drawTach(); requestAnimationFrame(loop); })();
   paintTiles(); paintDrag(); paintDragLive();
